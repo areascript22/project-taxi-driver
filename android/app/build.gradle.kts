@@ -1,14 +1,23 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
-    namespace = "com.example.driver_app"
+    namespace = "com.areascript.driver_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -20,21 +29,57 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.driver_app"
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html). [cite: 3]
+        applicationId = "com.areascript.driver_app"
         // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // For more information, see: https://flutter.dev/to/review-gradle-config. [cite: 4]
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    // Flavor configuration
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationId = "com.areascript.driver_app.dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "ViaGo Conductor Dev")
+        }
+        create("prod") {
+            dimension = "environment"
+            applicationId = "com.areascript.driver_app"
+            versionNameSuffix = ""
+            resValue("string", "app_name", "ViaGo Conductor")
+        }
+    }
+
+    signingConfigs {
+        // Cambié el nombre de "prod" a "release" para que sea más semántico,
+        // ya que ahora firmará ambos flavors.
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+
+                // 🔥 Modificado: Usamos rootProject.file para que busque en "android/"
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
