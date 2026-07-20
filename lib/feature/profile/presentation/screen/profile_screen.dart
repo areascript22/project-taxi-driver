@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
-import '../../../../shared/presentation/component/custom_button.dart';
 import '../component/confirmation_popup.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -20,17 +19,31 @@ class ProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: BlocBuilder<SessionBloc, SessionState>(
-        builder: (context, state) {
-          if (state is SessionAuthenticated) {
-            return _buildProfileContent(context, state.user);
-          }
-
-          return const Center(
-            child: Text("No se encontró información del usuario"),
-          );
-        },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1A1A2E),
+              const Color(0xFF16213E),
+              const Color(0xFF0F3460),
+            ],
+          ),
+        ),
+        child: BlocBuilder<SessionBloc, SessionState>(
+          builder: (context, state) {
+            if (state is SessionAuthenticated) {
+              return _buildProfileContent(context, state.user);
+            }
+            return const Center(
+              child: Text(
+                'No se encontró información del usuario',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -41,111 +54,11 @@ class ProfileView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 40),
-
-            // Profile Avatar
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: const Color(0xFFE2E8F0),
-                backgroundImage:
-                    user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                child:
-                    user.photoUrl == null
-                        ? const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Color(0xFF94A3B8),
-                        )
-                        : null,
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Display Name
-            Text(
-              user.displayName ?? 'Usuario Sin Nombre',
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-                letterSpacing: -0.5,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Email (Primary Subtitle)
-            Text(
-              user.email ?? 'Sin correo electrónico',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Info Cards Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _buildInfoTile(
-                      icon: Icons.fingerprint,
-                      title: 'ID de Usuario',
-                      value: user.id,
-                      isFirst: true,
-                    ),
-                    const Divider(
-                      height: 1,
-                      indent: 60,
-                      color: Color(0xFFF1F5F9),
-                    ),
-                    _buildInfoTile(
-                      icon: Icons.email_outlined,
-                      title: 'Correo',
-                      value: user.email ?? 'No disponible',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
+            _buildProfileHeader(user),
             const SizedBox(height: 32),
-
-            // Sign Out Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: CustomButton(textButton: "Cerrar sesión", onTap: () {
-                ConfirmationPopup.show(context: context);
-              }),
-            ),
-
+            _buildInfoCard(user),
+            const SizedBox(height: 32),
+            _buildSignOutButton(context),
             const SizedBox(height: 40),
           ],
         ),
@@ -153,7 +66,111 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  // Reusable widget for profile rows
+  Widget _buildProfileHeader(UserEntity user) {
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 3),
+            boxShadow: [
+
+            ],
+          ),
+          child: CircleAvatar(
+            radius: 64,
+            backgroundColor: Colors.white.withOpacity(0.1),
+            backgroundImage:
+                user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+            child:
+                user.photoUrl == null
+                    ? Icon(
+                      Icons.person,
+                      size: 64,
+                      color: Colors.white.withOpacity(0.5),
+                    )
+                    : null,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          user.displayName ?? 'Conductor',
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE94560).withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'Conductor Activo',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFFE94560),
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          user.email ?? 'Sin correo',
+          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(UserEntity user) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Column(
+          children: [
+            _buildInfoTile(
+              icon: Icons.email_outlined,
+              title: 'Correo electrónico',
+              value: user.email ?? 'No disponible',
+              isFirst: true,
+            ),
+            Divider(
+              height: 1,
+              indent: 60,
+              color: Colors.white.withOpacity(0.06),
+            ),
+            _buildInfoTile(
+              icon: Icons.phone_outlined,
+              title: 'Teléfono',
+              value: 'No registrado',
+            ),
+            Divider(
+              height: 1,
+              indent: 60,
+              color: Colors.white.withOpacity(0.06),
+            ),
+            _buildInfoTile(
+              icon: Icons.car_repair,
+              title: 'Vehículo',
+              value: 'No registrado',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoTile({
     required IconData icon,
     required String title,
@@ -161,23 +178,23 @@ class ProfileView extends StatelessWidget {
     bool isFirst = false,
   }) {
     return Padding(
-      padding: EdgeInsets.only(top: isFirst ? 8.0 : 4.0, bottom: 4.0),
+      padding: EdgeInsets.only(top: isFirst ? 12.0 : 4.0, bottom: 4.0),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFEFF6FF),
+            color: const Color(0xFFE94560).withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF3B82F6), size: 24),
+          child: Icon(icon, color: const Color(0xFFE94560), size: 22),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF94A3B8),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.4),
             letterSpacing: 0.5,
           ),
         ),
@@ -187,9 +204,48 @@ class ProfileView extends StatelessWidget {
             value,
             style: const TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF334155),
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignOutButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () {
+            ConfirmationPopup.show(context: context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white.withOpacity(0.05),
+            foregroundColor: const Color(0xFFE94560),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: const Color(0xFFE94560).withOpacity(0.3)),
+            ),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.logout_rounded, size: 20, color: Color(0xFFE94560)),
+              SizedBox(width: 10),
+              Text(
+                'Cerrar sesión',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFE94560),
+                ),
+              ),
+            ],
           ),
         ),
       ),
