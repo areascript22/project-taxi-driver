@@ -1,3 +1,4 @@
+import 'package:driver_app/shared/presentation/component/app_version.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -161,14 +162,7 @@ class SignInView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 40),
-                      Text(
-                        'Versión 1.0.0',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.2),
-                          letterSpacing: 1,
-                        ),
-                      ),
+                      AppVersionWidget(),
                     ],
                   ),
                 );
