@@ -25,6 +25,17 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
   }
 
   @override
+  Future<Either<Failure, LocationPermission>> checkPermission() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      return Right(permission);
+    } catch (e) {
+      debugPrint("Error checking location permissions: $e");
+      return Left(Failure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserLocation>> getCurrentPosition() async {
     try {
       final isServiceEnabled = await Geolocator.isLocationServiceEnabled();

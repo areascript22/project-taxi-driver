@@ -3,6 +3,7 @@ import 'package:driver_app/shared/feature/session/di/session_service_locator.dar
 import 'package:driver_app/shared/geolocator/di/geolocator_service_locator.dart';
 import 'package:get_it/get_it.dart';
 import '../../feature/incoming_request/di/incoming_request_service_locator.dart';
+import '../../feature/trip/di/trip_service_locator.dart';
 import '../../shared/services/dotenv/dotenv_service_locator.dart';
 
 
@@ -14,4 +15,5 @@ Future<void> initMainServiceLocator() async {
   initAuthDI(mainServiceLocator);
   initGeolocator(mainServiceLocator);
   initIncomingRequestDI(mainServiceLocator);
+  initTripDI(mainServiceLocator);
 }

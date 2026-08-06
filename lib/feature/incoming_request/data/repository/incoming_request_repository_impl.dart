@@ -52,7 +52,6 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
     required UserLocation driverLocation,
   }) async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
       final DatabaseReference ref = FirebaseDatabase.instance.ref(
         'taxi_requests/$passengerId',
       );
