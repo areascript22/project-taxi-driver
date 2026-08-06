@@ -25,3 +25,33 @@ const homeRoute = NavigationEntity(
   name: 'home',
   route: '/home',
 );
+
+const bookingRoute = NavigationEntity(
+  key: 'booking_route_key',
+  name: 'booking',
+  route: '/booking',
+);
+
+const booking2Route = NavigationEntity(
+  key: 'booking2_route_key',
+  name: 'booking2',
+  route: '/booking2',
+);
+
+const tripRoute = NavigationEntity(
+  key: 'trip_route_key',
+  name: 'trip',
+  route: '/trip',
+);
+
+const profileRoute = NavigationEntity(
+  key: 'profile_route_key',
+  name: 'profile',
+  route: '/profile',
+);
+
+const profile2Route = NavigationEntity(
+  key: 'profile2_route_key',
+  name: 'profile2',
+  route: '/profile2',
+);

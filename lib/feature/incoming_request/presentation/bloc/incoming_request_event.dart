@@ -9,12 +9,12 @@ final class StopListeningRequests extends IncomingRequestEvent {}
 
 // Nuevo evento para aceptar la carrera
 final class AcceptRideRequested extends IncomingRequestEvent {
-  final String passengerId;
+  final IncomingRequestEntity request;
   final UserEntity driverEntity;
   final UserLocation driverLocation;
 
   AcceptRideRequested({
-    required this.passengerId,
+    required this.request,
     required this.driverEntity,
     required this.driverLocation,
   });

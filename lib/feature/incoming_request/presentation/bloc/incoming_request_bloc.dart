@@ -62,7 +62,7 @@ class IncomingRequestBloc
       final updatedList = List<IncomingRequestEntity>.from(currentRequests)
         ..insert(0, event.request); // Lo agregamos al inicio de la lista
 
-      emit(IncomingRequestLoaded(requests: updatedList));
+      emit((state as IncomingRequestLoaded).copyWith(requests: updatedList));
     }
   }
 
@@ -78,7 +78,7 @@ class IncomingRequestBloc
             return req.rideId == event.request.rideId ? event.request : req;
           }).toList();
 
-      emit(IncomingRequestLoaded(requests: updatedList));
+      emit((state as IncomingRequestLoaded).copyWith(requests: updatedList));
     }
   }
 
@@ -92,7 +92,7 @@ class IncomingRequestBloc
       final updatedList =
           currentRequests.where((req) => req.rideId != event.rideId).toList();
 
-      emit(IncomingRequestLoaded(requests: updatedList));
+      emit((state as IncomingRequestLoaded).copyWith(requests: updatedList));
     }
   }
 
@@ -112,24 +112,45 @@ class IncomingRequestBloc
     AcceptRideRequested event,
     Emitter<IncomingRequestState> emit,
   ) async {
-    // Opcional: Emitimos estado de carga si quieres bloquear la UI o mostrar un indicador
-    emit(AcceptRideLoading());
+    final current = state;
+    if (current is! IncomingRequestLoaded) return;
+
+    emit(
+      current.copyWith(
+        acceptStatus: AcceptRideStatus.loading,
+        processingRequest: event.request,
+      ),
+    );
 
     final result = await repository.acceptRide(
-      passengerId: event.passengerId,
+      passengerId: event.request.userId,
       driverEntity: event.driverEntity,
       driverLocation: event.driverLocation,
     );
 
+    // La lista puede haber cambiado mientras esperábamos la transacción
+    // (ej: onRequestRemoved ya sacó la solicitud aceptada), así que partimos
+    // siempre del estado más reciente en vez del snapshot inicial.
+    final latest = state;
+    if (latest is! IncomingRequestLoaded) return;
+
     result.fold(
       (failure) {
-        // Si falla (ej: otro conductor le ganó la carrera), emitimos error y restauramos la lista vacía o previa
-        emit(AcceptRideError(message: failure.message));
-        // Opcional: podrías volver a emitir el estado cargado si guardas la lista actual
+        emit(
+          latest.copyWith(
+            acceptStatus: AcceptRideStatus.error,
+            processingRequest: event.request,
+            acceptErrorMessage: failure.message,
+          ),
+        );
       },
-      (successData) {
-        // Si la transacción fue exitosa, emitimos éxito pasando los datos del viaje
-        emit(AcceptRideSuccess());
+      (_) {
+        emit(
+          latest.copyWith(
+            acceptStatus: AcceptRideStatus.success,
+            processingRequest: event.request,
+          ),
+        );
       },
     );
   }

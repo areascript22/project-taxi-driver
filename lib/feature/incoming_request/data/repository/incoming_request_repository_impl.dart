@@ -68,7 +68,7 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
           return Transaction.abort();
         }
 
-        data['status'] = 'driverAssigend';
+        data['status'] = 'driverAssigned';
         data['driver'] = {
           'data': {
             'id': driverEntity.id, //[cite: 2]

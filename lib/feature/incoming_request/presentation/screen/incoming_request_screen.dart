@@ -2,6 +2,8 @@ import 'package:driver_app/feature/incoming_request/presentation/component/incom
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/routing/app_routes.dart';
 import '../bloc/incoming_request_bloc.dart';
 
 class IncomingRequestScreen extends StatelessWidget {
@@ -61,7 +63,29 @@ class _IncomingRequestContentState extends State<IncomingRequestContent> {
           ),
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-        body: BlocBuilder<IncomingRequestBloc, IncomingRequestState>(
+        body: BlocListener<IncomingRequestBloc, IncomingRequestState>(
+          listenWhen: (previous, current) =>
+              previous is IncomingRequestLoaded &&
+              current is IncomingRequestLoaded &&
+              previous.acceptStatus != current.acceptStatus,
+          listener: (context, state) {
+            if (state is! IncomingRequestLoaded) return;
+
+            if (state.acceptStatus == AcceptRideStatus.success &&
+                state.processingRequest != null) {
+              context.go(tripRoute.route, extra: state.processingRequest);
+            } else if (state.acceptStatus == AcceptRideStatus.error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.acceptErrorMessage ??
+                        'No se pudo aceptar la carrera.',
+                  ),
+                ),
+              );
+            }
+          },
+          child: BlocBuilder<IncomingRequestBloc, IncomingRequestState>(
           builder: (context, state) {
             if (state is IncomingRequestInitial) {
               return const Center(
@@ -110,6 +134,7 @@ class _IncomingRequestContentState extends State<IncomingRequestContent> {
 
             return const SizedBox.shrink();
           },
+          ),
         ),
       ),
     );

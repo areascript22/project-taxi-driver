@@ -1,5 +1,7 @@
+import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen2.dart';
+import 'package:driver_app/feature/trip/presentation/screen/trip_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../feature/auth/presentation/screen/session_screen.dart';
 import '../../feature/auth/presentation/screen/sign_in_screen.dart';
@@ -41,18 +43,21 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/booking',
-                name: 'booking',
+                path: bookingRoute.route,
+                name: bookingRoute.name,
                 builder: (context, state) => const IncomingRequestScreen(),
-                routes: [
-                  // CHILD ROUTE: Notice there is no leading '/' in the path
-                  // Navigate here using: context.pushNamed('booking2')
-                  GoRoute(
-                    path: 'booking2',
-                    name: 'booking2',
-                    builder: (context, state) => const IncomingRequestScreen2(),
-                  ),
-                ],
+              ),
+              GoRoute(
+                path: booking2Route.route,
+                name: booking2Route.name,
+                builder: (context, state) => const IncomingRequestScreen2(),
+              ),
+              GoRoute(
+                path: tripRoute.route,
+                name: tripRoute.name,
+                builder:
+                    (context, state) =>
+                        TripScreen(request: state.extra as IncomingRequestEntity),
               ),
             ],
           ),
@@ -63,18 +68,14 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
-                name: 'profile',
+                path: profileRoute.route,
+                name: profileRoute.name,
                 builder: (context, state) => const ProfileScreen(),
-                routes: [
-                  // CHILD ROUTE: Notice there is no leading '/'
-                  // Navigate here using: context.pushNamed('profile2')
-                  GoRoute(
-                    path: '2',
-                    name: 'profile2',
-                    builder: (context, state) => const ProfileScreen2(),
-                  ),
-                ],
+              ),
+              GoRoute(
+                path: profile2Route.route,
+                name: profile2Route.name,
+                builder: (context, state) => const ProfileScreen2(),
               ),
             ],
           ),
