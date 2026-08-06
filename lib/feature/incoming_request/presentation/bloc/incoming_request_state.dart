@@ -10,3 +10,17 @@ final class IncomingRequestLoaded extends IncomingRequestState {
 
   IncomingRequestLoaded({required this.requests});
 }
+
+// Nuevos estados para la acción de aceptar
+final class AcceptRideLoading extends IncomingRequestState {}
+
+final class AcceptRideSuccess extends IncomingRequestState {
+
+  AcceptRideSuccess();
+}
+
+final class AcceptRideError extends IncomingRequestState {
+  final String message;
+
+  AcceptRideError({required this.message});
+}

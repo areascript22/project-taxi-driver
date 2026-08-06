@@ -7,7 +7,19 @@ final class StartListeningRequests extends IncomingRequestEvent {}
 
 final class StopListeningRequests extends IncomingRequestEvent {}
 
-// Eventos internos que el Bloc dispara al reaccionar a los Streams
+// Nuevo evento para aceptar la carrera
+final class AcceptRideRequested extends IncomingRequestEvent {
+  final String passengerId;
+  final UserEntity driverEntity;
+  final UserLocation driverLocation;
+
+  AcceptRideRequested({
+    required this.passengerId,
+    required this.driverEntity,
+    required this.driverLocation,
+  });
+}
+
 final class _RequestAdded extends IncomingRequestEvent {
   final IncomingRequestEntity request;
 

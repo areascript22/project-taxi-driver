@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
+import '../../../../shared/domain/entity/user_entity.dart';
+import '../../../../shared/domain/entity/user_location.dart';
 import '../../domain/entity/incoming_request_entity.dart';
 import '../../domain/repository/incoming_request_repository.dart';
 // Importa tus entidades y repositorio
@@ -25,6 +27,7 @@ class IncomingRequestBloc
     on<_RequestAdded>(_onRequestAdded);
     on<_RequestChanged>(_onRequestChanged);
     on<_RequestRemoved>(_onRequestRemoved);
+    on<AcceptRideRequested>(_onAcceptRideRequested);
   }
 
   void _onStartListening(
@@ -103,6 +106,32 @@ class IncomingRequestBloc
     _addedSub = null;
     _changedSub = null;
     _removedSub = null;
+  }
+
+  Future<void> _onAcceptRideRequested(
+    AcceptRideRequested event,
+    Emitter<IncomingRequestState> emit,
+  ) async {
+    // Opcional: Emitimos estado de carga si quieres bloquear la UI o mostrar un indicador
+    emit(AcceptRideLoading());
+
+    final result = await repository.acceptRide(
+      passengerId: event.passengerId,
+      driverEntity: event.driverEntity,
+      driverLocation: event.driverLocation,
+    );
+
+    result.fold(
+      (failure) {
+        // Si falla (ej: otro conductor le ganó la carrera), emitimos error y restauramos la lista vacía o previa
+        emit(AcceptRideError(message: failure.message));
+        // Opcional: podrías volver a emitir el estado cargado si guardas la lista actual
+      },
+      (successData) {
+        // Si la transacción fue exitosa, emitimos éxito pasando los datos del viaje
+        emit(AcceptRideSuccess());
+      },
+    );
   }
 
   @override
