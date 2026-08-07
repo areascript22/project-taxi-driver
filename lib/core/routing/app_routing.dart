@@ -2,6 +2,7 @@ import 'package:driver_app/feature/incoming_request/domain/entity/incoming_reque
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen2.dart';
 import 'package:driver_app/feature/trip/presentation/screen/trip_screen.dart';
+import 'package:driver_app/shared/feature/settings/presentation/screen/settings_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../feature/auth/presentation/screen/session_screen.dart';
 import '../../feature/auth/presentation/screen/sign_in_screen.dart';
@@ -76,6 +77,11 @@ class AppRouter {
                 path: profile2Route.route,
                 name: profile2Route.name,
                 builder: (context, state) => const ProfileScreen2(),
+              ),
+              GoRoute(
+                path: settingsRoute.route,
+                name: settingsRoute.name,
+                builder: (context, state) => const SettingsScreen(),
               ),
             ],
           ),

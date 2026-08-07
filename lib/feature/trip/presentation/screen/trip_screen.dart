@@ -1,9 +1,11 @@
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
+import 'package:driver_app/shared/presentation/component/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/trip_bloc.dart';
 import 'widgets/confirm_cancel_trip_dialog.dart';
 import 'widgets/passenger_cancelled_dialog.dart';
@@ -19,8 +21,8 @@ class TripScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<TripBloc>(),
+    return BlocProvider.value(
+      value: GetIt.instance<TripBloc>(),
       child: _TripView(request: request),
     );
   }
@@ -52,14 +54,17 @@ class _TripViewState extends State<_TripView> {
   }
 
   Future<void> _onTripCancelled(String? cancelledBy) async {
-    // 'driver' == fui yo quien canceló (ya vi mi propio diálogo de
-    // confirmación); 'passenger' == el pasajero canceló, así que aviso aquí.
     if (cancelledBy == 'passenger') {
+      GetIt.instance<FeedbackService>().announce(
+        'El pasajero canceló la carrera',
+        withVibration: true,
+      );
       await PassengerCancelledDialog.show(context: context);
-    }
 
-    if (!mounted) return;
-    context.go(bookingRoute.route);
+      if (!mounted) return;
+      context.go(bookingRoute.route);
+
+    }
   }
 
   @override
@@ -141,6 +146,7 @@ class _TripViewState extends State<_TripView> {
                   ),
                 ),
               ),
+
               SizedBox(height: 150,),
             ],
           ),

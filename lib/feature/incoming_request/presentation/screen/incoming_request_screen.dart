@@ -1,11 +1,14 @@
 import 'package:driver_app/feature/incoming_request/presentation/component/incoming_request_tile.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/location_permission_denied.dart';
+import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
+import 'package:driver_app/shared/foreground_location/presentation/component/foreground_service_toggle.dart';
 import 'package:driver_app/shared/geolocator/location/location_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/incoming_request_bloc.dart';
 
 class IncomingRequestScreen extends StatelessWidget {
@@ -17,6 +20,7 @@ class IncomingRequestScreen extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => GetIt.instance<IncomingRequestBloc>()),
         BlocProvider(create: (_) => GetIt.instance<LocationBloc>()),
+        BlocProvider(create: (_) => GetIt.instance<ForegroundServiceBloc>()),
       ],
       child: const IncomingRequestContent(),
     );
@@ -42,6 +46,8 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
     WidgetsBinding.instance.addObserver(this);
     context.read<IncomingRequestBloc>().add(StartListeningRequests());
     context.read<LocationBloc>().add(CheckAndRequestPermissionEvent());
+    context.read<ForegroundServiceBloc>().add(ForegroundServiceStatusRequested());
+    GetIt.instance<FeedbackService>().announce('Bienvenido a Via Go conductor');
   }
 
   @override
@@ -83,6 +89,16 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
             ),
           ),
           iconTheme: const IconThemeData(color: Colors.white),
+          actions: [
+            // El toggle de prueba del foreground service solo tiene sentido
+            // si el conductor ya dio permiso de ubicación.
+            BlocBuilder<LocationBloc, LocationState>(
+              builder: (context, locationState) {
+                if (!locationState.isGranted) return const SizedBox.shrink();
+                return const ForegroundServiceToggle();
+              },
+            ),
+          ],
         ),
         body: BlocConsumer<LocationBloc, LocationState>(
           listenWhen:

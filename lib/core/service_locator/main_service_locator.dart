@@ -1,6 +1,11 @@
 import 'package:driver_app/feature/auth/di/auth_service_locator.dart';
 import 'package:driver_app/shared/feature/session/di/session_service_locator.dart';
+import 'package:driver_app/shared/feature/settings/di/settings_service_locator.dart';
+import 'package:driver_app/shared/feedback/di/feedback_service_locator.dart';
+import 'package:driver_app/shared/foreground_location/di/foreground_location_service_locator.dart';
 import 'package:driver_app/shared/geolocator/di/geolocator_service_locator.dart';
+import 'package:driver_app/shared/vibration/di/vibration_service_locator.dart';
+import 'package:driver_app/shared/voice/di/voice_service_locator.dart';
 import 'package:get_it/get_it.dart';
 import '../../feature/incoming_request/di/incoming_request_service_locator.dart';
 import '../../feature/trip/di/trip_service_locator.dart';
@@ -14,6 +19,11 @@ Future<void> initMainServiceLocator() async {
   initSessionDI(mainServiceLocator);
   initAuthDI(mainServiceLocator);
   initGeolocator(mainServiceLocator);
+  initForegroundLocationDI(mainServiceLocator);
   initIncomingRequestDI(mainServiceLocator);
   initTripDI(mainServiceLocator);
+  initSettingsDI(mainServiceLocator);
+  initVoiceDI(mainServiceLocator);
+  initVibrationDI(mainServiceLocator);
+  initFeedbackDI(mainServiceLocator);
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../core/routing/app_routes.dart';
 import '../../bloc/trip_bloc.dart';
 import '../../../../../shared/presentation/component/custom_loader.dart';
 
@@ -26,20 +28,20 @@ class ConfirmCancelTripDialog extends StatelessWidget {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TripBloc, TripState>(
       listenWhen:
           (previous, current) =>
-              previous.isCancelling &&
-              !current.isCancelling &&
-              current.errorMessage == null,
+          !previous.isCancelled && current.isCancelled,
       listener: (context, state) {
-        // El listener de TripScreen puede haber navegado ya (llega por el
-        // mismo stream) y desmontado este diálogo, así que verificamos antes
-        // de intentar cerrarlo nosotros mismos.
-        if (!context.mounted) return;
-        Navigator.of(context).pop();
+        if (context.canPop()) {
+          context.pop();
+          context.go(bookingRoute.route);
+          return;
+        }
+        context.go(bookingRoute.route);
       },
       builder: (context, state) {
         final isCancelling = state.isCancelling;
@@ -144,7 +146,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                             backgroundColor: const Color(0xFFE94560),
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(
-                              vertical: isCancelling ? 0.0 : 14,
+                              vertical: isCancelling ? 14 : 14,
                             ),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -153,7 +155,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                           ),
                           child:
                               isCancelling
-                                  ? CustomLoader(width: 40, height: 40)
+                                  ? CircularProgressIndicator()
                                   : const Text(
                                     "Cancelar carrera",
                                     style: TextStyle(

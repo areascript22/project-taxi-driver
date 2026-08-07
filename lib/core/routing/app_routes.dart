@@ -55,3 +55,9 @@ const profile2Route = NavigationEntity(
   name: 'profile2',
   route: '/profile2',
 );
+
+const settingsRoute = NavigationEntity(
+  key: 'settings_route_key',
+  name: 'settings',
+  route: '/settings',
+);
