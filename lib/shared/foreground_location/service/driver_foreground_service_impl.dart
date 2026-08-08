@@ -5,7 +5,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'driver_foreground_service.dart';
 import 'driver_foreground_service_entry_point.dart';
 
-const _notificationChannelId = 'driver_foreground_location';
 const _notificationId = 1888;
 
 class DriverForegroundServiceImpl implements DriverForegroundService {
@@ -21,7 +20,13 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
         onStart: driverForegroundServiceEntryPoint,
         autoStart: false,
         isForegroundMode: true,
-        notificationChannelId: _notificationChannelId,
+        // Sin notificationChannelId explícito: el plugin crea y usa su
+        // propio canal por defecto ("FOREGROUND_DEFAULT"). Si le pasamos un
+        // id custom, el plugin asume que YA existe -- como acá no lo
+        // creamos (no agregamos flutter_local_notifications solo para
+        // eso), un id custom deja el canal inexistente y Android mata el
+        // proceso al llamar startForeground() (RemoteServiceException:
+        // "Bad notification for startForeground").
         initialNotificationTitle: 'ViaGo Conductor',
         initialNotificationContent: 'Reportando tu ubicación...',
         foregroundServiceNotificationId: _notificationId,

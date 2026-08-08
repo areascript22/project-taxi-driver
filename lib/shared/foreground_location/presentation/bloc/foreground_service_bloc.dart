@@ -33,15 +33,21 @@ class ForegroundServiceBloc
     ForegroundServiceToggled event,
     Emitter<ForegroundServiceState> emit,
   ) async {
+    final shouldRun = !state.isRunning;
     emit(state.copyWith(isProcessing: true));
 
-    if (state.isRunning) {
-      await driverForegroundService.stop();
-    } else {
+    if (shouldRun) {
       await driverForegroundService.start();
+    } else {
+      await driverForegroundService.stop();
     }
 
-    final isRunning = await driverForegroundService.isRunning();
-    emit(state.copyWith(isRunning: isRunning, isProcessing: false));
+    // A diferencia de start(), stop() solo manda un mensaje fire-and-forget
+    // al isolate del servicio (invoke() no espera a que se procese) -- el
+    // apagado real tarda unos segundos, igual que tarda en prender. Si acá
+    // volviéramos a preguntar isRunning(), casi siempre nos daría "true"
+    // todavía y el switch rebotaría a encendido. El estado optimista es el
+    // dato correcto en este punto: ya se pidió la acción.
+    emit(state.copyWith(isRunning: shouldRun, isProcessing: false));
   }
 }
