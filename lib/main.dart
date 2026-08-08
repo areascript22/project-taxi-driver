@@ -1,4 +1,5 @@
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import 'package:driver_app/shared/feedback/feedback_service.dart';
 import 'package:driver_app/shared/services/services_initializer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

@@ -41,7 +41,13 @@ class SessionView extends StatelessWidget {
           }
 
           if (state is SessionAuthenticated) {
-            context.goNamed('booking');
+            if (state.activeTrip != null) {
+              // Viaje en curso (aceptado antes de un kill de la app) --
+              // resume directo en TripScreen en vez de IncomingRequestScreen.
+              context.goNamed(tripRoute.name, extra: state.activeTrip);
+            } else {
+              context.goNamed('booking');
+            }
           }
         },
         child: const Center(child: CircularProgressIndicator()),
