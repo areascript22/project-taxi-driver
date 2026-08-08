@@ -3,6 +3,7 @@ import 'package:driver_app/feature/incoming_request/presentation/component/locat
 import 'package:driver_app/feature/incoming_request/presentation/component/offline_notice.dart';
 import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
 import 'package:driver_app/shared/foreground_location/presentation/component/foreground_service_toggle.dart';
+import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
 import 'package:driver_app/shared/geolocator/location/location_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,6 +42,13 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
   // primera vez que detectamos un bloqueo permanente redirigimos solos.
   bool _hasAutoOpenedSettings = false;
 
+  // static (no de instancia): sigue viva mientras el proceso de la app siga
+  // vivo, sin importar cuántas veces se entre/salga de esta pantalla por
+  // navegación interna (context.go). Se reinicia solo con un kill real de
+  // la app -- que es justo cuando SÍ queremos poder volver a evaluar si
+  // corresponde saludar de nuevo.
+  static bool _hasCheckedWelcomeThisSession = false;
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +58,21 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
     // ForegroundServiceBloc más abajo.
     context.read<LocationBloc>().add(CheckAndRequestPermissionEvent());
     context.read<ForegroundServiceBloc>().add(ForegroundServiceStatusRequested());
+    _maybePlayWelcome();
+  }
+
+  Future<void> _maybePlayWelcome() async {
+    if (_hasCheckedWelcomeThisSession) return;
+    _hasCheckedWelcomeThisSession = true;
+
+    // Si el foreground service YA estaba corriendo al llegar acá (viaje en
+    // curso, o el toggle se había dejado encendido antes de un kill de la
+    // app), esto es continuación de una sesión anterior, no una entrada
+    // nueva -- no repetir el saludo.
+    final alreadyOnline =
+        await GetIt.instance<DriverForegroundService>().isRunning();
+    if (alreadyOnline) return;
+
     GetIt.instance<FeedbackService>().announce('Bienvenido a Via Go conductor');
   }
 
