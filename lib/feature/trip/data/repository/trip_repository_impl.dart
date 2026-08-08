@@ -1,8 +1,15 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
+import '../../../incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../domain/entity/trip_status_entity.dart';
 import '../../domain/repository/trip_repository.dart';
+
+// Statuses que cuentan como "viaje en curso" para findActiveTripForDriver --
+// 'pending' no aplica (todavía no tiene driver asignado) y 'cancelled' /
+// 'tripCompleted' ya terminaron.
+const _activeTripStatuses = {'driverAssigned', 'driverArrived', 'tripStarted'};
 
 class TripRepositoryImpl implements TripRepository {
   @override
@@ -19,6 +26,49 @@ class TripRepositoryImpl implements TripRepository {
 
           return TripStatusEntity.fromMap(map);
         });
+  }
+
+  @override
+  Future<Either<Failure, IncomingRequestEntity?>> findActiveTripForDriver({
+    required String driverId,
+  }) async {
+    try {
+      // Sin orderByChild/equalTo a propósito: esas queries requieren un
+      // ".indexOn" declarado en las reglas de Firebase para /taxi_requests.
+      // Los listeners en streaming (onChildAdded/onValue, como en
+      // IncomingRequestRepositoryImpl) solo emiten un warning si falta ese
+      // índice y siguen funcionando -- pero un .get() puntual sin índice
+      // lanza una excepción dura del servidor ("Index not defined..."), que
+      // acá terminaba en el catch y se interpretaba como "no hay viaje".
+      // Traer el nodo completo una sola vez y filtrar en Dart evita
+      // depender de que ese índice esté configurado.
+      final snapshot =
+          await FirebaseDatabase.instance.ref('taxi_requests').get();
+      final rawValue = snapshot.value;
+      if (rawValue == null) return const Right(null);
+
+      final allRequests = Map<dynamic, dynamic>.from(rawValue as Map);
+
+      for (final entry in allRequests.values) {
+        final data = Map<dynamic, dynamic>.from(entry as Map);
+        if (!_activeTripStatuses.contains(data['status'])) continue;
+
+        final driverNode = data['driver'];
+        final driverData = driverNode is Map ? driverNode['data'] : null;
+        final assignedDriverId = driverData is Map ? driverData['id'] : null;
+
+        if (assignedDriverId == driverId) {
+          return Right(IncomingRequestEntity.fromMap(data));
+        }
+      }
+
+      return const Right(null);
+    } catch (e) {
+      debugPrint("Error al verificar si hay un viaje activo: $e");
+      return Left(
+        Failure(message: 'No se pudo verificar si tienes un viaje en curso.'),
+      );
+    }
   }
 
   @override

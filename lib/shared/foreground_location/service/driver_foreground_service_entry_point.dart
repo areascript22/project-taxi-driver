@@ -86,10 +86,22 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       // Puebla el set con los ids que YA existen antes de suscribirse --
       // onChildAdded dispara retroactivamente por cada hijo ya presente, y
       // no queremos alertar por carreras que no son nuevas.
-      final snapshot = await pendingQuery.get();
-      for (final child in snapshot.children) {
-        final id = child.key;
-        if (id != null) knownPendingIds.add(id);
+      //
+      // Sin orderByChild/equalTo a propósito: esa query puntual (.get())
+      // requiere un ".indexOn": "status" declarado en las reglas de
+      // Firebase para /taxi_requests, y sin él el servidor la rechaza con
+      // una excepción dura (a diferencia de pendingQuery.onChildAdded más
+      // abajo, que es streaming y solo emite un warning si falta el
+      // índice). Traer el nodo completo y filtrar en Dart evita depender
+      // de que ese índice esté configurado.
+      final snapshot = await FirebaseDatabase.instance.ref('taxi_requests').get();
+      final rawValue = snapshot.value;
+      if (rawValue != null) {
+        final allRequests = Map<dynamic, dynamic>.from(rawValue as Map);
+        allRequests.forEach((id, data) {
+          final status = data is Map ? data['status'] : null;
+          if (status == 'pending') knownPendingIds.add(id.toString());
+        });
       }
     } catch (_) {
       // Sin conectividad al arrancar: seguimos igual -- mejor un falso
