@@ -38,6 +38,40 @@ class TripRepositoryImpl implements TripRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> markDriverArrived({
+    required String passengerId,
+  }) async {
+    try {
+      await FirebaseDatabase.instance.ref('taxi_requests/$passengerId').update({
+        'status': 'driverArrived',
+        'updatedAt': ServerValue.timestamp,
+      });
+      return const Right(unit);
+    } catch (e) {
+      return Left(
+        Failure(message: 'No se pudo notificar tu llegada. Intenta de nuevo.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> completeTrip({
+    required String passengerId,
+  }) async {
+    try {
+      await FirebaseDatabase.instance.ref('taxi_requests/$passengerId').update({
+        'status': 'tripCompleted',
+        'updatedAt': ServerValue.timestamp,
+      });
+      return const Right(unit);
+    } catch (e) {
+      return Left(
+        Failure(message: 'No se pudo finalizar el viaje. Intenta de nuevo.'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> updateDriverLocation({
     required String passengerId,
     required double latitude,

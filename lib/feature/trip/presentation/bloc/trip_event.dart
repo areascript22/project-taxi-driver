@@ -22,3 +22,15 @@ class CancelTripRequested extends TripEvent {
 }
 
 class StopWatchingTrip extends TripEvent {}
+
+class DriverArrivedRequested extends TripEvent {
+  final String passengerId;
+
+  DriverArrivedRequested({required this.passengerId});
+}
+
+class CompleteTripRequested extends TripEvent {
+  final String passengerId;
+
+  CompleteTripRequested({required this.passengerId});
+}

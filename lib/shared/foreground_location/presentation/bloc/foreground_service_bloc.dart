@@ -5,9 +5,10 @@ import '../../service/driver_foreground_service.dart';
 part 'foreground_service_event.dart';
 part 'foreground_service_state.dart';
 
-// Bloc del toggle manual de "Peticiones Entrantes": solo prueba que el
-// foreground service (y su notificación persistente) prende y apaga bien.
-// No pasa passengerId -- ese modo lo maneja TripBloc cuando hay un viaje real.
+// Bloc del toggle "online/offline" de "Peticiones Entrantes": controla si el
+// conductor recibe carreras nuevas (IncomingRequestScreen se suscribe/
+// desuscribe de Firebase según state.isRunning). No pasa passengerId -- ese
+// modo lo maneja TripBloc cuando hay un viaje real.
 class ForegroundServiceBloc
     extends Bloc<ForegroundServiceEvent, ForegroundServiceState> {
   final DriverForegroundService driverForegroundService;
@@ -26,7 +27,7 @@ class ForegroundServiceBloc
     // (por ejemplo, un viaje activo antes de volver a esta pantalla) el
     // toggle debe reflejar eso, no forzar un falso "desactivado".
     final isRunning = await driverForegroundService.isRunning();
-    emit(state.copyWith(isRunning: isRunning));
+    emit(state.copyWith(isRunning: isRunning, hasLoadedStatus: true));
   }
 
   Future<void> _onToggled(
@@ -48,6 +49,12 @@ class ForegroundServiceBloc
     // volviéramos a preguntar isRunning(), casi siempre nos daría "true"
     // todavía y el switch rebotaría a encendido. El estado optimista es el
     // dato correcto en este punto: ya se pidió la acción.
-    emit(state.copyWith(isRunning: shouldRun, isProcessing: false));
+    emit(
+      state.copyWith(
+        isRunning: shouldRun,
+        isProcessing: false,
+        hasLoadedStatus: true,
+      ),
+    );
   }
 }

@@ -11,9 +11,9 @@ import 'widgets/confirm_cancel_trip_dialog.dart';
 import 'widgets/passenger_cancelled_dialog.dart';
 
 // Pantalla de "viaje en curso" para el conductor tras aceptar una carrera.
-// Todavía no maneja navegación al punto de recogida ni cambios de estado
-// del viaje (llegó, inició, finalizó) o comunicación con el pasajero — solo
-// confirma visualmente que la carrera fue aceptada y permite cancelarla.
+// Todavía no maneja navegación al punto de recogida, pero sí cubre el ciclo
+// de estados del viaje (llegó, pasajero en camino, finalizó) y la
+// comunicación básica con el pasajero vía Firebase.
 class TripScreen extends StatelessWidget {
   final IncomingRequestEntity request;
 
@@ -67,13 +67,44 @@ class _TripViewState extends State<_TripView> {
     }
   }
 
+  void _onPassengerOnTheWay() {
+    GetIt.instance<FeedbackService>().announce(
+      'El pasajero está en camino al auto',
+      withVibration: true,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('El pasajero está en camino al auto')),
+    );
+  }
+
+  void _onTripCompleted() {
+    context.go(bookingRoute.route);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TripBloc, TripState>(
-      listenWhen:
-          (previous, current) =>
-              !previous.isCancelled && current.isCancelled,
-      listener: (context, state) => _onTripCancelled(state.cancelledBy),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<TripBloc, TripState>(
+          listenWhen:
+              (previous, current) =>
+                  !previous.isCancelled && current.isCancelled,
+          listener: (context, state) => _onTripCancelled(state.cancelledBy),
+        ),
+        BlocListener<TripBloc, TripState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.status != 'tripStarted' &&
+                  current.status == 'tripStarted',
+          listener: (context, state) => _onPassengerOnTheWay(),
+        ),
+        BlocListener<TripBloc, TripState>(
+          listenWhen:
+              (previous, current) =>
+                  !previous.isCompleted && current.isCompleted,
+          listener: (context, state) => _onTripCompleted(),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: const Color(0xFF0F3460),
         appBar: AppBar(
@@ -120,31 +151,76 @@ class _TripViewState extends State<_TripView> {
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
               const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    ConfirmCancelTripDialog.show(
-                      context: context,
-                      passengerId: widget.request.userId,
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFE94560), width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text(
-                    'Cancelar carrera',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFE94560),
-                    ),
-                  ),
-                ),
+              BlocBuilder<TripBloc, TripState>(
+                builder: (context, state) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (state.status == 'driverAssigned') ...[
+                        CustomButton(
+                          textButton:
+                              state.isMarkingArrived
+                                  ? 'Enviando...'
+                                  : 'He llegado',
+                          backgroundColor: const Color(0xFF16C79A),
+                          onTap:
+                              state.isMarkingArrived
+                                  ? null
+                                  : () => context.read<TripBloc>().add(
+                                    DriverArrivedRequested(
+                                      passengerId: widget.request.userId,
+                                    ),
+                                  ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      if (state.status == 'tripStarted') ...[
+                        CustomButton(
+                          textButton:
+                              state.isCompleting
+                                  ? 'Finalizando...'
+                                  : 'Finalizar viaje',
+                          backgroundColor: const Color(0xFF16C79A),
+                          onTap:
+                              state.isCompleting
+                                  ? null
+                                  : () => context.read<TripBloc>().add(
+                                    CompleteTripRequested(
+                                      passengerId: widget.request.userId,
+                                    ),
+                                  ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      OutlinedButton(
+                        onPressed: () {
+                          ConfirmCancelTripDialog.show(
+                            context: context,
+                            passengerId: widget.request.userId,
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: Color(0xFFE94560),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          'Cancelar carrera',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFE94560),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               SizedBox(height: 150,),

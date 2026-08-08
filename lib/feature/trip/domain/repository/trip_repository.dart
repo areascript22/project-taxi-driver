@@ -10,6 +10,12 @@ abstract class TripRepository {
   // Cancela un viaje ya en progreso desde el lado del conductor.
   Future<Either<Failure, Unit>> cancelRide({required String passengerId});
 
+  // El conductor llegó al punto de recogida.
+  Future<Either<Failure, Unit>> markDriverArrived({required String passengerId});
+
+  // El viaje llegó a su destino y finalizó.
+  Future<Either<Failure, Unit>> completeTrip({required String passengerId});
+
   // Reporta la posición actual del conductor mientras el viaje está activo.
   // La escribe el foreground service cada 5 segundos.
   Future<Either<Failure, Unit>> updateDriverLocation({

@@ -17,5 +17,12 @@ abstract class DriverForegroundService {
   // notificación). Es seguro llamarlo aunque ya esté detenido.
   Future<void> stop();
 
+  // Detiene SOLO el tracking de ubicación (vuelve a modo de prueba, sin
+  // passengerId), sin apagar el servicio ni quitar la notificación
+  // persistente. Se usa al cancelar/finalizar un viaje: el conductor sigue
+  // "online" (toggle prendido) pero deja de reportar ubicación de un viaje
+  // que ya no existe.
+  Future<void> stopTracking();
+
   Future<bool> isRunning();
 }

@@ -69,5 +69,16 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
   }
 
   @override
+  Future<void> stopTracking() async {
+    try {
+      if (await _service.isRunning()) {
+        _service.invoke('track', {'passengerId': null});
+      }
+    } catch (e) {
+      debugPrint('No se pudo detener el tracking del foreground service: $e');
+    }
+  }
+
+  @override
   Future<bool> isRunning() => _service.isRunning();
 }

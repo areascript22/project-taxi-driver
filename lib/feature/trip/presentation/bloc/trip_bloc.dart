@@ -19,6 +19,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     on< _TripStatusUpdated>(_onTripStatusUpdated);
     on<CancelTripRequested>(_onCancelRequested);
     on<StopWatchingTrip>(_onStop);
+    on<DriverArrivedRequested>(_onDriverArrivedRequested);
+    on<CompleteTripRequested>(_onCompleteTripRequested);
   }
 
   void _onStart(StartWatchingTrip event, Emitter<TripState> emit) {
@@ -38,9 +40,9 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) {
     final data = event.data;
+    emit(state.copyWith(status: data.status));
     if (data.status == 'cancelled') {
       emit(state.copyWith(isCancelled: true, cancelledBy: data.cancelledBy));
-      driverForegroundService.stop();
     }
   }
 
@@ -66,10 +68,51 @@ class TripBloc extends Bloc<TripEvent, TripState> {
   Future<void> _onStop(StopWatchingTrip event, Emitter<TripState> emit) async {
     await _subscription?.cancel();
     _subscription = null;
-    // Por seguridad además de la parada en _onTripStatusUpdated: cubre
-    // cualquier otra forma de salir de la pantalla de viaje sin dejar el
+    // Solo se detiene el TRACKING de este viaje -- el servicio (y el toggle
+    // "online" del conductor) deben seguir corriendo tras salir de esta
+    // pantalla, cubriendo cualquier forma de abandonarla sin dejar el
     // foreground service reportando ubicación de un viaje que ya no existe.
-    await driverForegroundService.stop();
+    await driverForegroundService.stopTracking();
+  }
+
+  Future<void> _onDriverArrivedRequested(
+    DriverArrivedRequested event,
+    Emitter<TripState> emit,
+  ) async {
+    emit(state.copyWith(isMarkingArrived: true, errorMessage: null));
+
+    final result = await repository.markDriverArrived(
+      passengerId: event.passengerId,
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(isMarkingArrived: false, errorMessage: failure.message),
+      ),
+      // El stream de watchTrip ya recibirá status == driverArrived.
+      (_) => emit(state.copyWith(isMarkingArrived: false)),
+    );
+  }
+
+  Future<void> _onCompleteTripRequested(
+    CompleteTripRequested event,
+    Emitter<TripState> emit,
+  ) async {
+    emit(state.copyWith(isCompleting: true, errorMessage: null));
+
+    final result = await repository.completeTrip(
+      passengerId: event.passengerId,
+    );
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(isCompleting: false, errorMessage: failure.message),
+      ),
+      (_) {
+        driverForegroundService.stopTracking();
+        emit(state.copyWith(isCompleting: false, isCompleted: true));
+      },
+    );
   }
 
   @override
