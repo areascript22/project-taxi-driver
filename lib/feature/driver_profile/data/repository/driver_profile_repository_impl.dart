@@ -40,6 +40,31 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
   }
 
   @override
+  Future<Either<Failure, VehicleEntity?>> getVehicle({
+    required String vehicleId,
+  }) async {
+    try {
+      final snapshot =
+          await _firestore.collection(_vehiclesCollection).doc(vehicleId).get();
+
+      if (!snapshot.exists || snapshot.data() == null) {
+        return const Right(null);
+      }
+
+      final vehicle = VehicleModel.fromJson(
+        snapshot.data()!,
+        vehicleId: snapshot.id,
+      );
+      return Right(vehicle.toEntity());
+    } catch (e) {
+      debugPrint('DriverProfileDebug | Error en getVehicle: $e');
+      return Left(
+        Failure(message: 'No se pudo obtener la información del vehículo'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> registerDriver({
     required DriverEntity driver,
     required VehicleEntity vehicle,

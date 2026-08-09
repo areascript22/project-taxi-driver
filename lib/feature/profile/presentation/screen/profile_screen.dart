@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
-import '../../../../shared/domain/entity/user_entity.dart';
+import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import '../../../driver_profile/domain/entity/driver_entity.dart';
+import '../../../driver_profile/domain/entity/vehicle_entity.dart';
+import '../bloc/profile_bloc.dart';
 import '../component/confirmation_popup.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -11,7 +14,17 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ProfileView();
+    final sessionState = context.read<SessionBloc>().state;
+    final driverId =
+        sessionState is SessionAuthenticated ? sessionState.user.id : null;
+
+    return BlocProvider(
+      create:
+          (_) =>
+              mainServiceLocator<ProfileBloc>()
+                ..add(ProfileLoadRequested(driverId: driverId ?? '')),
+      child: const ProfileView(),
+    );
   }
 }
 
@@ -45,59 +58,74 @@ class ProfileView extends StatelessWidget {
             ],
           ),
         ),
-        child: BlocBuilder<SessionBloc, SessionState>(
+        child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
-            if (state is SessionAuthenticated) {
-              return _buildProfileContent(context, state.user);
+            if (state.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE94560)),
+                ),
+              );
             }
-            return const Center(
-              child: Text(
-                'No se encontró información del usuario',
-                style: TextStyle(color: Colors.white70),
-              ),
-            );
+
+            if (state.driver == null) {
+              return Center(
+                child: Text(
+                  state.errorMessage ??
+                      'No se encontró información del conductor',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              );
+            }
+
+            return _buildProfileContent(context, state.driver!, state.vehicle);
           },
         ),
       ),
     );
   }
 
-  Widget _buildProfileContent(BuildContext context, UserEntity user) {
+  Widget _buildProfileContent(
+    BuildContext context,
+    DriverEntity driver,
+    VehicleEntity? vehicle,
+  ) {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 40),
-            _buildProfileHeader(user),
+            const SizedBox(height: 24),
+            _buildProfileHeader(driver),
             const SizedBox(height: 32),
-            _buildInfoCard(user),
+            _buildInfoCard(driver),
+            const SizedBox(height: 20),
+            _buildVehicleCard(context, vehicle),
             const SizedBox(height: 32),
             _buildSignOutButton(context),
-            const SizedBox(height: 40),
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(UserEntity user) {
+  Widget _buildProfileHeader(DriverEntity driver) {
+    final fullName = '${driver.firstName} ${driver.lastName}'.trim();
+
     return Column(
       children: [
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white.withOpacity(0.2), width: 3),
-            boxShadow: [
-
-            ],
           ),
           child: CircleAvatar(
             radius: 64,
             backgroundColor: Colors.white.withOpacity(0.1),
             backgroundImage:
-                user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
+                driver.photoUrl != null ? NetworkImage(driver.photoUrl!) : null,
             child:
-                user.photoUrl == null
+                driver.photoUrl == null
                     ? Icon(
                       Icons.person,
                       size: 64,
@@ -108,7 +136,7 @@ class ProfileView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          user.displayName ?? 'Conductor',
+          fullName.isEmpty ? 'Conductor' : fullName,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -123,26 +151,37 @@ class ProfileView extends StatelessWidget {
             color: const Color(0xFFE94560).withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Text(
-            'Conductor Activo',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFFE94560),
-              letterSpacing: 1,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.star_rounded,
+                size: 14,
+                color: Color(0xFFE94560),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                driver.rating.toStringAsFixed(1),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFE94560),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          user.email ?? 'Sin correo',
+          driver.email,
           style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5)),
         ),
       ],
     );
   }
 
-  Widget _buildInfoCard(UserEntity user) {
+  Widget _buildInfoCard(DriverEntity driver) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Container(
@@ -156,7 +195,7 @@ class ProfileView extends StatelessWidget {
             _buildInfoTile(
               icon: Icons.email_outlined,
               title: 'Correo electrónico',
-              value: user.email ?? 'No disponible',
+              value: driver.email,
               isFirst: true,
             ),
             Divider(
@@ -167,17 +206,10 @@ class ProfileView extends StatelessWidget {
             _buildInfoTile(
               icon: Icons.phone_outlined,
               title: 'Teléfono',
-              value: 'No registrado',
-            ),
-            Divider(
-              height: 1,
-              indent: 60,
-              color: Colors.white.withOpacity(0.06),
-            ),
-            _buildInfoTile(
-              icon: Icons.car_repair,
-              title: 'Vehículo',
-              value: 'No registrado',
+              value:
+                  driver.phoneNumber.isEmpty
+                      ? 'No registrado'
+                      : driver.phoneNumber,
             ),
           ],
         ),
@@ -222,6 +254,69 @@ class ProfileView extends StatelessWidget {
               color: Colors.white,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehicleCard(BuildContext context, VehicleEntity? vehicle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: ListTile(
+          onTap:
+              vehicle == null
+                  ? null
+                  : () =>
+                      context.pushNamed(vehicleInfoRoute.name, extra: vehicle),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE94560).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.local_taxi_outlined,
+              color: Color(0xFFE94560),
+              size: 22,
+            ),
+          ),
+          title: Text(
+            vehicle == null ? 'Vehículo' : '${vehicle.brand} ${vehicle.model}',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              vehicle == null ? 'No registrado' : vehicle.plate,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.4),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          trailing:
+              vehicle == null
+                  ? null
+                  : Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white.withOpacity(0.4),
+                  ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:driver_app/feature/auth/di/auth_service_locator.dart';
 import 'package:driver_app/feature/driver_profile/di/driver_profile_service_locator.dart';
+import 'package:driver_app/feature/profile/di/profile_service_locator.dart';
 import 'package:driver_app/shared/feature/session/di/session_service_locator.dart';
 import 'package:driver_app/shared/feature/settings/di/settings_service_locator.dart';
 import 'package:driver_app/shared/feedback/di/feedback_service_locator.dart';
@@ -20,6 +21,7 @@ Future<void> initMainServiceLocator() async {
   initDotEnvDI(mainServiceLocator);
   initImagePickerDI(mainServiceLocator);
   initDriverProfileDI(mainServiceLocator);
+  initProfileDI(mainServiceLocator);
   initSessionDI(mainServiceLocator);
   initAuthDI(mainServiceLocator);
   initGeolocator(mainServiceLocator);

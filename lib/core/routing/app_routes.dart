@@ -62,6 +62,12 @@ const profile2Route = NavigationEntity(
   route: '/profile2',
 );
 
+const vehicleInfoRoute = NavigationEntity(
+  key: 'vehicle_info_route_key',
+  name: 'vehicle_info',
+  route: '/vehicle-info',
+);
+
 const settingsRoute = NavigationEntity(
   key: 'settings_route_key',
   name: 'settings',
