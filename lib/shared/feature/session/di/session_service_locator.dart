@@ -1,3 +1,4 @@
+import 'package:driver_app/feature/driver_profile/domain/repository/driver_profile_repository.dart';
 import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
 import 'package:driver_app/shared/domain/repository/session_repository.dart';
 import 'package:driver_app/shared/feature/session/data/repository/session_repository_impl.dart';
@@ -9,11 +10,13 @@ void initSessionDI(GetIt sl) {
   sl.registerFactory(
     () => SessionBloc(
       sessionRepository: sl<SessionRepository>(),
-      // TripRepository se registra en initTripDI, que corre después de
-      // initSessionDI -- no es un problema porque SessionBloc es un
-      // registerFactory: este closure solo se ejecuta la primera vez que
-      // alguien pide SessionBloc (mucho después de que termina el arranque).
+      // TripRepository y DriverProfileRepository se registran en
+      // initTripDI/initDriverProfileDI, que corren después de initSessionDI
+      // -- no es un problema porque SessionBloc es un registerFactory: este
+      // closure solo se ejecuta la primera vez que alguien pide SessionBloc
+      // (mucho después de que termina el arranque).
       tripRepository: sl<TripRepository>(),
+      driverProfileRepository: sl<DriverProfileRepository>(),
     ),
   );
 }

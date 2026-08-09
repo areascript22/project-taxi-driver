@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/feature/driver_profile/domain/repository/driver_profile_repository.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,14 @@ part 'session_state.dart';
 class SessionBloc extends Bloc<SessionEvent, SessionState> {
   final SessionRepository sessionRepository;
   final TripRepository tripRepository;
+  final DriverProfileRepository driverProfileRepository;
 
-  SessionBloc({required this.sessionRepository, required this.tripRepository})
-    : super(SessionUnknown()) {
+  SessionBloc({
+    required this.sessionRepository,
+    required this.tripRepository,
+    required this.driverProfileRepository,
+  }) : super(SessionUnknown()) {
     on<SessionCheckRequested>(_onCheckRequested);
-    on<SessionUserUpdated>(_onUserUpdated);
     on<SessionLogoutRequested>(_onLogoutRequested);
   }
 
@@ -32,16 +36,21 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       return;
     }
 
+    final driverResult = await driverProfileRepository.getDriver(
+      driverId: user.id,
+    );
+    final driver = driverResult.fold((_) => null, (driver) => driver);
+    if (driver == null) {
+      emit(SessionOnboardingRequired(user: user));
+      return;
+    }
+
     final activeTripResult = await tripRepository.findActiveTripForDriver(
       driverId: user.id,
     );
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 
     emit(SessionAuthenticated(user: user, activeTrip: activeTrip));
-  }
-
-  void _onUserUpdated(SessionUserUpdated event, Emitter<SessionState> emit) {
-    emit(SessionAuthenticated(user: event.user));
   }
 
   Future<void> _onLogoutRequested(SessionLogoutRequested event,

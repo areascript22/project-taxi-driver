@@ -40,6 +40,10 @@ class SessionView extends StatelessWidget {
             context.goNamed(signInRoute.name);
           }
 
+          if (state is SessionOnboardingRequired) {
+            context.goNamed(driverOnboardingRoute.name, extra: state.user);
+          }
+
           if (state is SessionAuthenticated) {
             if (state.activeTrip != null) {
               // Viaje en curso (aceptado antes de un kill de la app) --

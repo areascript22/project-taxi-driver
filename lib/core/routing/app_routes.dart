@@ -20,6 +20,12 @@ const sessionRoute = NavigationEntity(
   route: '/session',
 );
 
+const driverOnboardingRoute = NavigationEntity(
+  key: 'driver_onboarding_route_key',
+  name: 'driver_onboarding',
+  route: '/driver-onboarding',
+);
+
 const homeRoute = NavigationEntity(
   key: 'home_route_key',
   name: 'home',
