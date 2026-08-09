@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 40),
                     Text(
-                      'ViaGo',
+                      'TaxiGo',
                       style: TextStyle(
                         fontSize: 42,
                         fontWeight: FontWeight.bold,
@@ -92,17 +92,6 @@ class _SplashScreenState extends State<SplashScreen> {
                         fontWeight: FontWeight.w300,
                         color: Colors.white.withOpacity(0.7),
                         letterSpacing: 4,
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          const Color(0xFFE94560),
-                        ),
                       ),
                     ),
                   ],

@@ -86,7 +86,7 @@ class SignInView extends StatelessWidget {
                       ),
                       const SizedBox(height: 40),
                       const Text(
-                        'ViaGo',
+                        'TaxiGo',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,

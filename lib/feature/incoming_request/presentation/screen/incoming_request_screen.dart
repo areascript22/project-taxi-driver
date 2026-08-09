@@ -73,7 +73,7 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
         await GetIt.instance<DriverForegroundService>().isRunning();
     if (alreadyOnline) return;
 
-    GetIt.instance<FeedbackService>().announce('Bienvenido a Via Go conductor');
+    GetIt.instance<FeedbackService>().announce('Bienvenido a TaxiGo conductor');
   }
 
   @override
