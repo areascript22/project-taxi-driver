@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../bloc/driver_onboarding_bloc.dart';
@@ -138,11 +139,7 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
           listener: (context, state) {
             if (state.errorMessage != null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage!),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
-                ),
+                SnackBar(content: Text(state.errorMessage!)),
               );
             }
             if (state.registrationSuccess) {
@@ -151,15 +148,11 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
           },
           builder: (context, state) {
             return Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF1A1A2E),
-                    Color(0xFF16213E),
-                    Color(0xFF0F3460),
-                  ],
+                  colors: context.appColors.backgroundGradient,
                 ),
               ),
               child: SafeArea(
@@ -205,7 +198,11 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
                       },
                       child: Text(
                         '¿No eres tú? Cerrar sesión',
-                        style: TextStyle(color: Colors.white.withOpacity(0.4)),
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.4),
+                        ),
                       ),
                     ),
                   ],

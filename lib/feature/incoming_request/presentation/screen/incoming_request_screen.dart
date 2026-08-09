@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/incoming_request_bloc.dart';
 
@@ -93,6 +94,8 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
       listenWhen:
           (previous, current) => previous.isRunning != current.isRunning,
@@ -104,27 +107,24 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
         }
       },
       child: Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+          colors: context.appColors.backgroundGradient,
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
+          title: Text(
             'Peticiones Entrantes',
             style: TextStyle(
-              color: Colors.white,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             // El toggle de prueba del foreground service solo tiene sentido
             // si el conductor ya dio permiso de ubicación.
@@ -154,8 +154,8 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                     LocationProcess.checkingPermissions;
 
             if (isCheckingPermission) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFFE94560)),
+              return Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
               );
             }
 
@@ -177,9 +177,9 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
             return BlocBuilder<ForegroundServiceBloc, ForegroundServiceState>(
               builder: (context, fgState) {
                 if (!fgState.hasLoadedStatus) {
-                  return const Center(
+                  return Center(
                     child: CircularProgressIndicator(
-                      color: Color(0xFFE94560),
+                      color: colorScheme.primary,
                     ),
                   );
                 }
@@ -217,9 +217,9 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                   child: BlocBuilder<IncomingRequestBloc, IncomingRequestState>(
                     builder: (context, state) {
                       if (state is IncomingRequestInitial) {
-                        return const Center(
+                        return Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFFE94560),
+                            color: colorScheme.primary,
                           ),
                         );
                       }
@@ -235,14 +235,18 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                                 Icon(
                                   Icons.radar, // O un ícono de taxi
                                   size: 80,
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.1,
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'No hay clientes buscando\ntaxi en este momento.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
                                   ),

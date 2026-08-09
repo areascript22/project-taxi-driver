@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 
 class SignInScreen extends StatelessWidget {
@@ -23,6 +24,9 @@ class SignInView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onSurface;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -31,11 +35,7 @@ class SignInView extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  const Color(0xFF1A1A2E),
-                  const Color(0xFF16213E),
-                  const Color(0xFF0F3460),
-                ],
+                colors: context.appColors.backgroundGradient,
               ),
             ),
           ),
@@ -44,11 +44,7 @@ class SignInView extends StatelessWidget {
               listener: (context, state) {
                 if (state is AuthError) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.redAccent,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                    SnackBar(content: Text(state.message)),
                   );
                 }
 
@@ -68,29 +64,29 @@ class SignInView extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: onSurface.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFE94560).withOpacity(0.3),
+                              color: colorScheme.primary.withValues(alpha: 0.3),
                               blurRadius: 60,
                               spreadRadius: 10,
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.local_taxi_rounded,
                           size: 72,
-                          color: Colors.white,
+                          color: onSurface,
                         ),
                       ),
                       const SizedBox(height: 40),
-                      const Text(
+                      Text(
                         'TaxiGo',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: onSurface,
                           letterSpacing: 2,
                         ),
                       ),
@@ -100,7 +96,7 @@ class SignInView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w300,
-                          color: Colors.white.withOpacity(0.6),
+                          color: onSurface.withValues(alpha: 0.6),
                           letterSpacing: 4,
                         ),
                       ),
@@ -109,7 +105,7 @@ class SignInView extends StatelessWidget {
                         'Inicia sesión para comenzar a conducir',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.5),
+                          color: onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 60),
@@ -135,10 +131,10 @@ class SignInView extends StatelessWidget {
                           ),
                           child:
                               isLoading
-                                  ? const Center(
+                                  ? Center(
                                     child: CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFFE94560),
+                                        colorScheme.primary,
                                       ),
                                     ),
                                   )

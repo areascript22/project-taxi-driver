@@ -38,6 +38,8 @@ class DriverPersonalForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
       child: Form(
@@ -106,7 +108,7 @@ class DriverPersonalForm extends StatelessWidget {
                 child: Text(
                   '+593',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -125,7 +127,7 @@ class DriverPersonalForm extends StatelessWidget {
             const SizedBox(height: 32),
             CustomButton(
               textButton: 'Siguiente',
-              backgroundColor: const Color(0xFFE94560),
+              backgroundColor: colorScheme.primary,
               onTap: onNext,
             ),
           ],

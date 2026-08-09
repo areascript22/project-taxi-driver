@@ -14,14 +14,18 @@ class ImageSourceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF16213E),
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -31,7 +35,7 @@ class ImageSourceSheet extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: colorScheme.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -40,7 +44,7 @@ class ImageSourceSheet extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withOpacity(0.5),
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
                 letterSpacing: 0.5,
               ),
             ),
@@ -71,17 +75,22 @@ class _OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ListTile(
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: const Color(0xFFE94560).withOpacity(0.15),
+          color: colorScheme.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: const Color(0xFFE94560), size: 22),
+        child: Icon(icon, color: colorScheme.primary, size: 22),
       ),
-      title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 15)),
+      title: Text(
+        label,
+        style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
+      ),
     );
   }
 }

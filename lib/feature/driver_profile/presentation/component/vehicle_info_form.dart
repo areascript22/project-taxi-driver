@@ -40,6 +40,7 @@ class VehicleInfoForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentYear = DateTime.now().year;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -140,15 +141,17 @@ class VehicleInfoForm extends StatelessWidget {
                     onPressed: isSubmitting ? null : onBack,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      side: BorderSide(
+                        color: colorScheme.onSurface.withValues(alpha: 0.2),
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Atrás',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -159,7 +162,7 @@ class VehicleInfoForm extends StatelessWidget {
                   flex: 2,
                   child: CustomButton(
                     textButton: isSubmitting ? 'Guardando...' : 'Registrarme',
-                    backgroundColor: const Color(0xFFE94560),
+                    backgroundColor: colorScheme.primary,
                     onTap: isSubmitting ? null : onSubmit,
                   ),
                 ),

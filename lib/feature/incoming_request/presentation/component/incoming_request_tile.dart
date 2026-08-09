@@ -77,6 +77,8 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: 20,
@@ -84,9 +86,9 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
       ),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,13 +100,13 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
                 child: CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: colorScheme.onSurface.withValues(alpha: 0.1),
                   backgroundImage: NetworkImage(
                     incomingRequestEntity.passenger.profileImage,
                   ),
@@ -117,8 +119,8 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                   children: [
                     Text(
                       incomingRequestEntity.passenger.name,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -130,15 +132,13 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(
-                          0xFFE94560,
-                        ).withOpacity(0.15),
+                        color: colorScheme.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Esperando conductor',
                         style: TextStyle(
-                          color: Color(0xFFE94560),
+                          color: colorScheme.primary,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
@@ -154,7 +154,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
           const SizedBox(height: 16),
           Divider(
             height: 1,
-            color: Colors.white.withOpacity(0.06),
+            color: colorScheme.onSurface.withValues(alpha: 0.06),
           ),
           const SizedBox(height: 16),
 
@@ -165,15 +165,13 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(
-                    0xFFE94560,
-                  ).withOpacity(0.15),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.location_on,
                   size: 20,
-                  color: Color(0xFFE94560),
+                  color: colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 16),
@@ -186,7 +184,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.4),
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -194,8 +192,8 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                       incomingRequestEntity.pickupLocation.address,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -222,8 +220,8 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                 child: ElevatedButton(
                   onPressed: isBusy ? null : _onAcceptPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE94560),
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -231,13 +229,13 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                   ),
                   child:
                       isBusy
-                          ? const SizedBox(
+                          ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                                colorScheme.onPrimary,
                               ),
                             ),
                           )

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';
 
 class VehicleInfoScreen extends StatelessWidget {
@@ -9,22 +10,18 @@ class VehicleInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Mi vehículo',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+            colors: context.appColors.backgroundGradient,
           ),
         ),
         child: SafeArea(
@@ -34,7 +31,7 @@ class VehicleInfoScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _VehicleHeader(vehicle: vehicle),
                 const SizedBox(height: 32),
-                _buildInfoCard(),
+                _buildInfoCard(context),
                 const SizedBox(height: 100),
               ],
             ),
@@ -44,14 +41,18 @@ class VehicleInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: Column(
           children: [
@@ -61,25 +62,25 @@ class VehicleInfoScreen extends StatelessWidget {
               value: vehicle.brand,
               isFirst: true,
             ),
-            _divider(),
+            _divider(colorScheme),
             _InfoTile(
               icon: Icons.directions_car_filled_outlined,
               title: 'Modelo',
               value: vehicle.model,
             ),
-            _divider(),
+            _divider(colorScheme),
             _InfoTile(
               icon: Icons.calendar_today_outlined,
               title: 'Año',
               value: '${vehicle.year}',
             ),
-            _divider(),
+            _divider(colorScheme),
             _InfoTile(
               icon: Icons.palette_outlined,
               title: 'Color',
               value: vehicle.color,
             ),
-            _divider(),
+            _divider(colorScheme),
             _InfoTile(
               icon: Icons.badge_outlined,
               title: 'Número de matrícula',
@@ -91,11 +92,11 @@ class VehicleInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _divider() {
+  Widget _divider(ColorScheme colorScheme) {
     return Divider(
       height: 1,
       indent: 60,
-      color: Colors.white.withOpacity(0.06),
+      color: colorScheme.onSurface.withValues(alpha: 0.06),
     );
   }
 }
@@ -107,28 +108,33 @@ class _VehicleHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withOpacity(0.15), width: 3),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.15),
+              width: 3,
+            ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.local_taxi_rounded,
             size: 48,
-            color: Colors.white,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 20),
         Text(
           vehicle.plate,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: colorScheme.onSurface,
             letterSpacing: 1.5,
           ),
         ),
@@ -146,18 +152,21 @@ class _VerificationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final appColors = context.appColors;
+
     final (label, color) = switch (status) {
-      'approved' => ('Vehículo aprobado', const Color(0xFF2ECC71)),
-      'rejected' => ('Vehículo rechazado', const Color(0xFFE74C3C)),
-      _ => ('En revisión', const Color(0xFFF5A623)),
+      'approved' => ('Vehículo aprobado', appColors.success),
+      'rejected' => ('Vehículo rechazado', colorScheme.error),
+      _ => ('En revisión', appColors.warning),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
         label,
@@ -187,6 +196,8 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.only(top: isFirst ? 12.0 : 4.0, bottom: 4.0),
       child: ListTile(
@@ -194,17 +205,17 @@ class _InfoTile extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFE94560).withOpacity(0.15),
+            color: colorScheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFFE94560), size: 22),
+          child: Icon(icon, color: colorScheme.primary, size: 22),
         ),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.4),
+            color: colorScheme.onSurface.withValues(alpha: 0.4),
             letterSpacing: 0.5,
           ),
         ),
@@ -212,10 +223,10 @@ class _InfoTile extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: colorScheme.onSurface,
             ),
           ),
         ),

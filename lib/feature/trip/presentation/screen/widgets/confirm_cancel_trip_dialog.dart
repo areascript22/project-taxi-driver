@@ -45,6 +45,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
       },
       builder: (context, state) {
         final isCancelling = state.isCancelling;
+        final colorScheme = Theme.of(context).colorScheme;
 
         return PopScope(
           canPop: !isCancelling,
@@ -57,9 +58,11 @@ class ConfirmCancelTripDialog extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF16213E),
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
+                border: Border.all(
+                  color: colorScheme.onSurface.withValues(alpha: 0.08),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -67,22 +70,22 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE94560).withOpacity(0.15),
+                      color: colorScheme.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.warning_rounded,
-                      color: Color(0xFFE94560),
+                      color: colorScheme.primary,
                       size: 32,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
+                  Text(
                     "¿Cancelar carrera?",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: colorScheme.onSurface,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -91,7 +94,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                     "Ya aceptaste esta carrera y el pasajero te está esperando. Si cancelas ahora podría afectar tu reputación como conductor.",
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -100,7 +103,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       state.errorMessage!,
-                      style: const TextStyle(fontSize: 13, color: Colors.redAccent),
+                      style: TextStyle(fontSize: 13, color: colorScheme.error),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -115,7 +118,9 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                                   : () => Navigator.of(context).pop(),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            foregroundColor: Colors.white.withOpacity(0.7),
+                            foregroundColor: colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -143,8 +148,8 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                                   }
                                   : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE94560),
-                            foregroundColor: Colors.white,
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
                             padding: EdgeInsets.symmetric(
                               vertical: isCancelling ? 14 : 14,
                             ),
@@ -155,7 +160,9 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                           ),
                           child:
                               isCancelling
-                                  ? CircularProgressIndicator()
+                                  ? CircularProgressIndicator(
+                                    color: colorScheme.onPrimary,
+                                  )
                                   : const Text(
                                     "Cancelar carrera",
                                     style: TextStyle(

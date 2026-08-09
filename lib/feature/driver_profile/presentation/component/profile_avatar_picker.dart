@@ -17,6 +17,7 @@ class ProfileAvatarPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final hasImage = localImage != null || networkImageUrl != null;
 
     return GestureDetector(
@@ -27,11 +28,14 @@ class ProfileAvatarPicker extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.15), width: 3),
+              border: Border.all(
+                color: colorScheme.onSurface.withValues(alpha: 0.15),
+                width: 3,
+              ),
             ),
             child: CircleAvatar(
               radius: 56,
-              backgroundColor: Colors.white.withOpacity(0.08),
+              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.08),
               backgroundImage:
                   localImage != null
                       ? FileImage(localImage!)
@@ -40,16 +44,16 @@ class ProfileAvatarPicker extends StatelessWidget {
                           : null) as ImageProvider?,
               child:
                   isLoading
-                      ? const CircularProgressIndicator(
+                      ? CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFFE94560),
+                          colorScheme.primary,
                         ),
                       )
                       : (!hasImage
                           ? Icon(
                             Icons.person,
                             size: 52,
-                            color: Colors.white.withOpacity(0.4),
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
                           )
                           : null),
             ),
@@ -60,14 +64,17 @@ class ProfileAvatarPicker extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFFE94560),
+                color: colorScheme.primary,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF1A1A2E), width: 3),
+                border: Border.all(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  width: 3,
+                ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.camera_alt_rounded,
                 size: 16,
-                color: Colors.white,
+                color: colorScheme.onPrimary,
               ),
             ),
           ),

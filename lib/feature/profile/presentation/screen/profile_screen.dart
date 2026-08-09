@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../../driver_profile/domain/entity/driver_entity.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';
@@ -33,15 +34,14 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.pushNamed(settingsRoute.name),
           ),
         ],
@@ -51,20 +51,14 @@ class ProfileView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF1A1A2E),
-              const Color(0xFF16213E),
-              const Color(0xFF0F3460),
-            ],
+            colors: context.appColors.backgroundGradient,
           ),
         ),
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             if (state.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE94560)),
-                ),
+              return Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
               );
             }
 
@@ -73,7 +67,9 @@ class ProfileView extends StatelessWidget {
                 child: Text(
                   state.errorMessage ??
                       'No se encontró información del conductor',
-                  style: const TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
                 ),
               );
             }
@@ -95,9 +91,9 @@ class ProfileView extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 24),
-            _buildProfileHeader(driver),
+            _buildProfileHeader(context, driver),
             const SizedBox(height: 32),
-            _buildInfoCard(driver),
+            _buildInfoCard(context, driver),
             const SizedBox(height: 20),
             _buildVehicleCard(context, vehicle),
             const SizedBox(height: 32),
@@ -109,7 +105,8 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(DriverEntity driver) {
+  Widget _buildProfileHeader(BuildContext context, DriverEntity driver) {
+    final colorScheme = Theme.of(context).colorScheme;
     final fullName = '${driver.firstName} ${driver.lastName}'.trim();
 
     return Column(
@@ -117,11 +114,14 @@ class ProfileView extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 3),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.2),
+              width: 3,
+            ),
           ),
           child: CircleAvatar(
             radius: 64,
-            backgroundColor: Colors.white.withOpacity(0.1),
+            backgroundColor: colorScheme.onSurface.withValues(alpha: 0.1),
             backgroundImage:
                 driver.photoUrl != null ? NetworkImage(driver.photoUrl!) : null,
             child:
@@ -129,7 +129,7 @@ class ProfileView extends StatelessWidget {
                     ? Icon(
                       Icons.person,
                       size: 64,
-                      color: Colors.white.withOpacity(0.5),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
                     )
                     : null,
           ),
@@ -137,10 +137,10 @@ class ProfileView extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           fullName.isEmpty ? 'Conductor' : fullName,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: colorScheme.onSurface,
             letterSpacing: 0.5,
           ),
         ),
@@ -148,24 +148,20 @@ class ProfileView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFE94560).withOpacity(0.2),
+            color: colorScheme.primary.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.star_rounded,
-                size: 14,
-                color: Color(0xFFE94560),
-              ),
+              Icon(Icons.star_rounded, size: 14, color: colorScheme.primary),
               const SizedBox(width: 4),
               Text(
                 driver.rating.toStringAsFixed(1),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFE94560),
+                  color: colorScheme.primary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -175,24 +171,32 @@ class ProfileView extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           driver.email,
-          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5)),
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildInfoCard(DriverEntity driver) {
+  Widget _buildInfoCard(BuildContext context, DriverEntity driver) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: Column(
           children: [
             _buildInfoTile(
+              context,
               icon: Icons.email_outlined,
               title: 'Correo electrónico',
               value: driver.email,
@@ -201,9 +205,10 @@ class ProfileView extends StatelessWidget {
             Divider(
               height: 1,
               indent: 60,
-              color: Colors.white.withOpacity(0.06),
+              color: colorScheme.onSurface.withValues(alpha: 0.06),
             ),
             _buildInfoTile(
+              context,
               icon: Icons.phone_outlined,
               title: 'Teléfono',
               value:
@@ -217,12 +222,15 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile({
+  Widget _buildInfoTile(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String value,
     bool isFirst = false,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: EdgeInsets.only(top: isFirst ? 12.0 : 4.0, bottom: 4.0),
       child: ListTile(
@@ -230,17 +238,17 @@ class ProfileView extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFE94560).withOpacity(0.15),
+            color: colorScheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFFE94560), size: 22),
+          child: Icon(icon, color: colorScheme.primary, size: 22),
         ),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.4),
+            color: colorScheme.onSurface.withValues(alpha: 0.4),
             letterSpacing: 0.5,
           ),
         ),
@@ -248,10 +256,10 @@ class ProfileView extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: colorScheme.onSurface,
             ),
           ),
         ),
@@ -260,13 +268,17 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildVehicleCard(BuildContext context, VehicleEntity? vehicle) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: ListTile(
           onTap:
@@ -281,21 +293,21 @@ class ProfileView extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE94560).withOpacity(0.15),
+              color: colorScheme.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.local_taxi_outlined,
-              color: Color(0xFFE94560),
+              color: colorScheme.primary,
               size: 22,
             ),
           ),
           title: Text(
             vehicle == null ? 'Vehículo' : '${vehicle.brand} ${vehicle.model}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: colorScheme.onSurface,
             ),
           ),
           subtitle: Padding(
@@ -305,7 +317,7 @@ class ProfileView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Colors.white.withOpacity(0.4),
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
                 letterSpacing: 0.5,
               ),
             ),
@@ -315,7 +327,7 @@ class ProfileView extends StatelessWidget {
                   ? null
                   : Icon(
                     Icons.chevron_right_rounded,
-                    color: Colors.white.withOpacity(0.4),
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
         ),
       ),
@@ -323,6 +335,8 @@ class ProfileView extends StatelessWidget {
   }
 
   Widget _buildSignOutButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: SizedBox(
@@ -332,26 +346,26 @@ class ProfileView extends StatelessWidget {
             ConfirmationPopup.show(context: context);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.05),
-            foregroundColor: const Color(0xFFE94560),
+            backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+            foregroundColor: colorScheme.primary,
             padding: const EdgeInsets.symmetric(vertical: 16),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: const Color(0xFFE94560).withOpacity(0.3)),
+              side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
             ),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.logout_rounded, size: 20, color: Color(0xFFE94560)),
-              SizedBox(width: 10),
+              Icon(Icons.logout_rounded, size: 20, color: colorScheme.primary),
+              const SizedBox(width: 10),
               Text(
                 'Cerrar sesión',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFE94560),
+                  color: colorScheme.primary,
                 ),
               ),
             ],

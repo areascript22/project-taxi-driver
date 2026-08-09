@@ -16,6 +16,8 @@ class OnboardingStepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -29,8 +31,8 @@ class OnboardingStepHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isActive
-                          ? const Color(0xFFE94560)
-                          : Colors.white.withOpacity(0.1),
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -43,23 +45,26 @@ class OnboardingStepHeader extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFFE94560).withOpacity(0.9),
+            color: colorScheme.primary.withValues(alpha: 0.9),
             letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 6),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5)),
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
         ),
       ],
     );

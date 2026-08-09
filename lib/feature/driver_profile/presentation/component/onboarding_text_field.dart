@@ -29,6 +29,9 @@ class OnboardingTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,7 +40,7 @@ class OnboardingTextField extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.5),
+            color: onSurface.withValues(alpha: 0.5),
             letterSpacing: 0.5,
           ),
         ),
@@ -53,47 +56,47 @@ class OnboardingTextField extends StatelessWidget {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: enabled ? Colors.white : Colors.white.withOpacity(0.5),
+            color: enabled ? onSurface : onSurface.withValues(alpha: 0.5),
           ),
           decoration: InputDecoration(
             counterText: '',
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+            hintStyle: TextStyle(color: onSurface.withValues(alpha: 0.25)),
             prefixIcon: prefix,
             filled: true,
             fillColor:
                 enabled
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.white.withOpacity(0.03),
+                    ? onSurface.withValues(alpha: 0.05)
+                    : onSurface.withValues(alpha: 0.03),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderSide: BorderSide(color: onSurface.withValues(alpha: 0.08)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderSide: BorderSide(color: onSurface.withValues(alpha: 0.08)),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+              borderSide: BorderSide(color: onSurface.withValues(alpha: 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE94560), width: 1.5),
+              borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.redAccent),
+              borderSide: BorderSide(color: colorScheme.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+              borderSide: BorderSide(color: colorScheme.error, width: 1.5),
             ),
-            errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 12),
+            errorStyle: TextStyle(color: colorScheme.error, fontSize: 12),
           ),
         ),
       ],
