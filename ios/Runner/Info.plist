@@ -46,9 +46,13 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>ViaGo Conductor necesita tu ubicación para mostrarte y llevarte a las carreras.</string>
+	<string>TaxiGo Conductor necesita tu ubicación para mostrarte y llevarte a las carreras.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>ViaGo Conductor necesita tu ubicación en segundo plano para reportar tu posición mientras tienes un viaje activo.</string>
+	<string>TaxiGo Conductor necesita tu ubicación en segundo plano para reportar tu posición mientras tienes un viaje activo.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>TaxiGo Conductor necesita acceso a tu cámara para tomar tu foto de perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>TaxiGo Conductor necesita acceso a tus fotos para elegir tu foto de perfil.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

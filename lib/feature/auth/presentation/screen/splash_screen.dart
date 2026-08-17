@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,17 +27,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final onSurface = colorScheme.onSurface;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF1A1A2E),
-              const Color(0xFF16213E),
-              const Color(0xFF0F3460),
-            ],
+            colors: context.appColors.backgroundGradient,
           ),
         ),
         child: SafeArea(
@@ -50,11 +49,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: onSurface.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFE94560).withOpacity(0.3),
+                            color: colorScheme.primary.withValues(alpha: 0.3),
                             blurRadius: 60,
                             spreadRadius: 10,
                           ),
@@ -69,15 +68,15 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 40),
                     Text(
-                      'ViaGo',
+                      'TaxiGo',
                       style: TextStyle(
                         fontSize: 42,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: onSurface,
                         letterSpacing: 2,
                         shadows: [
                           BoxShadow(
-                            color: const Color(0xFFE94560).withOpacity(0.5),
+                            color: colorScheme.primary.withValues(alpha: 0.5),
                             blurRadius: 20,
                             offset: const Offset(0, 4),
                           ),
@@ -90,19 +89,8 @@ class _SplashScreenState extends State<SplashScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w300,
-                        color: Colors.white.withOpacity(0.7),
+                        color: onSurface.withValues(alpha: 0.7),
                         letterSpacing: 4,
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          const Color(0xFFE94560),
-                        ),
                       ),
                     ),
                   ],
@@ -117,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.3),
+                    color: onSurface.withValues(alpha: 0.3),
                     letterSpacing: 1,
                   ),
                 ),

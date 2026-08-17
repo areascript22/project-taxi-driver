@@ -47,13 +47,13 @@ android {
             dimension = "environment"
             applicationId = "com.areascript.driver_app.dev"
             versionNameSuffix = "-dev"
-            resValue("string", "app_name", "ViaGo Conductor Dev")
+            resValue("string", "app_name", "TaxiGo Conductor Dev")
         }
         create("prod") {
             dimension = "environment"
             applicationId = "com.areascript.driver_app"
             versionNameSuffix = ""
-            resValue("string", "app_name", "ViaGo Conductor")
+            resValue("string", "app_name", "TaxiGo Conductor")
         }
     }
 

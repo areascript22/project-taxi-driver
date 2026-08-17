@@ -18,21 +18,25 @@ class ScaffoldWithNavBar extends StatelessWidget {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _buildBottomNavigationBar(),
+            child: _buildBottomNavigationBar(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final selectedColor = colorScheme.primary;
+    final unselectedColor = colorScheme.onSurface.withValues(alpha: 0.35);
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       child: BottomNavigationBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         currentIndex: navigationShell.currentIndex,
-        selectedItemColor: const Color(0xFF1A1A2E),
-        unselectedItemColor: Colors.grey.shade400,
+        selectedItemColor: selectedColor,
+        unselectedItemColor: unselectedColor,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
@@ -44,8 +48,18 @@ class ScaffoldWithNavBar extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         items: [
-          _buildNavItem(icon: 'assets/icons/svg/location.svg', label: 'Pedir'),
-          _buildNavItem(icon: 'assets/icons/svg/profile.svg', label: 'Perfil'),
+          _buildNavItem(
+            icon: 'assets/icons/svg/location.svg',
+            label: 'Pedir',
+            selectedColor: selectedColor,
+            unselectedColor: unselectedColor,
+          ),
+          _buildNavItem(
+            icon: 'assets/icons/svg/profile.svg',
+            label: 'Perfil',
+            selectedColor: selectedColor,
+            unselectedColor: unselectedColor,
+          ),
         ],
         onTap: (int index) => _onTap(index),
       ),
@@ -55,19 +69,21 @@ class ScaffoldWithNavBar extends StatelessWidget {
   BottomNavigationBarItem _buildNavItem({
     required String icon,
     required String label,
+    required Color selectedColor,
+    required Color unselectedColor,
   }) {
     return BottomNavigationBarItem(
       icon: SvgPicture.asset(
         icon,
         width: 24,
         height: 24,
-        colorFilter: ColorFilter.mode(Colors.grey.shade400, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(unselectedColor, BlendMode.srcIn),
       ),
       activeIcon: SvgPicture.asset(
         icon,
         width: 24,
         height: 24,
-        colorFilter: const ColorFilter.mode(Color(0xFF1A1A2E), BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(selectedColor, BlendMode.srcIn),
       ),
       label: label,
     );

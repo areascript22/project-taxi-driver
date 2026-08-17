@@ -10,6 +10,8 @@ class OfflineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -19,21 +21,17 @@ class OfflineNotice extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFE94560).withOpacity(0.15),
+                color: colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.gps_off,
-                color: Color(0xFFE94560),
-                size: 40,
-              ),
+              child: Icon(Icons.gps_off, color: colorScheme.primary, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Estás offline',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -43,7 +41,7 @@ class OfflineNotice extends StatelessWidget {
               'Activa el switch en la parte superior para empezar a recibir peticiones de carrera.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -57,8 +55,8 @@ class OfflineNotice extends StatelessWidget {
                       ForegroundServiceToggled(),
                     ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE94560),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),

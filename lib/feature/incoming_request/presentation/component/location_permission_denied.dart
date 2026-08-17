@@ -12,6 +12,8 @@ class LocationPermissionDenied extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -21,21 +23,21 @@ class LocationPermissionDenied extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFE94560).withOpacity(0.15),
+                color: colorScheme.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.location_off_rounded,
-                color: Color(0xFFE94560),
+                color: colorScheme.primary,
                 size: 40,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Necesitamos tu ubicación',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -47,7 +49,7 @@ class LocationPermissionDenied extends StatelessWidget {
                   : 'Para ver y aceptar las carreras de los pasajeros necesitamos acceso a tu ubicación.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -58,8 +60,8 @@ class LocationPermissionDenied extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onEnablePermissionsTapped,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE94560),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),

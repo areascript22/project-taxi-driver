@@ -17,3 +17,12 @@ final class SessionAuthenticated extends SessionState {
 }
 
 final class SessionUnauthenticated extends SessionState {}
+
+// El usuario ya se autenticó con Google pero todavía no tiene datos de
+// conductor guardados en Firestore -- debe completar el registro
+// (datos personales + vehículo) antes de continuar.
+final class SessionOnboardingRequired extends SessionState {
+  final UserEntity user;
+
+  SessionOnboardingRequired({required this.user});
+}

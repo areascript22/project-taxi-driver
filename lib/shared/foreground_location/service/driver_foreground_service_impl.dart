@@ -27,7 +27,7 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
         // eso), un id custom deja el canal inexistente y Android mata el
         // proceso al llamar startForeground() (RemoteServiceException:
         // "Bad notification for startForeground").
-        initialNotificationTitle: 'ViaGo Conductor',
+        initialNotificationTitle: 'TaxiGo Conductor',
         initialNotificationContent: 'Reportando tu ubicación...',
         foregroundServiceNotificationId: _notificationId,
         foregroundServiceTypes: [AndroidForegroundType.location],

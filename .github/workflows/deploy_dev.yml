@@ -1,4 +1,4 @@
-name: Deploy ViaGo Conductor Dev (Internal Test)
+name: Deploy TaxiGo Conductor Dev (Internal Test)
 
 on:
   push:

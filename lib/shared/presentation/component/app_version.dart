@@ -42,7 +42,9 @@ class _AppVersionWidgetState extends State<AppVersionWidget> {
   Widget build(BuildContext context) {
     return Text(
       'Versión: $_appVersion',
-      style: widget.textStyle ?? const TextStyle(color: Colors.white),
+      style:
+          widget.textStyle ??
+          TextStyle(color: Theme.of(context).colorScheme.onSurface),
     );
   }
 }

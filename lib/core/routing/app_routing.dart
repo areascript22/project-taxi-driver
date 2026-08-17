@@ -1,7 +1,11 @@
+import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen2.dart';
+import 'package:driver_app/feature/driver_profile/domain/entity/vehicle_entity.dart';
+import 'package:driver_app/feature/profile/presentation/screen/vehicle_info_screen.dart';
 import 'package:driver_app/feature/trip/presentation/screen/trip_screen.dart';
+import 'package:driver_app/shared/domain/entity/user_entity.dart';
 import 'package:driver_app/shared/feature/settings/presentation/screen/settings_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../feature/auth/presentation/screen/session_screen.dart';
@@ -31,6 +35,13 @@ class AppRouter {
         name: sessionRoute.name,
         builder: (context, state) => const SessionScreen(),
       ),
+      GoRoute(
+        path: driverOnboardingRoute.route,
+        name: driverOnboardingRoute.name,
+        builder:
+            (context, state) =>
+                DriverOnboardingScreen(user: state.extra as UserEntity),
+      ),
 
       // The StatefulShellRoute acts as your authenticated "Home"
       StatefulShellRoute.indexedStack(
@@ -57,8 +68,9 @@ class AppRouter {
                 path: tripRoute.route,
                 name: tripRoute.name,
                 builder:
-                    (context, state) =>
-                        TripScreen(request: state.extra as IncomingRequestEntity),
+                    (context, state) => TripScreen(
+                      request: state.extra as IncomingRequestEntity,
+                    ),
               ),
             ],
           ),
@@ -77,6 +89,14 @@ class AppRouter {
                 path: profile2Route.route,
                 name: profile2Route.name,
                 builder: (context, state) => const ProfileScreen2(),
+              ),
+              GoRoute(
+                path: vehicleInfoRoute.route,
+                name: vehicleInfoRoute.name,
+                builder:
+                    (context, state) => VehicleInfoScreen(
+                      vehicle: state.extra as VehicleEntity,
+                    ),
               ),
               GoRoute(
                 path: settingsRoute.route,

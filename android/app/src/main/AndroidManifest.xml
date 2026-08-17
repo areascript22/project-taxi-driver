@@ -3,6 +3,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- Foto de perfil del conductor en el registro (image_picker con cámara). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- Foreground service que reporta la ubicación del conductor mientras
          hay un viaje activo (o mientras se prueba el toggle manual). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

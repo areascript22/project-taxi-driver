@@ -20,6 +20,12 @@ const sessionRoute = NavigationEntity(
   route: '/session',
 );
 
+const driverOnboardingRoute = NavigationEntity(
+  key: 'driver_onboarding_route_key',
+  name: 'driver_onboarding',
+  route: '/driver-onboarding',
+);
+
 const homeRoute = NavigationEntity(
   key: 'home_route_key',
   name: 'home',
@@ -54,6 +60,12 @@ const profile2Route = NavigationEntity(
   key: 'profile2_route_key',
   name: 'profile2',
   route: '/profile2',
+);
+
+const vehicleInfoRoute = NavigationEntity(
+  key: 'vehicle_info_route_key',
+  name: 'vehicle_info',
+  route: '/vehicle-info',
 );
 
 const settingsRoute = NavigationEntity(

@@ -10,6 +10,8 @@ class ForegroundServiceToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<ForegroundServiceBloc, ForegroundServiceState>(
       builder: (context, state) {
         return Row(
@@ -18,7 +20,7 @@ class ForegroundServiceToggle extends StatelessWidget {
             Icon(
               state.isRunning ? Icons.gps_fixed : Icons.gps_off,
               size: 18,
-              color: Colors.white.withOpacity(0.7),
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             Switch(
               value: state.isRunning,
@@ -28,7 +30,7 @@ class ForegroundServiceToggle extends StatelessWidget {
                       : (_) => context.read<ForegroundServiceBloc>().add(
                         ForegroundServiceToggled(),
                       ),
-              activeColor: const Color(0xFFE94560),
+              activeColor: colorScheme.primary,
             ),
           ],
         );

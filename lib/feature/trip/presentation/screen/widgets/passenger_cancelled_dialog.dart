@@ -17,6 +17,8 @@ class PassengerCancelledDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return PopScope(
       canPop: false,
       child: Dialog(
@@ -26,9 +28,11 @@ class PassengerCancelledDialog extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF16213E),
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.08),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -36,22 +40,22 @@ class PassengerCancelledDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE94560).withOpacity(0.15),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.cancel_rounded,
-                  color: Color(0xFFE94560),
+                  color: colorScheme.primary,
                   size: 32,
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 "Carrera cancelada",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -60,7 +64,7 @@ class PassengerCancelledDialog extends StatelessWidget {
                 "El pasajero canceló esta carrera. Ya puedes volver a la lista de peticiones entrantes.",
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
@@ -71,8 +75,8 @@ class PassengerCancelledDialog extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE94560),
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     shape: RoundedRectangleBorder(

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/trip_bloc.dart';
 import 'widgets/confirm_cancel_trip_dialog.dart';
@@ -83,6 +84,8 @@ class _TripViewState extends State<_TripView> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return MultiBlocListener(
       listeners: [
         BlocListener<TripBloc, TripState>(
@@ -106,14 +109,14 @@ class _TripViewState extends State<_TripView> {
         ),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F3460),
+        backgroundColor: context.appColors.backgroundGradient.last,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
-          title: const Text(
+          title: Text(
             'Viaje en curso',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         body: Padding(
@@ -124,15 +127,15 @@ class _TripViewState extends State<_TripView> {
               Text(
                 'Pasajero',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 widget.request.passenger.name,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -141,14 +144,14 @@ class _TripViewState extends State<_TripView> {
               Text(
                 'Punto de recogida',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontSize: 12,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 widget.request.pickupLocation.address,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: colorScheme.onSurface, fontSize: 16),
               ),
               const Spacer(),
               BlocBuilder<TripBloc, TripState>(
@@ -162,7 +165,7 @@ class _TripViewState extends State<_TripView> {
                               state.isMarkingArrived
                                   ? 'Enviando...'
                                   : 'He llegado',
-                          backgroundColor: const Color(0xFF16C79A),
+                          backgroundColor: context.appColors.success,
                           onTap:
                               state.isMarkingArrived
                                   ? null
@@ -180,7 +183,7 @@ class _TripViewState extends State<_TripView> {
                               state.isCompleting
                                   ? 'Finalizando...'
                                   : 'Finalizar viaje',
-                          backgroundColor: const Color(0xFF16C79A),
+                          backgroundColor: context.appColors.success,
                           onTap:
                               state.isCompleting
                                   ? null
@@ -200,8 +203,8 @@ class _TripViewState extends State<_TripView> {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                            color: Color(0xFFE94560),
+                          side: BorderSide(
+                            color: colorScheme.primary,
                             width: 1.5,
                           ),
                           shape: RoundedRectangleBorder(
@@ -209,12 +212,12 @@ class _TripViewState extends State<_TripView> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Cancelar carrera',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFFE94560),
+                            color: colorScheme.primary,
                           ),
                         ),
                       ),
