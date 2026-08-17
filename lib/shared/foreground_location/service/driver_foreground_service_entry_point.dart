@@ -21,7 +21,7 @@ const _trackingInterval = Duration(seconds: 5);
 // El GPS de celular tiene ruido de varios metros incluso parado -- sin este
 // piso, cada tick de 5s reescribiría Firebase aunque el conductor no se
 // haya movido, generando tráfico/costos innecesarios.
-const _minMovementMeters = 10.0;
+const _minMovementMeters = 5.0;
 
 // Punto de entrada del isolate en el que corre el foreground service.
 //
