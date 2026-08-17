@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/error/errors.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/domain/entity/user_location.dart';
@@ -79,6 +80,17 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
             'latitude': driverLocation.latitude, //[cite: 3]
             'longitude': driverLocation.longitude, //[cite: 3]
           },
+          // Distancia (metros) del conductor al punto de recogida en el
+          // momento exacto de aceptar -- referencia fija de "100%" que usa
+          // el passenger_app para normalizar su barra de progreso. Se
+          // calcula acá (y no en el passenger_app) para no depender de que
+          // el pasajero esté mirando la app justo en este instante: si se
+          // deja para más tarde, driver/location ya se sobreescribió con
+          // la siguiente actualización de ubicación del conductor.
+          'initialDistance': _initialDistanceOrNull(
+            driverLocation: driverLocation,
+            pickupLocation: data['pickupLocation'],
+          ),
         };
 
         return Transaction.success(data);
@@ -97,5 +109,26 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
     } catch (e) {
       return Left(Failure(message: e.toString())); //[cite: 4]
     }
+  }
+
+  // Null si pickupLocation no vino con coordenadas válidas -- el
+  // passenger_app ya maneja driver.initialDistance ausente como caso
+  // válido (usa un valor de respaldo mientras tanto).
+  double? _initialDistanceOrNull({
+    required UserLocation driverLocation,
+    required dynamic pickupLocation,
+  }) {
+    if (pickupLocation is! Map) return null;
+
+    final pickupLat = (pickupLocation['latitude'] as num?)?.toDouble();
+    final pickupLng = (pickupLocation['longitude'] as num?)?.toDouble();
+    if (pickupLat == null || pickupLng == null) return null;
+
+    return Geolocator.distanceBetween(
+      driverLocation.latitude,
+      driverLocation.longitude,
+      pickupLat,
+      pickupLng,
+    );
   }
 }

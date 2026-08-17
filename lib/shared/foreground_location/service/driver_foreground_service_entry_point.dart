@@ -4,9 +4,11 @@ import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../feature/trip/data/repository/trip_repository_impl.dart';
 import '../../../feature/trip/domain/repository/trip_repository.dart';
+import '../../domain/entity/user_location.dart';
 import '../../feature/settings/data/repository/settings_repository_impl.dart';
 import '../../feedback/feedback_service.dart';
 import '../../feedback/feedback_service_impl.dart';
@@ -16,6 +18,10 @@ import '../../vibration/service/vibration_service_impl.dart';
 import '../../voice/service/voice_service_impl.dart';
 
 const _trackingInterval = Duration(seconds: 5);
+// El GPS de celular tiene ruido de varios metros incluso parado -- sin este
+// piso, cada tick de 5s reescribiría Firebase aunque el conductor no se
+// haya movido, generando tráfico/costos innecesarios.
+const _minMovementMeters = 10.0;
 
 // Punto de entrada del isolate en el que corre el foreground service.
 //
@@ -42,11 +48,28 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   Timer? locationTimer;
   StreamSubscription<DatabaseEvent>? newRequestAddedSub;
   StreamSubscription<DatabaseEvent>? newRequestRemovedSub;
+  // Última posición efectivamente escrita en Firebase (no la última leída
+  // del GPS) -- se resetea a null cada vez que arranca un tracking nuevo,
+  // así el primer reporte de cada viaje siempre se escribe sin importar el
+  // filtro de movimiento mínimo.
+  UserLocation? lastReportedLocation;
 
   Future<void> reportCurrentLocation(String passengerId) async {
     final result = await geolocatorService.getCurrentPosition();
-    await result.fold((_) async {}, (location) {
-      return tripRepository.updateDriverLocation(
+    await result.fold((_) async {}, (location) async {
+      final last = lastReportedLocation;
+      if (last != null) {
+        final movedMeters = Geolocator.distanceBetween(
+          last.latitude,
+          last.longitude,
+          location.latitude,
+          location.longitude,
+        );
+        if (movedMeters < _minMovementMeters) return;
+      }
+
+      lastReportedLocation = location;
+      await tripRepository.updateDriverLocation(
         passengerId: passengerId,
         latitude: location.latitude,
         longitude: location.longitude,
@@ -60,6 +83,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   // dos loops escribiendo ubicación a la vez.
   service.on('track').listen((event) {
     locationTimer?.cancel();
+    lastReportedLocation = null;
     final passengerId = event?['passengerId'] as String?;
     if (passengerId == null) return;
 
