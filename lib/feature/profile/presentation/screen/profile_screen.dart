@@ -216,6 +216,20 @@ class ProfileView extends StatelessWidget {
                       ? 'No registrado'
                       : driver.phoneNumber,
             ),
+            Divider(
+              height: 1,
+              indent: 60,
+              color: colorScheme.onSurface.withValues(alpha: 0.06),
+            ),
+            _buildInfoTile(
+              context,
+              icon:
+                  driver.role == 'admin'
+                      ? Icons.admin_panel_settings_outlined
+                      : Icons.local_taxi_outlined,
+              title: 'Rol',
+              value: driver.role == 'admin' ? 'Administrador' : 'Conductor',
+            ),
           ],
         ),
       ),
