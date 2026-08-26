@@ -216,10 +216,37 @@ class ProfileView extends StatelessWidget {
                       ? 'No registrado'
                       : driver.phoneNumber,
             ),
+            Divider(
+              height: 1,
+              indent: 60,
+              color: colorScheme.onSurface.withValues(alpha: 0.06),
+            ),
+            _buildInfoTile(
+              context,
+              icon: _roleIcon(driver.role),
+              title: 'Rol',
+              value: _roleLabel(driver.role),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  IconData _roleIcon(String role) {
+    return switch (role) {
+      'superuser' => Icons.shield_outlined,
+      'admin' => Icons.admin_panel_settings_outlined,
+      _ => Icons.local_taxi_outlined,
+    };
+  }
+
+  String _roleLabel(String role) {
+    return switch (role) {
+      'superuser' => 'Superusuario',
+      'admin' => 'Administrador',
+      _ => 'Conductor',
+    };
   }
 
   Widget _buildInfoTile(

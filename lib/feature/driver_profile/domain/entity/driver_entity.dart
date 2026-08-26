@@ -8,6 +8,7 @@ class DriverEntity {
   final String fcmToken;
   final String vehicleId;
   final double rating;
+  final String role;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -21,6 +22,7 @@ class DriverEntity {
     this.fcmToken = '',
     this.vehicleId = '',
     this.rating = 5.0,
+    this.role = 'driver',
     this.createdAt,
     this.updatedAt,
   });
@@ -36,6 +38,7 @@ class DriverEntity {
       fcmToken: fcmToken,
       vehicleId: vehicleId ?? this.vehicleId,
       rating: rating,
+      role: role,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

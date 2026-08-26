@@ -11,6 +11,7 @@ class DriverModel {
   final String fcmToken;
   final String vehicleId;
   final double rating;
+  final String role;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -24,6 +25,7 @@ class DriverModel {
     required this.fcmToken,
     required this.vehicleId,
     required this.rating,
+    this.role = 'driver',
     this.createdAt,
     this.updatedAt,
   });
@@ -39,6 +41,7 @@ class DriverModel {
       fcmToken: json['fcmToken'] as String? ?? '',
       vehicleId: json['vehicleId'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      role: json['role'] as String? ?? 'driver',
       createdAt: (json['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -55,6 +58,7 @@ class DriverModel {
       fcmToken: entity.fcmToken,
       vehicleId: entity.vehicleId,
       rating: entity.rating,
+      role: entity.role,
     );
   }
 
@@ -70,6 +74,7 @@ class DriverModel {
       'fcmToken': fcmToken,
       'vehicleId': vehicleId,
       'rating': rating,
+      'role': role,
     };
   }
 
@@ -84,6 +89,7 @@ class DriverModel {
       fcmToken: fcmToken,
       vehicleId: vehicleId,
       rating: rating,
+      role: role,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

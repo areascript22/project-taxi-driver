@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../../../../../core/error/errors.dart';
 import '../../../../domain/entity/user_entity.dart';
 import '../../../../domain/repository/session_repository.dart';
@@ -12,6 +13,15 @@ class SessionRepositoryImpl implements SessionRepository {
       final User? currentUser = auth.currentUser;
 
       if (currentUser != null) {
+        // Fuerza el refresh del ID token en cada arranque de la app para
+        // que los custom claims (ej. rol admin) estén siempre al día,
+        // incluso si cambiaron mientras la app estaba cerrada.
+        try {
+          await currentUser.getIdToken(true);
+        } catch (e) {
+          debugPrint('SessionDebug | No se pudo refrescar el ID token: $e');
+        }
+
         return right(
           UserEntity(
             id: currentUser.uid,

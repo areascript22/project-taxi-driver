@@ -1,3 +1,4 @@
+import 'package:driver_app/feature/admin/presentation/screen/admin_screen.dart';
 import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
@@ -76,7 +77,21 @@ class AppRouter {
           ),
 
           // ---------------------------
-          // BRANCH 2: Profile Flow
+          // BRANCH 2: Admin Flow (solo visible para roles admin/superuser
+          // en el bottom nav bar; ver ScaffoldWithNavBar)
+          // ---------------------------
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: adminRoute.route,
+                name: adminRoute.name,
+                builder: (context, state) => const AdminScreen(),
+              ),
+            ],
+          ),
+
+          // ---------------------------
+          // BRANCH 3: Profile Flow
           // ---------------------------
           StatefulShellBranch(
             routes: [
