@@ -239,23 +239,24 @@ class _AdminViewState extends State<AdminView> {
             )
           else ...[
             if (canToggleRole)
-              IconButton(
-                tooltip:
-                    driver.role == 'admin'
-                        ? 'Convertir en conductor'
-                        : 'Convertir en administrador',
-                icon: Icon(
-                  driver.role == 'admin'
-                      ? Icons.arrow_downward_rounded
-                      : Icons.arrow_upward_rounded,
-                  color: colorScheme.primary,
-                ),
-                onPressed: () {
-                  final newRole = driver.role == 'admin' ? 'driver' : 'admin';
+              PopupMenuButton<String>(
+                tooltip: 'Cambiar rol',
+                icon: Icon(Icons.swap_vert_rounded, color: colorScheme.primary),
+                onSelected: (newRole) {
                   context.read<AdminBloc>().add(
                     AdminRoleChangeRequested(uid: driver.uid, role: newRole),
                   );
                 },
+                itemBuilder:
+                    (context) =>
+                        _rolesFor(driver.role)
+                            .map(
+                              (role) => PopupMenuItem<String>(
+                                value: role,
+                                child: Text(_roleLabel(role)),
+                              ),
+                            )
+                            .toList(),
               ),
             if (canDelete)
               IconButton(
@@ -282,11 +283,7 @@ class _AdminViewState extends State<AdminView> {
 
   Widget _buildRoleBadge(BuildContext context, String role) {
     final colorScheme = Theme.of(context).colorScheme;
-    final label = switch (role) {
-      'superuser' => 'Superusuario',
-      'admin' => 'Administrador',
-      _ => 'Conductor',
-    };
+    final label = _roleLabel(role);
     final color = role == 'driver' ? colorScheme.onSurface : colorScheme.primary;
 
     return Container(
@@ -364,6 +361,20 @@ class _AdminViewState extends State<AdminView> {
     required String viewerRole,
     required String targetRole,
   }) {
-    return viewerRole == 'superuser' && targetRole != 'superuser';
+    return viewerRole == 'superuser';
+  }
+
+  static const List<String> _allRoles = ['driver', 'admin', 'superuser'];
+
+  List<String> _rolesFor(String currentRole) {
+    return _allRoles.where((role) => role != currentRole).toList();
+  }
+
+  String _roleLabel(String role) {
+    return switch (role) {
+      'superuser' => 'Superusuario',
+      'admin' => 'Administrador',
+      _ => 'Conductor',
+    };
   }
 }

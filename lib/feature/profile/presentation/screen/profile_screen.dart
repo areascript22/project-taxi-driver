@@ -223,17 +223,30 @@ class ProfileView extends StatelessWidget {
             ),
             _buildInfoTile(
               context,
-              icon:
-                  driver.role == 'admin'
-                      ? Icons.admin_panel_settings_outlined
-                      : Icons.local_taxi_outlined,
+              icon: _roleIcon(driver.role),
               title: 'Rol',
-              value: driver.role == 'admin' ? 'Administrador' : 'Conductor',
+              value: _roleLabel(driver.role),
             ),
           ],
         ),
       ),
     );
+  }
+
+  IconData _roleIcon(String role) {
+    return switch (role) {
+      'superuser' => Icons.shield_outlined,
+      'admin' => Icons.admin_panel_settings_outlined,
+      _ => Icons.local_taxi_outlined,
+    };
+  }
+
+  String _roleLabel(String role) {
+    return switch (role) {
+      'superuser' => 'Superusuario',
+      'admin' => 'Administrador',
+      _ => 'Conductor',
+    };
   }
 
   Widget _buildInfoTile(
