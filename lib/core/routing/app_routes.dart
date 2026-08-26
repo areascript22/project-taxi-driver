@@ -73,3 +73,9 @@ const settingsRoute = NavigationEntity(
   name: 'settings',
   route: '/settings',
 );
+
+const adminRoute = NavigationEntity(
+  key: 'admin_route_key',
+  name: 'admin',
+  route: '/admin',
+);

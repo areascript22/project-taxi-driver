@@ -12,8 +12,15 @@ final class SessionAuthenticated extends SessionState {
   // sesión para decidir si hay que resumir TripScreen en vez de ir a
   // IncomingRequestScreen.
   final IncomingRequestEntity? activeTrip;
+  // 'driver' | 'admin' | 'superuser' -- controla la visibilidad del tab
+  // Admin en el bottom nav bar.
+  final String role;
 
-  SessionAuthenticated({required this.user, this.activeTrip});
+  SessionAuthenticated({
+    required this.user,
+    this.activeTrip,
+    this.role = 'driver',
+  });
 }
 
 final class SessionUnauthenticated extends SessionState {}

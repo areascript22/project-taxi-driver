@@ -50,7 +50,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     );
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 
-    emit(SessionAuthenticated(user: user, activeTrip: activeTrip));
+    emit(SessionAuthenticated(user: user, activeTrip: activeTrip, role: driver.role));
   }
 
   Future<void> _onLogoutRequested(SessionLogoutRequested event,
