@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
@@ -101,7 +103,9 @@ class _AdminViewState extends State<AdminView> {
         decoration: BoxDecoration(
           color: colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: TextField(
           controller: _searchController,
@@ -132,7 +136,9 @@ class _AdminViewState extends State<AdminView> {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (state.isLoading && state.drivers.isEmpty) {
-      return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+      return Center(
+        child: CircularProgressIndicator(color: colorScheme.primary),
+      );
     }
 
     if (state.pageDrivers.isEmpty) {
@@ -169,114 +175,129 @@ class _AdminViewState extends State<AdminView> {
     required bool isBusy,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final canDelete = _canDelete(viewerRole: viewerRole, targetRole: driver.role);
+    final canDelete = _canDelete(
+      viewerRole: viewerRole,
+      targetRole: driver.role,
+    );
     final canToggleRole = _canToggleRole(
       viewerRole: viewerRole,
       targetRole: driver.role,
     );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: colorScheme.onSurface.withValues(alpha: 0.1),
-            backgroundImage:
-                driver.photoUrl != null ? NetworkImage(driver.photoUrl!) : null,
-            child:
-                driver.photoUrl == null
-                    ? Icon(
-                      Icons.person,
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
-                    )
-                    : null,
+    return GestureDetector(
+      onTap: () => context.push(driverDetailRoute.route, extra: driver),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  driver.fullName.isEmpty ? 'Sin nombre' : driver.fullName,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  driver.email,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                _buildRoleBadge(context, driver.role),
-              ],
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.1),
+              backgroundImage:
+                  driver.photoUrl != null
+                      ? NetworkImage(driver.photoUrl!)
+                      : null,
+              child:
+                  driver.photoUrl == null
+                      ? Icon(
+                        Icons.person,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      )
+                      : null,
             ),
-          ),
-          if (isBusy)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colorScheme.primary,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    driver.fullName.isEmpty ? 'Sin nombre' : driver.fullName,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    driver.email,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  _buildRoleBadge(context, driver.role),
+                ],
+              ),
+            ),
+            if (isBusy)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.primary,
+                  ),
                 ),
-              ),
-            )
-          else ...[
-            if (canToggleRole)
-              PopupMenuButton<String>(
-                tooltip: 'Cambiar rol',
-                icon: Icon(Icons.swap_vert_rounded, color: colorScheme.primary),
-                onSelected: (newRole) {
-                  context.read<AdminBloc>().add(
-                    AdminRoleChangeRequested(uid: driver.uid, role: newRole),
-                  );
-                },
-                itemBuilder:
-                    (context) =>
-                        _rolesFor(driver.role)
-                            .map(
-                              (role) => PopupMenuItem<String>(
-                                value: role,
-                                child: Text(_roleLabel(role)),
-                              ),
-                            )
-                            .toList(),
-              ),
-            if (canDelete)
-              IconButton(
-                tooltip: 'Eliminar conductor',
-                icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                onPressed: () async {
-                  final confirmed = await DeleteDriverConfirmDialog.show(
-                    context: context,
-                    driverName:
-                        driver.fullName.isEmpty ? driver.email : driver.fullName,
-                  );
-                  if (confirmed == true && context.mounted) {
+              )
+            else ...[
+              if (canToggleRole)
+                PopupMenuButton<String>(
+                  tooltip: 'Cambiar rol',
+                  icon: Icon(
+                    Icons.swap_vert_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  onSelected: (newRole) {
                     context.read<AdminBloc>().add(
-                      AdminDeleteDriverRequested(uid: driver.uid),
+                      AdminRoleChangeRequested(uid: driver.uid, role: newRole),
                     );
-                  }
-                },
-              ),
+                  },
+                  itemBuilder:
+                      (context) =>
+                          _rolesFor(driver.role)
+                              .map(
+                                (role) => PopupMenuItem<String>(
+                                  value: role,
+                                  child: Text(_roleLabel(role)),
+                                ),
+                              )
+                              .toList(),
+                ),
+              if (canDelete)
+                IconButton(
+                  tooltip: 'Eliminar conductor',
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                  onPressed: () async {
+                    final confirmed = await DeleteDriverConfirmDialog.show(
+                      context: context,
+                      driverName:
+                          driver.fullName.isEmpty
+                              ? driver.email
+                              : driver.fullName,
+                    );
+                    if (confirmed == true && context.mounted) {
+                      context.read<AdminBloc>().add(
+                        AdminDeleteDriverRequested(uid: driver.uid),
+                      );
+                    }
+                  },
+                ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -284,7 +305,8 @@ class _AdminViewState extends State<AdminView> {
   Widget _buildRoleBadge(BuildContext context, String role) {
     final colorScheme = Theme.of(context).colorScheme;
     final label = _roleLabel(role);
-    final color = role == 'driver' ? colorScheme.onSurface : colorScheme.primary;
+    final color =
+        role == 'driver' ? colorScheme.onSurface : colorScheme.primary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),

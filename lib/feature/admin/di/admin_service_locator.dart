@@ -5,7 +5,5 @@ import '../presentation/bloc/admin_bloc.dart';
 
 void initAdminDI(GetIt sl) {
   sl.registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl());
-  sl.registerFactory(
-    () => AdminBloc(adminRepository: sl<AdminRepository>()),
-  );
+  sl.registerFactory(() => AdminBloc(adminRepository: sl<AdminRepository>()));
 }

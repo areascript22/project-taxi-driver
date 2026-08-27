@@ -1,5 +1,3 @@
-
-
 import '../../shared/domain/entity/navigation_entity.dart';
 
 const splashRoute = NavigationEntity(
@@ -78,4 +76,10 @@ const adminRoute = NavigationEntity(
   key: 'admin_route_key',
   name: 'admin',
   route: '/admin',
+);
+
+const driverDetailRoute = NavigationEntity(
+  key: 'driver_detail_route_key',
+  name: 'driver_detail',
+  route: '/admin/driver-detail',
 );

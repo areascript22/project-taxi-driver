@@ -18,23 +18,26 @@ class AdminRepositoryImpl implements AdminRepository {
       final drivers =
           data
               .map(
-                (json) => AdminDriverModel.fromJson(
-                  json as Map<String, dynamic>,
-                ).toEntity(),
+                (json) =>
+                    AdminDriverModel.fromJson(
+                      json as Map<String, dynamic>,
+                    ).toEntity(),
               )
               .toList();
       return Right(drivers);
     } on DioException catch (e) {
       debugPrint('AdminDebug | Error en listDrivers: $e');
       if (e.response?.statusCode == 403) {
-        return Left(
-          Failure(message: 'No tienes permisos para ver esta lista'),
-        );
+        return Left(Failure(message: 'No tienes permisos para ver esta lista'));
       }
-      return Left(Failure(message: 'No se pudo obtener la lista de conductores'));
+      return Left(
+        Failure(message: 'No se pudo obtener la lista de conductores'),
+      );
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en listDrivers: $e');
-      return Left(Failure(message: 'No se pudo obtener la lista de conductores'));
+      return Left(
+        Failure(message: 'No se pudo obtener la lista de conductores'),
+      );
     }
   }
 
