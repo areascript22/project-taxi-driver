@@ -1,4 +1,6 @@
+import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart';
 import 'package:driver_app/feature/admin/presentation/screen/admin_screen.dart';
+import 'package:driver_app/feature/admin/presentation/screen/driver_detail_screen.dart';
 import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
@@ -86,6 +88,14 @@ class AppRouter {
                 path: adminRoute.route,
                 name: adminRoute.name,
                 builder: (context, state) => const AdminScreen(),
+              ),
+              GoRoute(
+                path: driverDetailRoute.route,
+                name: driverDetailRoute.name,
+                builder:
+                    (context, state) => DriverDetailScreen(
+                      driver: state.extra as AdminDriverEntity,
+                    ),
               ),
             ],
           ),

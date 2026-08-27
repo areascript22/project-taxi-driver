@@ -26,9 +26,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     final result = await adminRepository.listDrivers();
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(isLoading: false, errorMessage: failure.message),
-      ),
+      (failure) =>
+          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
       (drivers) => emit(
         state.copyWith(isLoading: false, drivers: drivers, currentPage: 0),
       ),
@@ -67,7 +66,10 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         final maxPage = newState.totalPages - 1;
         emit(
           newState.copyWith(
-            currentPage: newState.currentPage.clamp(0, maxPage < 0 ? 0 : maxPage),
+            currentPage: newState.currentPage.clamp(
+              0,
+              maxPage < 0 ? 0 : maxPage,
+            ),
           ),
         );
       },
