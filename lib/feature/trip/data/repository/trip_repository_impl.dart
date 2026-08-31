@@ -125,17 +125,35 @@ class TripRepositoryImpl implements TripRepository {
     }
   }
 
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (RideService.completeTrip) para que verifique que quien finaliza es el
+  // conductor realmente asignado, y para que el servidor pueda borrar la
+  // solicitud de Firebase unos segundos después (limpieza que no depende de
+  // que la app siga abierta).
   @override
   Future<Either<Failure, Unit>> completeTrip({
     required String passengerId,
   }) async {
     try {
-      await FirebaseDatabase.instance.ref('taxi_requests/$passengerId').update({
-        'status': 'tripCompleted',
-        'updatedAt': ServerValue.timestamp,
-      });
+      await _dio.post('/api/rides/$passengerId/complete');
       return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en completeTrip: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(message: 'No tienes permiso para finalizar este viaje.'),
+        );
+      }
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
+        return Left(
+          Failure(message: 'El viaje ya no está disponible para finalizar.'),
+        );
+      }
+      return Left(
+        Failure(message: 'No se pudo finalizar el viaje. Intenta de nuevo.'),
+      );
     } catch (e) {
+      debugPrint('TripDebug | Error inesperado en completeTrip: $e');
       return Left(
         Failure(message: 'No se pudo finalizar el viaje. Intenta de nuevo.'),
       );
