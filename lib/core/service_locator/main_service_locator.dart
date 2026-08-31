@@ -8,6 +8,7 @@ import 'package:driver_app/shared/feedback/di/feedback_service_locator.dart';
 import 'package:driver_app/shared/foreground_location/di/foreground_location_service_locator.dart';
 import 'package:driver_app/shared/geolocator/di/geolocator_service_locator.dart';
 import 'package:driver_app/shared/image_picker/di/image_picker_service_locator.dart';
+import 'package:driver_app/shared/notifications/di/push_notifications_service_locator.dart';
 import 'package:driver_app/shared/vibration/di/vibration_service_locator.dart';
 import 'package:driver_app/shared/voice/di/voice_service_locator.dart';
 import 'package:get_it/get_it.dart';
@@ -20,6 +21,7 @@ final GetIt mainServiceLocator = GetIt.instance;
 
 Future<void> initMainServiceLocator() async {
   initDotEnvDI(mainServiceLocator);
+  initPushNotificationsDI(mainServiceLocator);
   initImagePickerDI(mainServiceLocator);
   initDriverProfileDI(mainServiceLocator);
   initProfileDI(mainServiceLocator);

@@ -1,13 +1,16 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
-import '../../../../shared/domain/entity/user_entity.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../../shared/domain/entity/user_location.dart';
 import '../../domain/entity/incoming_request_entity.dart';
 import '../../domain/repository/incoming_request_repository.dart';
 
 class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
+  final Dio _dio = DioClient.instance;
+
   final Query _pendingRequestsQuery = FirebaseDatabase.instance
       .ref('taxi_requests')
       .orderByChild('status')
@@ -46,89 +49,44 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
     });
   }
 
+  // La transacción de asignación (evitar que dos conductores se queden con
+  // la misma carrera) ya no vive acá: corre en el backend (RideService),
+  // que además deriva la identidad del conductor del token de Firebase
+  // verificado en vez de confiar en lo que mande el cliente.
   @override
   Future<Either<Failure, bool>> acceptRide({
     required String passengerId,
-    required UserEntity driverEntity,
     required UserLocation driverLocation,
   }) async {
     try {
-      final DatabaseReference ref = FirebaseDatabase.instance.ref(
-        'taxi_requests/$passengerId',
+      debugPrint('IncomingRequestDebug | starting');
+      await _dio.post(
+        '/api/rides/$passengerId/accept',
+        data: {
+          'latitude': driverLocation.latitude,
+          'longitude': driverLocation.longitude,
+        },
       );
-
-      final TransactionResult result = await ref.runTransaction((mutableData) {
-        if (mutableData == null) {
-          return Transaction.abort();
-        }
-
-        final data = Map<dynamic, dynamic>.from(mutableData as Map);
-
-        if (data['status'] != 'pending') {
-          return Transaction.abort();
-        }
-
-        data['status'] = 'driverAssigned';
-        data['driver'] = {
-          'data': {
-            'id': driverEntity.id, //[cite: 2]
-            'email': driverEntity.email, //[cite: 2]
-            'displayName': driverEntity.displayName, //[cite: 2]
-            'photoUrl': driverEntity.photoUrl, //[cite: 2]
-          },
-          'location': {
-            'latitude': driverLocation.latitude, //[cite: 3]
-            'longitude': driverLocation.longitude, //[cite: 3]
-          },
-          // Distancia (metros) del conductor al punto de recogida en el
-          // momento exacto de aceptar -- referencia fija de "100%" que usa
-          // el passenger_app para normalizar su barra de progreso. Se
-          // calcula acá (y no en el passenger_app) para no depender de que
-          // el pasajero esté mirando la app justo en este instante: si se
-          // deja para más tarde, driver/location ya se sobreescribió con
-          // la siguiente actualización de ubicación del conductor.
-          'initialDistance': _initialDistanceOrNull(
-            driverLocation: driverLocation,
-            pickupLocation: data['pickupLocation'],
-          ),
-        };
-
-        return Transaction.success(data);
-      });
-
-      if (!result.committed) {
+      return const Right(true);
+    } on DioException catch (e) {
+      debugPrint('IncomingRequestDebug | Error en acceptRide: $e');
+      if (e.response?.statusCode == 409) {
         return Left(
           Failure(
             message:
                 'La carrera ya fue tomada por otro conductor o ya no está disponible.',
           ),
-        ); //[cite: 4]
+        );
       }
-
-      return const Right(true);
+      if (e.response?.statusCode == 404) {
+        return Left(
+          Failure(message: 'La solicitud ya no está disponible.'),
+        );
+      }
+      return Left(Failure(message: 'No se pudo aceptar la carrera.'));
     } catch (e) {
-      return Left(Failure(message: e.toString())); //[cite: 4]
+      debugPrint('IncomingRequestDebug | Error inesperado en acceptRide: $e');
+      return Left(Failure(message: 'No se pudo aceptar la carrera.'));
     }
-  }
-
-  // Null si pickupLocation no vino con coordenadas válidas -- el
-  // passenger_app ya maneja driver.initialDistance ausente como caso
-  // válido (usa un valor de respaldo mientras tanto).
-  double? _initialDistanceOrNull({
-    required UserLocation driverLocation,
-    required dynamic pickupLocation,
-  }) {
-    if (pickupLocation is! Map) return null;
-
-    final pickupLat = (pickupLocation['latitude'] as num?)?.toDouble();
-    final pickupLng = (pickupLocation['longitude'] as num?)?.toDouble();
-    if (pickupLat == null || pickupLng == null) return null;
-
-    return Geolocator.distanceBetween(
-      driverLocation.latitude,
-      driverLocation.longitude,
-      pickupLat,
-      pickupLng,
-    );
   }
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
-import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/domain/entity/user_location.dart';
 import '../../domain/entity/incoming_request_entity.dart';
 import '../../domain/repository/incoming_request_repository.dart';
@@ -124,7 +123,6 @@ class IncomingRequestBloc
 
     final result = await repository.acceptRide(
       passengerId: event.request.userId,
-      driverEntity: event.driverEntity,
       driverLocation: event.driverLocation,
     );
 

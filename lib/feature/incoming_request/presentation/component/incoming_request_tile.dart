@@ -67,7 +67,6 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
         context.read<IncomingRequestBloc>().add(
           AcceptRideRequested(
             request: incomingRequestEntity,
-            driverEntity: sessionState.user,
             driverLocation: driverLocation,
           ),
         );
