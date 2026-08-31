@@ -55,19 +55,24 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
     final locationResult = await geolocatorService.getCurrentPosition();
 
     if (!mounted) return;
-    setState(() => _isRequestingLocation = false);
 
     locationResult.fold(
       (failure) {
+        setState(() => _isRequestingLocation = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(failure.message)),
         );
       },
       (driverLocation) {
+        // No apagamos _isRequestingLocation acá: si lo hiciéramos, quedaría
+        // una ventana entre este punto y el momento en que el Bloc procesa
+        // el evento y emite AcceptRideStatus.loading, durante la cual
+        // isBusy sería false y el botón se rehabilitaría, permitiendo un
+        // segundo tap que dispare otra petición duplicada de aceptar. Se
+        // apaga en el listener de resultado (ver más abajo).
         context.read<IncomingRequestBloc>().add(
           AcceptRideRequested(
             request: incomingRequestEntity,
-            driverEntity: sessionState.user,
             driverLocation: driverLocation,
           ),
         );
@@ -79,6 +84,22 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    return BlocListener<IncomingRequestBloc, IncomingRequestState>(
+      listenWhen: (previous, current) {
+        if (current is! IncomingRequestLoaded) return false;
+        return current.processingRequest?.rideId == incomingRequestEntity.rideId &&
+            current.acceptStatus != AcceptRideStatus.loading;
+      },
+      listener: (context, state) {
+        if (_isRequestingLocation) {
+          setState(() => _isRequestingLocation = false);
+        }
+      },
+      child: _buildContent(context, colorScheme),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: 20,

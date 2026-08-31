@@ -126,9 +126,12 @@ class ScaffoldWithNavBar extends StatelessWidget {
   }
 
   void _onTap(int branchIndex) {
-    navigationShell.goBranch(
-      branchIndex,
-      initialLocation: branchIndex == navigationShell.currentIndex,
-    );
+    // El bottom bar solo navega ENTRE branches. Volver a tocar la pestaña ya
+    // activa no debe hacer nada -- en particular, no debe resetear el branch
+    // a su ruta inicial: si el conductor está en TripScreen (dentro del
+    // branch "Pedir") y vuelve a tocar "Pedir", debe quedarse en TripScreen,
+    // no volver a IncomingRequestScreen.
+    if (branchIndex == navigationShell.currentIndex) return;
+    navigationShell.goBranch(branchIndex);
   }
 }

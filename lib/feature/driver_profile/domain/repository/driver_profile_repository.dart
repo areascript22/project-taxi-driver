@@ -22,4 +22,11 @@ abstract class DriverProfileRepository {
     required VehicleEntity vehicle,
     File? profileImage,
   });
+
+  // Guarda/actualiza el token FCM del conductor en Firestore -- lo usa el
+  // backend para enviarle push notifications.
+  Future<Either<Failure, Unit>> updateFcmToken({
+    required String driverId,
+    required String token,
+  });
 }

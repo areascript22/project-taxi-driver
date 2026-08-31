@@ -120,4 +120,22 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> updateFcmToken({
+    required String driverId,
+    required String token,
+  }) async {
+    try {
+      await _firestore.collection(_driversCollection).doc(driverId).update({
+        'fcmToken': token,
+      });
+      return const Right(unit);
+    } catch (e) {
+      debugPrint('DriverProfileDebug | Error en updateFcmToken: $e');
+      return Left(
+        Failure(message: 'No se pudo registrar el token de notificaciones'),
+      );
+    }
+  }
 }

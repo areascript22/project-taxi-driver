@@ -43,6 +43,13 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     emit(state.copyWith(status: data.status));
     if (data.status == 'cancelled') {
       emit(state.copyWith(isCancelled: true, cancelledBy: data.cancelledBy));
+      // Cubre ambos lados: si canceló el pasajero, este es el único aviso
+      // que recibimos (llega por Firebase, no por un resultado local); si
+      // canceló el conductor, esto llega como eco de su propia cancelación.
+      // En cualquier caso, ya no tiene sentido seguir reportando ubicación
+      // para un viaje cancelado -- no hay que esperar a que el conductor
+      // cierre el diálogo o salga de la pantalla.
+      driverForegroundService.stopTracking();
     }
   }
 
