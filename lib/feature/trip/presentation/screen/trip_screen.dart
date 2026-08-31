@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:map_launcher/map_launcher.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feedback/feedback_service.dart';
@@ -82,6 +83,34 @@ class _TripViewState extends State<_TripView> {
     context.go(bookingRoute.route);
   }
 
+  // No pasa por un Bloc/repositorio (igual que GeolocatorService en
+  // IncomingRequestTile): abrir una app externa es una capacidad de
+  // plataforma sin estado ni datos que modelar, no una fuente de datos del
+  // dominio. map_launcher lanza si Google Maps no está instalado en el
+  // dispositivo -- se captura y se avisa con un snackbar en vez de dejar
+  // que la excepción suba sin manejar.
+  Future<void> _openInGoogleMaps() async {
+    try {
+      await MapLauncher.showMarker(
+        mapType: MapType.google,
+        coords: Coords(
+          widget.request.pickupLocation.latitude,
+          widget.request.pickupLocation.longitude,
+        ),
+        title: widget.request.passenger.name,
+        description: widget.request.pickupLocation.address,
+      );
+    } catch (e) {
+      debugPrint('TripDebug | Error al abrir Google Maps: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir Google Maps. ¿Está instalado?'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -124,35 +153,9 @@ class _TripViewState extends State<_TripView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Pasajero',
-                style: TextStyle(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.request.passenger.name,
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Punto de recogida',
-                style: TextStyle(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.request.pickupLocation.address,
-                style: TextStyle(color: colorScheme.onSurface, fontSize: 16),
-              ),
+              _buildPassengerCard(colorScheme),
+              const SizedBox(height: 16),
+              _buildPickupCard(colorScheme),
               const Spacer(),
               BlocBuilder<TripBloc, TripState>(
                 builder: (context, state) {
@@ -230,6 +233,140 @@ class _TripViewState extends State<_TripView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPassengerCard(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: colorScheme.onSurface.withValues(alpha: 0.2),
+                width: 2,
+              ),
+            ),
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.1),
+              backgroundImage: NetworkImage(
+                widget.request.passenger.profileImage,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pasajero',
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.request.passenger.name,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPickupCard(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.location_on,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Punto de recogida',
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.request.pickupLocation.address,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _openInGoogleMaps,
+              icon: Icon(Icons.map_outlined, color: colorScheme.primary, size: 20),
+              label: Text(
+                'Abrir en Google Maps',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

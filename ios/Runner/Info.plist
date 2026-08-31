@@ -66,5 +66,9 @@
 	<array>
 		<string>dev.flutter.background.refresh</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>comgooglemaps</string>
+	</array>
 </dict>
 </plist>
