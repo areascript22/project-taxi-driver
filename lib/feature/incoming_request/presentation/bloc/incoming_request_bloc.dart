@@ -114,6 +114,17 @@ class IncomingRequestBloc
     final current = state;
     if (current is! IncomingRequestLoaded) return;
 
+    // Evita que un doble-tap (o cualquier otra fuente de eventos duplicados)
+    // dispare una segunda petición de aceptar mientras ya hay una en curso
+    // para la misma carrera. Sin este guard, dos peticiones concurrentes
+    // pueden resolver en cualquier orden y la última en responder pisa el
+    // estado de la primera, aunque esa haya sido la que realmente ganó la
+    // transacción en el servidor.
+    if (current.acceptStatus == AcceptRideStatus.loading &&
+        current.processingRequest?.rideId == event.request.rideId) {
+      return;
+    }
+
     emit(
       current.copyWith(
         acceptStatus: AcceptRideStatus.loading,

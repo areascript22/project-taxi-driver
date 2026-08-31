@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../domain/entity/trip_status_entity.dart';
 import '../../domain/repository/trip_repository.dart';
@@ -12,6 +14,8 @@ import '../../domain/repository/trip_repository.dart';
 const _activeTripStatuses = {'driverAssigned', 'driverArrived', 'tripStarted'};
 
 class TripRepositoryImpl implements TripRepository {
+  final Dio _dio = DioClient.instance;
+
   @override
   Stream<TripStatusEntity> watchTrip({required String passengerId}) {
     return FirebaseDatabase.instance
@@ -71,16 +75,33 @@ class TripRepositoryImpl implements TripRepository {
     }
   }
 
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (RideService.cancelRide) para que verifique con el token de Firebase
+  // que quien cancela es el conductor realmente asignado, y para que el
+  // servidor pueda avisarle al pasajero por push (el cliente no tiene
+  // acceso al Admin SDK de FCM).
   @override
   Future<Either<Failure, Unit>> cancelRide({required String passengerId}) async {
     try {
-      await FirebaseDatabase.instance.ref('taxi_requests/$passengerId').update({
-        'status': 'cancelled',
-        'cancelledBy': 'driver',
-        'updatedAt': ServerValue.timestamp,
-      });
+      await _dio.post('/api/rides/$passengerId/cancel');
       return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en cancelRide: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(message: 'No tienes permiso para cancelar esta carrera.'),
+        );
+      }
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
+        return Left(
+          Failure(message: 'La carrera ya no está disponible para cancelar.'),
+        );
+      }
+      return Left(
+        Failure(message: 'No se pudo cancelar la carrera. Intenta de nuevo.'),
+      );
     } catch (e) {
+      debugPrint('TripDebug | Error inesperado en cancelRide: $e');
       return Left(
         Failure(message: 'No se pudo cancelar la carrera. Intenta de nuevo.'),
       );
