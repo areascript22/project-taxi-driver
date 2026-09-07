@@ -52,9 +52,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       return;
     }
 
-    final activeTripResult = await tripRepository.findActiveTripForDriver(
-      driverId: user.id,
-    );
+    final activeTripResult = await tripRepository.findActiveTripForDriver();
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 
     emit(SessionAuthenticated(user: user, activeTrip: activeTrip, role: driver.role));
