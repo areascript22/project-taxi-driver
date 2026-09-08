@@ -33,3 +33,13 @@ final class SessionOnboardingRequired extends SessionState {
 
   SessionOnboardingRequired({required this.user});
 }
+
+// El usuario está autenticado pero no se pudo verificar si tiene datos de
+// conductor guardados (error de red, permisos, etc.) -- distinto de
+// SessionOnboardingRequired: acá NO sabemos si el conductor ya existe, así
+// que no se debe mandar a re-registrar, sino permitir reintentar.
+final class SessionCheckFailed extends SessionState {
+  final UserEntity user;
+
+  SessionCheckFailed({required this.user});
+}

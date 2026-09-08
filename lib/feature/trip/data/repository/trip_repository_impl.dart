@@ -148,6 +148,10 @@ class TripRepositoryImpl implements TripRepository {
     required double longitude,
   }) async {
     try {
+      debugPrint(
+        'TripDebug | updateDriverLocation -> escribiendo ($latitude, $longitude) '
+        'en taxi_requests/$passengerId/driver/location',
+      );
       await FirebaseDatabase.instance
           .ref('taxi_requests/$passengerId/driver/location')
           .update({
@@ -157,6 +161,7 @@ class TripRepositoryImpl implements TripRepository {
           });
       return const Right(unit);
     } catch (e) {
+      debugPrint('TripDebug | Error en updateDriverLocation: $e');
       return Left(Failure(message: 'No se pudo actualizar la ubicación del conductor.'));
     }
   }

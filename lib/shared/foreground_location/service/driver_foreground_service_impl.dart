@@ -43,17 +43,32 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
   @override
   Future<void> start({String? passengerId}) async {
     try {
+      debugPrint(
+        'ForegroundLocationDebug | start() llamado con passengerId=$passengerId',
+      );
+
       // Android 13+ exige el permiso runtime para poder mostrar la
       // notificación persistente del servicio. Si el usuario lo niega, el
       // servicio igual arranca y sigue trackeando -- simplemente no se ve.
-      await Permission.notification.request();
+      final notificationStatus = await Permission.notification.request();
+      debugPrint(
+        'ForegroundLocationDebug | Permission.notification -> $notificationStatus',
+      );
 
-      if (!await _service.isRunning()) {
+      final wasRunning = await _service.isRunning();
+      debugPrint('ForegroundLocationDebug | isRunning antes de start -> $wasRunning');
+
+      if (!wasRunning) {
         await _service.startService();
+        debugPrint('ForegroundLocationDebug | startService() completado');
       }
+
       _service.invoke('track', {'passengerId': passengerId});
+      debugPrint(
+        'ForegroundLocationDebug | invoke(track, passengerId=$passengerId) enviado',
+      );
     } catch (e) {
-      debugPrint('No se pudo iniciar el foreground service: $e');
+      debugPrint('ForegroundLocationDebug | No se pudo iniciar el foreground service: $e');
     }
   }
 
@@ -62,9 +77,12 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
     try {
       if (await _service.isRunning()) {
         _service.invoke('stopService');
+        debugPrint('ForegroundLocationDebug | invoke(stopService) enviado');
+      } else {
+        debugPrint('ForegroundLocationDebug | stop() llamado pero el servicio ya no corría');
       }
     } catch (e) {
-      debugPrint('No se pudo detener el foreground service: $e');
+      debugPrint('ForegroundLocationDebug | No se pudo detener el foreground service: $e');
     }
   }
 
@@ -73,9 +91,16 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
     try {
       if (await _service.isRunning()) {
         _service.invoke('track', {'passengerId': null});
+        debugPrint('ForegroundLocationDebug | invoke(track, passengerId=null) enviado');
+      } else {
+        debugPrint(
+          'ForegroundLocationDebug | stopTracking() llamado pero el servicio ya no corría',
+        );
       }
     } catch (e) {
-      debugPrint('No se pudo detener el tracking del foreground service: $e');
+      debugPrint(
+        'ForegroundLocationDebug | No se pudo detener el tracking del foreground service: $e',
+      );
     }
   }
 
