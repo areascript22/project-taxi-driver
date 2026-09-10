@@ -9,7 +9,7 @@ import '../../domain/entity/trip_status_entity.dart';
 import '../../domain/repository/trip_repository.dart';
 
 class TripRepositoryImpl implements TripRepository {
-  final Dio _dio = DioClient.instance;
+  late final Dio _dio = DioClient.instance;
 
   @override
   Stream<TripStatusEntity> watchTrip({required String passengerId}) {
