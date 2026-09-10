@@ -28,6 +28,14 @@ class ForegroundServiceBloc
   // ya confirmado de uno más nuevo.
   int _batteryPollToken = 0;
 
+  // true cuando el conductor tocó el toggle para ir online pero quedó
+  // bloqueado esperando el permiso de batería. Cualquiera de los dos polls
+  // (el del request directo o el silencioso del resume) puede terminar
+  // confirmando el permiso -- el que lo confirme primero es quien debe
+  // arrancar el servicio, sin importar cuál de los dos lo originó. Se
+  // limpia al consumirlo o si el usuario descarta el diálogo explicativo.
+  bool _pendingGoOnline = false;
+
   ForegroundServiceBloc({
     required this.driverForegroundService,
     required this.batteryOptimizationService,
@@ -96,6 +104,7 @@ class ForegroundServiceBloc
       debugPrint(
         'ForegroundLocationDebug | Toggle ON bloqueado: falta permiso de optimización de batería',
       );
+      _pendingGoOnline = true;
       emit(
         state.copyWith(
           batteryPromptStep: BatteryOptimizationPromptStep.rationale,
@@ -159,6 +168,7 @@ class ForegroundServiceBloc
     }
 
     emit(state.copyWith(isBatteryOptimizationIgnored: true));
+    _pendingGoOnline = false;
     await _startService(emit);
   }
 
@@ -169,6 +179,9 @@ class ForegroundServiceBloc
     debugPrint(
       'ForegroundLocationDebug | Diálogo explicativo de batería descartado por el usuario',
     );
+    // El conductor eligió "Ahora no" -- ya no hay que conectarlo solo si el
+    // permiso termina apareciendo concedido más tarde por otra vía.
+    _pendingGoOnline = false;
     emit(
       state.copyWith(batteryPromptStep: BatteryOptimizationPromptStep.none),
     );
@@ -197,11 +210,22 @@ class ForegroundServiceBloc
     if (pollToken != _batteryPollToken) return;
     if (granted == state.isBatteryOptimizationIgnored) return;
 
+    if (granted && _pendingGoOnline) {
+      // El conductor ya había tocado el toggle antes de irse a Ajustes --
+      // retomamos esa intención acá en vez de dejarlo "desbloqueado pero
+      // offline" esperando un segundo tap manual.
+      debugPrint(
+        'ForegroundLocationDebug | Permiso confirmado por recheck de resume -- retomando intención de ir online',
+      );
+      _pendingGoOnline = false;
+      emit(state.copyWith(isBatteryOptimizationIgnored: true));
+      await _startService(emit);
+      return;
+    }
+
     // Si ahora SÍ está concedido y había un banner/diálogo de bloqueo
     // pendiente, se limpia solo -- el usuario no tiene que tocar
-    // "Reintentar" a mano. No arrancamos el servicio automáticamente acá:
-    // el conductor sigue teniendo que tocar el toggle, como con cualquier
-    // otra acción explícita de "ir online".
+    // "Reintentar" a mano.
     emit(
       state.copyWith(
         isBatteryOptimizationIgnored: granted,
