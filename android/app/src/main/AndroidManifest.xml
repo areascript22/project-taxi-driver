@@ -13,6 +13,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Permite pedirle al conductor que excluya a la app de la
+         optimización de batería del sistema, para que el foreground service
+         de ubicación no sea matado al cerrar la app durante un viaje. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

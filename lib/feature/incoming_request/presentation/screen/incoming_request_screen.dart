@@ -1,3 +1,5 @@
+import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_denied_banner.dart';
+import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_required_dialog.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/incoming_request_tile.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/location_permission_denied.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/offline_notice.dart';
@@ -87,8 +89,11 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Recheck silencioso (sin diálogo nativo) al volver de Configuración.
       context.read<LocationBloc>().add(CheckLocationPermissionEvent());
+
+      context.read<ForegroundServiceBloc>().add(
+        BatteryOptimizationStatusRechecked(),
+      );
     }
   }
 
@@ -96,16 +101,43 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
-      listenWhen:
-          (previous, current) => previous.isRunning != current.isRunning,
-      listener: (context, state) {
-        if (state.isRunning) {
-          context.read<IncomingRequestBloc>().add(StartListeningRequests());
-        } else {
-          context.read<IncomingRequestBloc>().add(StopListeningRequests());
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
+          listenWhen:
+              (previous, current) => previous.isRunning != current.isRunning,
+          listener: (context, state) {
+            if (state.isRunning) {
+              context.read<IncomingRequestBloc>().add(StartListeningRequests());
+            } else {
+              context.read<IncomingRequestBloc>().add(StopListeningRequests());
+            }
+          },
+        ),
+        BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
+          listenWhen:
+              (previous, current) =>
+                  previous.batteryPromptStep != current.batteryPromptStep &&
+                  current.batteryPromptStep ==
+                      BatteryOptimizationPromptStep.rationale,
+          listener: (context, state) async {
+            final accepted = await BatteryOptimizationRequiredDialog.show(
+              context,
+            );
+            if (!context.mounted) return;
+
+            if (accepted == true) {
+              context.read<ForegroundServiceBloc>().add(
+                BatteryOptimizationPermissionRequested(),
+              );
+            } else {
+              context.read<ForegroundServiceBloc>().add(
+                BatteryOptimizationPromptDismissed(),
+              );
+            }
+          },
+        ),
+      ],
       child: Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -185,6 +217,19 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                 }
 
                 if (!fgState.isRunning) {
+                  if (fgState.batteryPromptStep ==
+                      BatteryOptimizationPromptStep.deniedBanner) {
+                    return BatteryOptimizationDeniedBanner(
+                      onRetryTapped:
+                          () => context.read<ForegroundServiceBloc>().add(
+                            BatteryOptimizationPermissionRequested(),
+                          ),
+                      onOpenSettingsTapped:
+                          () => context.read<ForegroundServiceBloc>().add(
+                            BatteryOptimizationSettingsOpened(),
+                          ),
+                    );
+                  }
                   return const OfflineNotice();
                 }
 
