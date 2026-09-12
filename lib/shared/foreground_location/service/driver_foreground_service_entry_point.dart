@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../../feature/trip/data/repository/trip_repository_impl.dart';
 import '../../../feature/trip/domain/repository/trip_repository.dart';
 import '../../domain/entity/user_location.dart';
@@ -185,7 +186,20 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       final id = event.snapshot.key;
       if (id == null || knownPendingIds.contains(id)) return;
       knownPendingIds.add(id);
-      feedbackService.announce('Nueva carrera', withVibration: true);
+
+      // Mismo parseo que usa IncomingRequestBloc en el isolate principal
+      // (IncomingRequestEntity.fromMap) -- así el mensaje hablado usa
+      // exactamente la misma dirección que se ve en la lista.
+      final rawValue = event.snapshot.value;
+      final address =
+          rawValue is Map
+              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation.address
+              : '';
+
+      feedbackService.announce(
+        address.isNotEmpty ? 'Carrera hacia $address' : 'Nueva carrera',
+        withVibration: true,
+      );
     });
 
     // El nodo se indexa por passengerId, no por rideId: un mismo pasajero
