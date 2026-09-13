@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
@@ -18,10 +20,50 @@ class IncomingRequestTile extends StatefulWidget {
 }
 
 class _IncomingRequestTileState extends State<IncomingRequestTile> {
+  // Debe coincidir con PENDING_REQUEST_EXPIRY_SECONDS en el backend
+  // (RideService.java): pasado ese tiempo sin que ningún conductor acepte,
+  // el servidor auto-cancela la solicitud y esta tile desaparece sola de la
+  // lista (deja de matchear el query status=='pending'). Este contador es
+  // solo informativo para que el conductor sepa cuánto le queda.
+  static const _autoExpireWindow = Duration(seconds: 35);
+  // Bajo este umbral, el contador cambia a un color de alerta.
+  static const _urgentThreshold = Duration(seconds: 10);
+
   bool _isRequestingLocation = false;
+  Timer? _countdownTimer;
+  late Duration _remaining;
 
   IncomingRequestEntity get incomingRequestEntity =>
       widget.incomingRequestEntity;
+
+  @override
+  void initState() {
+    super.initState();
+    _remaining = _computeRemaining();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final remaining = _computeRemaining();
+      if (!mounted) return;
+      setState(() => _remaining = remaining);
+      if (remaining == Duration.zero) {
+        _countdownTimer?.cancel();
+      }
+    });
+  }
+
+  Duration _computeRemaining() {
+    final createdAt = DateTime.fromMillisecondsSinceEpoch(
+      incomingRequestEntity.createdAt,
+    );
+    final elapsed = DateTime.now().difference(createdAt);
+    final remaining = _autoExpireWindow - elapsed;
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _onAcceptPressed() async {
     final sessionState = context.read<SessionBloc>().state;
@@ -99,6 +141,28 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
     );
   }
 
+  Widget _buildCountdownBadge(ColorScheme colorScheme) {
+    final isUrgent = _remaining <= _urgentThreshold;
+    final badgeColor = isUrgent ? colorScheme.error : colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        'Esperando conductor · ${_remaining.inSeconds}s',
+        style: TextStyle(
+          color: badgeColor,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -147,25 +211,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Esperando conductor',
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
+                    _buildCountdownBadge(colorScheme),
                   ],
                 ),
               ),
