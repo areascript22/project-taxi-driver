@@ -8,13 +8,8 @@ import '../../../incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../domain/entity/trip_status_entity.dart';
 import '../../domain/repository/trip_repository.dart';
 
-// Statuses que cuentan como "viaje en curso" para findActiveTripForDriver --
-// 'pending' no aplica (todavía no tiene driver asignado) y 'cancelled' /
-// 'tripCompleted' ya terminaron.
-const _activeTripStatuses = {'driverAssigned', 'driverArrived', 'tripStarted'};
-
 class TripRepositoryImpl implements TripRepository {
-  final Dio _dio = DioClient.instance;
+  late final Dio _dio = DioClient.instance;
 
   @override
   Stream<TripStatusEntity> watchTrip({required String passengerId}) {
@@ -32,43 +27,29 @@ class TripRepositoryImpl implements TripRepository {
         });
   }
 
+  // Ya no escanea /taxi_requests completo client-side (eso descargaba al
+  // dispositivo del conductor la data de TODAS las solicitudes activas,
+  // incluyendo pickup/nombre de pasajeros ajenos, solo para filtrar la
+  // suya en Dart -- ver RideService.findActiveRideForDriver). Pasa por el
+  // backend, que identifica al conductor por el token verificado y hace el
+  // filtrado server-side, devolviendo solo el viaje que le pertenece.
   @override
-  Future<Either<Failure, IncomingRequestEntity?>> findActiveTripForDriver({
-    required String driverId,
-  }) async {
+  Future<Either<Failure, IncomingRequestEntity?>> findActiveTripForDriver() async {
     try {
-      // Sin orderByChild/equalTo a propósito: esas queries requieren un
-      // ".indexOn" declarado en las reglas de Firebase para /taxi_requests.
-      // Los listeners en streaming (onChildAdded/onValue, como en
-      // IncomingRequestRepositoryImpl) solo emiten un warning si falta ese
-      // índice y siguen funcionando -- pero un .get() puntual sin índice
-      // lanza una excepción dura del servidor ("Index not defined..."), que
-      // acá terminaba en el catch y se interpretaba como "no hay viaje".
-      // Traer el nodo completo una sola vez y filtrar en Dart evita
-      // depender de que ese índice esté configurado.
-      final snapshot =
-          await FirebaseDatabase.instance.ref('taxi_requests').get();
-      final rawValue = snapshot.value;
-      if (rawValue == null) return const Right(null);
-
-      final allRequests = Map<dynamic, dynamic>.from(rawValue as Map);
-
-      for (final entry in allRequests.values) {
-        final data = Map<dynamic, dynamic>.from(entry as Map);
-        if (!_activeTripStatuses.contains(data['status'])) continue;
-
-        final driverNode = data['driver'];
-        final driverData = driverNode is Map ? driverNode['data'] : null;
-        final assignedDriverId = driverData is Map ? driverData['id'] : null;
-
-        if (assignedDriverId == driverId) {
-          return Right(IncomingRequestEntity.fromMap(data));
-        }
+      final response = await _dio.get('/api/rides/driver/active');
+      if (response.statusCode == 204 || response.data == null) {
+        return const Right(null);
       }
 
-      return const Right(null);
+      final data = Map<dynamic, dynamic>.from(response.data as Map);
+      return Right(IncomingRequestEntity.fromMap(data));
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en findActiveTripForDriver: $e');
+      return Left(
+        Failure(message: 'No se pudo verificar si tienes un viaje en curso.'),
+      );
     } catch (e) {
-      debugPrint("Error al verificar si hay un viaje activo: $e");
+      debugPrint('TripDebug | Error inesperado en findActiveTripForDriver: $e');
       return Left(
         Failure(message: 'No se pudo verificar si tienes un viaje en curso.'),
       );
@@ -167,6 +148,10 @@ class TripRepositoryImpl implements TripRepository {
     required double longitude,
   }) async {
     try {
+      debugPrint(
+        'TripDebug | updateDriverLocation -> escribiendo ($latitude, $longitude) '
+        'en taxi_requests/$passengerId/driver/location',
+      );
       await FirebaseDatabase.instance
           .ref('taxi_requests/$passengerId/driver/location')
           .update({
@@ -176,6 +161,7 @@ class TripRepositoryImpl implements TripRepository {
           });
       return const Right(unit);
     } catch (e) {
+      debugPrint('TripDebug | Error en updateDriverLocation: $e');
       return Left(Failure(message: 'No se pudo actualizar la ubicación del conductor.'));
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/feature/driver_profile/domain/entity/driver_entity.dart';
 import 'package:driver_app/feature/driver_profile/domain/repository/driver_profile_repository.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
@@ -46,15 +47,21 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     final driverResult = await driverProfileRepository.getDriver(
       driverId: user.id,
     );
-    final driver = driverResult.fold((_) => null, (driver) => driver);
+    if (driverResult.isLeft()) {
+      emit(SessionCheckFailed(user: user));
+      return;
+    }
+
+    final DriverEntity? driver = driverResult.fold(
+      (_) => null,
+      (value) => value,
+    );
     if (driver == null) {
       emit(SessionOnboardingRequired(user: user));
       return;
     }
 
-    final activeTripResult = await tripRepository.findActiveTripForDriver(
-      driverId: user.id,
-    );
+    final activeTripResult = await tripRepository.findActiveTripForDriver();
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 
     emit(SessionAuthenticated(user: user, activeTrip: activeTrip, role: driver.role));

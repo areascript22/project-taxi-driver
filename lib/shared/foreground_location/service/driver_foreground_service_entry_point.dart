@@ -3,9 +3,11 @@ import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../../feature/trip/data/repository/trip_repository_impl.dart';
 import '../../../feature/trip/domain/repository/trip_repository.dart';
 import '../../domain/entity/user_location.dart';
@@ -34,8 +36,10 @@ const _minMovementMeters = 5.0;
 // no tienen nada que ver con esto.
 @pragma('vm:entry-point')
 void driverForegroundServiceEntryPoint(ServiceInstance service) async {
+  debugPrint('ForegroundLocationDebug | Entry point del isolate arrancando...');
   DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp();
+  debugPrint('ForegroundLocationDebug | Firebase.initializeApp() completado en el isolate');
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
   final TripRepository tripRepository = TripRepositoryImpl();
@@ -55,26 +59,59 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   UserLocation? lastReportedLocation;
 
   Future<void> reportCurrentLocation(String passengerId) async {
-    final result = await geolocatorService.getCurrentPosition();
-    await result.fold((_) async {}, (location) async {
-      final last = lastReportedLocation;
-      if (last != null) {
-        final movedMeters = Geolocator.distanceBetween(
-          last.latitude,
-          last.longitude,
-          location.latitude,
-          location.longitude,
-        );
-        if (movedMeters < _minMovementMeters) return;
-      }
+    debugPrint(
+      'ForegroundLocationDebug | Checking for location update... (passengerId=$passengerId)',
+    );
+    try {
+      final result = await geolocatorService.getCurrentPosition();
+      await result.fold(
+        (failure) async {
+          debugPrint(
+            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.message}',
+          );
+        },
+        (location) async {
+          debugPrint(
+            'ForegroundLocationDebug | Posición leída: '
+            '(${location.latitude}, ${location.longitude})',
+          );
 
-      lastReportedLocation = location;
-      await tripRepository.updateDriverLocation(
-        passengerId: passengerId,
-        latitude: location.latitude,
-        longitude: location.longitude,
+          final last = lastReportedLocation;
+          if (last != null) {
+            final movedMeters = Geolocator.distanceBetween(
+              last.latitude,
+              last.longitude,
+              location.latitude,
+              location.longitude,
+            );
+            if (movedMeters < _minMovementMeters) {
+              debugPrint(
+                'ForegroundLocationDebug | Descartado por movimiento mínimo '
+                '(${movedMeters.toStringAsFixed(2)}m < ${_minMovementMeters}m)',
+              );
+              return;
+            }
+          }
+
+          lastReportedLocation = location;
+          final updateResult = await tripRepository.updateDriverLocation(
+            passengerId: passengerId,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          );
+          updateResult.fold(
+            (failure) => debugPrint(
+              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.message}',
+            ),
+            (_) => debugPrint(
+              'ForegroundLocationDebug | updateDriverLocation() OK para passengerId=$passengerId',
+            ),
+          );
+        },
       );
-    });
+    } catch (e) {
+      debugPrint('ForegroundLocationDebug | Excepción inesperada en reportCurrentLocation: $e');
+    }
   }
 
   // 'track' llega tanto para arrancar el tracking de un viaje (passengerId
@@ -82,15 +119,28 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   // casos primero se cancela cualquier timer anterior para no terminar con
   // dos loops escribiendo ubicación a la vez.
   service.on('track').listen((event) {
-    locationTimer?.cancel();
-    lastReportedLocation = null;
-    final passengerId = event?['passengerId'] as String?;
-    if (passengerId == null) return;
+    try {
+      debugPrint('ForegroundLocationDebug | Evento "track" recibido: $event');
+      locationTimer?.cancel();
+      lastReportedLocation = null;
+      final passengerId = event?['passengerId'] as String?;
+      if (passengerId == null) {
+        debugPrint(
+          'ForegroundLocationDebug | passengerId nulo -- modo de prueba, sin tracking',
+        );
+        return;
+      }
 
-    locationTimer = Timer.periodic(
-      _trackingInterval,
-      (_) => reportCurrentLocation(passengerId),
-    );
+      locationTimer = Timer.periodic(
+        _trackingInterval,
+        (_) => reportCurrentLocation(passengerId),
+      );
+      debugPrint(
+        'ForegroundLocationDebug | Timer de tracking creado para passengerId=$passengerId',
+      );
+    } catch (e) {
+      debugPrint('ForegroundLocationDebug | Excepción manejando evento "track": $e');
+    }
   });
 
   // Alerta de "Nueva carrera" (voz + vibración): corre siempre que el
@@ -136,7 +186,20 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       final id = event.snapshot.key;
       if (id == null || knownPendingIds.contains(id)) return;
       knownPendingIds.add(id);
-      feedbackService.announce('Nueva carrera', withVibration: true);
+
+      // Mismo parseo que usa IncomingRequestBloc en el isolate principal
+      // (IncomingRequestEntity.fromMap) -- así el mensaje hablado usa
+      // exactamente la misma dirección que se ve en la lista.
+      final rawValue = event.snapshot.value;
+      final address =
+          rawValue is Map
+              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation.address
+              : '';
+
+      feedbackService.announce(
+        address.isNotEmpty ? 'Carrera hacia $address' : 'Nueva carrera',
+        withVibration: true,
+      );
     });
 
     // El nodo se indexa por passengerId, no por rideId: un mismo pasajero
@@ -151,6 +214,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   startNewRequestAlerts();
 
   service.on('stopService').listen((event) {
+    debugPrint('ForegroundLocationDebug | Evento "stopService" recibido');
     locationTimer?.cancel();
     newRequestAddedSub?.cancel();
     newRequestRemovedSub?.cancel();

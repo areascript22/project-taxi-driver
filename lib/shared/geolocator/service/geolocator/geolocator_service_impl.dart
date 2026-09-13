@@ -10,16 +10,18 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
   Future<Either<Failure, LocationPermission>> checkAndRequestPermission() async {
     try {
       LocationPermission permission = await Geolocator.checkPermission();
-      debugPrint("Checking permissions: $permission");
+      debugPrint('GeolocatorDebug | checkAndRequestPermission -> permiso actual: $permission');
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        debugPrint("Checking permissions again: $permission");
+        debugPrint(
+          'GeolocatorDebug | checkAndRequestPermission -> permiso tras requestPermission(): $permission',
+        );
       }
 
       return Right(permission);
     } catch (e) {
-      debugPrint("Error requesting location permissions: $e");
+      debugPrint('GeolocatorDebug | Error en checkAndRequestPermission: $e');
       return Left(Failure(message: e.toString()));
     }
   }
@@ -28,9 +30,10 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
   Future<Either<Failure, LocationPermission>> checkPermission() async {
     try {
       final permission = await Geolocator.checkPermission();
+      debugPrint('GeolocatorDebug | checkPermission -> $permission');
       return Right(permission);
     } catch (e) {
-      debugPrint("Error checking location permissions: $e");
+      debugPrint('GeolocatorDebug | Error en checkPermission: $e');
       return Left(Failure(message: e.toString()));
     }
   }
@@ -39,11 +42,19 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
   Future<Either<Failure, UserLocation>> getCurrentPosition() async {
     try {
       final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+      debugPrint('GeolocatorDebug | isLocationServiceEnabled -> $isServiceEnabled');
       if (!isServiceEnabled) {
         return Left(Failure(message: 'El servicio de GPS del dispositivo está desactivado.'));
       }
 
+      final permission = await Geolocator.checkPermission();
+      debugPrint('GeolocatorDebug | getCurrentPosition -> permiso actual: $permission');
+
       final position = await Geolocator.getCurrentPosition();
+      debugPrint(
+        'GeolocatorDebug | getCurrentPosition -> posición obtenida: '
+        '(${position.latitude}, ${position.longitude})',
+      );
 
       return Right(
         UserLocation(
@@ -52,6 +63,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
         ),
       );
     } catch (e) {
+      debugPrint('GeolocatorDebug | Error en getCurrentPosition: $e');
       return Left(Failure(message: e.toString()));
     }
   }
@@ -62,7 +74,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       final response = await Geolocator.openAppSettings();
       return Right(response);
     } catch (e) {
-      debugPrint("Error opening app settings location: $e");
+      debugPrint('GeolocatorDebug | Error en openAppSettings: $e');
       return Left(Failure(message: e.toString()));
     }
   }

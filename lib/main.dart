@@ -22,13 +22,24 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+  // Checkpoints temporales para diagnosticar cuelgues de arranque cuando la
+  // app se reabre con el foreground service ya corriendo (pantalla negra
+  // sin crash ni log -- ver BatteryOptimizationService/DriverForegroundService).
+  // Si vuelve a colgarse, el último "BootstrapDebug" impreso indica
+  // exactamente en qué paso se quedó, en vez de tener que adivinar.
+  debugPrint('BootstrapDebug | main() arrancando');
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('BootstrapDebug | WidgetsFlutterBinding.ensureInitialized() listo');
   await Firebase.initializeApp();
+  debugPrint('BootstrapDebug | Firebase.initializeApp() completado');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   initMainServiceLocator();
+  debugPrint('BootstrapDebug | initMainServiceLocator() completado');
   await ServicesInitializer.initializeServices();
+  debugPrint('BootstrapDebug | ServicesInitializer.initializeServices() completado');
   unawaited(GetIt.instance<PushNotificationsService>().initialize());
   runApp(const MyApp());
+  debugPrint('BootstrapDebug | runApp() llamado');
 }
 
 class MyApp extends StatelessWidget {
