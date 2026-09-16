@@ -135,14 +135,8 @@ void main() {
       ],
     );
 
-    // NOTA: LocationState.copyWith usa `errorMessage ?? this.errorMessage`,
-    // así que pasar `errorMessage: null` explícito (como hace el bloc en su
-    // camino feliz) NO limpia un error previo -- a diferencia de AdminState/
-    // TripState, que sí soportan limpiar explícitamente. Este test documenta
-    // el comportamiento real (posible bug a revisar en el bloc).
     blocTest<LocationBloc, LocationState>(
-      'does NOT clear a previous error message on a new successful check '
-      '(copyWith uses ?? instead of an explicit-clear flag)',
+      'clears a previous error message on a new successful check',
       setUp: () {
         when(() => service.checkAndRequestPermission()).thenAnswer(
           (_) async => const Right(LocationPermission.always),
@@ -159,7 +153,7 @@ void main() {
           (s) => s.locationProcess == LocationProcess.checkingPermissions,
         ),
         predicate<LocationState>(
-          (s) => s.errorMessage == 'error viejo' && s.isGranted,
+          (s) => s.errorMessage == null && s.isGranted,
         ),
       ],
     );

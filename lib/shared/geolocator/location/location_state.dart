@@ -30,10 +30,11 @@ class LocationState {
     LocationPermission? permissionStatus,
     String? errorMessage,
     LocationProcess? locationProcess,
+    bool clearError = false,
   }) {
     return LocationState(
       permissionStatus: permissionStatus ?? this.permissionStatus,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       locationProcess: locationProcess ?? this.locationProcess,
     );
   }
