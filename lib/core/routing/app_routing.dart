@@ -1,6 +1,7 @@
 import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart';
 import 'package:driver_app/feature/admin/presentation/screen/admin_screen.dart';
 import 'package:driver_app/feature/admin/presentation/screen/driver_detail_screen.dart';
+import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
 import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
@@ -74,6 +75,17 @@ class AppRouter {
                     (context, state) => TripScreen(
                       request: state.extra as IncomingRequestEntity,
                     ),
+              ),
+              GoRoute(
+                path: chatRoute.route,
+                name: chatRoute.name,
+                builder: (context, state) {
+                  final args = state.extra as ChatScreenArgs;
+                  return ChatScreen(
+                    rideId: args.rideId,
+                    passengerId: args.passengerId,
+                  );
+                },
               ),
             ],
           ),

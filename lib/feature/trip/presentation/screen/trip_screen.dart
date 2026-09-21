@@ -1,3 +1,5 @@
+import 'package:driver_app/feature/chat/presentation/bloc/chat_bloc.dart';
+import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/shared/presentation/component/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -41,18 +43,35 @@ class _TripView extends StatefulWidget {
 
 class _TripViewState extends State<_TripView> {
   late final TripBloc _tripBloc;
+  late final ChatBloc _chatBloc;
 
   @override
   void initState() {
     super.initState();
     _tripBloc = context.read<TripBloc>();
     _tripBloc.add(StartWatchingTrip(passengerId: widget.request.userId));
+    // Arranca acá (no en ChatScreen) para que el contador de no-leídos siga
+    // actualizándose mientras el conductor está en TripScreen sin haber
+    // entrado al chat.
+    _chatBloc = GetIt.instance<ChatBloc>();
+    _chatBloc.add(WatchMessages(rideId: widget.request.rideId));
   }
 
   @override
   void dispose() {
     _tripBloc.add(StopWatchingTrip());
+    _chatBloc.add(StopWatchingMessages());
     super.dispose();
+  }
+
+  void _openChat() {
+    context.push(
+      chatRoute.route,
+      extra: ChatScreenArgs(
+        rideId: widget.request.rideId,
+        passengerId: widget.request.userId,
+      ),
+    );
   }
 
   Future<void> _onTripCancelled(String? cancelledBy) async {
@@ -147,6 +166,21 @@ class _TripViewState extends State<_TripView> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          actions: [
+            BlocBuilder<ChatBloc, ChatState>(
+              bloc: _chatBloc,
+              builder: (context, state) {
+                return IconButton(
+                  onPressed: _openChat,
+                  icon: Badge(
+                    label: Text('${state.unreadCount}'),
+                    isLabelVisible: state.unreadCount > 0,
+                    child: const Icon(Icons.chat_bubble_outline_rounded),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(24),
