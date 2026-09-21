@@ -112,8 +112,19 @@ class _ChatViewState extends State<_ChatView> {
           ),
           SafeArea(
             top: false,
+            // ScaffoldWithNavBar dibuja el bottom nav bar flotando en un
+            // Stack (Positioned bottom:0) por encima del contenido en vez de
+            // usar el slot `bottomNavigationBar` de Scaffold -- por eso no
+            // reduce el alto disponible del body y SafeArea no sabe de su
+            // existencia. Como chatRoute vive dentro de ese mismo branch, el
+            // nav bar tapa el input si no se reserva su alto a mano.
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                12,
+                12,
+                12 + kBottomNavigationBarHeight,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -175,13 +186,35 @@ class _MessageBubble extends StatelessWidget {
           color: isMine ? colorScheme.primary : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: isMine ? colorScheme.onPrimary : colorScheme.onSurface,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message.text,
+              style: TextStyle(
+                color: isMine ? colorScheme.onPrimary : colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              _formatTime(message.createdAt),
+              style: TextStyle(
+                fontSize: 11,
+                color: (isMine ? colorScheme.onPrimary : colorScheme.onSurface)
+                    .withValues(alpha: 0.6),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+String _formatTime(DateTime dateTime) {
+  final local = dateTime.toLocal();
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
 }

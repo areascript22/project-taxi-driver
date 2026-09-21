@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:map_launcher/map_launcher.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/chat_presence/service/pending_chat_navigation_tracker.dart';
 import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/trip_bloc.dart';
 import 'widgets/confirm_cancel_trip_dialog.dart';
@@ -44,6 +45,8 @@ class _TripView extends StatefulWidget {
 class _TripViewState extends State<_TripView> {
   late final TripBloc _tripBloc;
   late final ChatBloc _chatBloc;
+  final PendingChatNavigationTracker _pendingChat =
+      GetIt.instance<PendingChatNavigationTracker>();
 
   @override
   void initState() {
@@ -55,10 +58,27 @@ class _TripViewState extends State<_TripView> {
     // entrado al chat.
     _chatBloc = GetIt.instance<ChatBloc>();
     _chatBloc.add(WatchMessages(rideId: widget.request.rideId));
+
+    // Cubre los 3 casos de un push de chat tocado (ver
+    // PushNotificationsServiceImpl): si ya había un pedido pendiente de
+    // antes de montarse (cold-start) lo consume de una vez; si llega uno
+    // mientras esta pantalla sigue montada (foreground/background con la
+    // app viva), el listener reacciona al instante.
+    _pendingChat.pendingRideId.addListener(_onPendingChatChanged);
+    _onPendingChatChanged();
+  }
+
+  void _onPendingChatChanged() {
+    if (_pendingChat.consumeIfMatches(rideId: widget.request.rideId)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openChat();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _pendingChat.pendingRideId.removeListener(_onPendingChatChanged);
     _tripBloc.add(StopWatchingTrip());
     _chatBloc.add(StopWatchingMessages());
     super.dispose();
