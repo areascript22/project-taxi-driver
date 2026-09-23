@@ -48,6 +48,12 @@ const tripRoute = NavigationEntity(
   route: '/trip',
 );
 
+const chatRoute = NavigationEntity(
+  key: 'chat_route_key',
+  name: 'chat',
+  route: '/trip/chat',
+);
+
 const profileRoute = NavigationEntity(
   key: 'profile_route_key',
   name: 'profile',

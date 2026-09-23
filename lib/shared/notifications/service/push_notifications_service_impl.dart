@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../../core/error/errors.dart';
 import '../../../core/routing/app_routing.dart';
+import '../../chat_presence/service/chat_presence_tracker.dart';
+import '../../chat_presence/service/pending_chat_navigation_tracker.dart';
 import 'push_notifications_service.dart';
 
 const _androidChannel = AndroidNotificationChannel(
@@ -14,6 +16,13 @@ const _androidChannel = AndroidNotificationChannel(
 );
 
 class PushNotificationsServiceImpl implements PushNotificationsService {
+  PushNotificationsServiceImpl({
+    required this.chatPresenceTracker,
+    required this.pendingChatNavigationTracker,
+  });
+
+  final ChatPresenceTracker chatPresenceTracker;
+  final PendingChatNavigationTracker pendingChatNavigationTracker;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
@@ -44,14 +53,24 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
       );
 
       FirebaseMessaging.onMessage.listen(_showForegroundNotification);
-      FirebaseMessaging.onMessageOpenedApp.listen(
-        (message) => _navigate(message.data['route'] as String?),
-      );
+      // App en foreground o en background pero con el proceso vivo: en
+      // cualquiera de los dos casos TripScreen ya está montada dentro del
+      // stack del branch (se llegó ahí al aceptar la carrera), así que basta
+      // con avisarle al tracker -- su listener reacciona al instante.
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleOpenedMessage);
 
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
-        final route = initialMessage.data['route'] as String?;
-        WidgetsBinding.instance.addPostFrameCallback((_) => _navigate(route));
+        if (initialMessage.data['type'] == 'chat_message') {
+          // Cold-start: TripScreen todavía no existe (SessionBloc recién va
+          // a resolver si hay un viaje en curso) -- no navegar ahora mismo,
+          // solo dejar el pedido pendiente para que TripScreen lo recoja en
+          // cuanto se monte con la misma carrera.
+          _requestChatNavigation(initialMessage.data);
+        } else {
+          final route = initialMessage.data['route'] as String?;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _navigate(route));
+        }
       }
 
       return const Right(unit);
@@ -66,6 +85,14 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
   Future<void> _showForegroundNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
+
+    // El chat de esa misma carrera ya está abierto y renderiza el mensaje
+    // en vivo vía su stream de Firestore: mostrar el banner sería duplicado.
+    final data = message.data;
+    if (data['type'] == 'chat_message' &&
+        chatPresenceTracker.isOpen(rideId: data['rideId'] as String? ?? '')) {
+      return;
+    }
 
     try {
       await _localNotifications.show(
@@ -82,7 +109,13 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
           ),
           iOS: const DarwinNotificationDetails(),
         ),
-        payload: message.data['route'] as String?,
+        // Los pushes de chat codifican el rideId en el payload (con un
+        // prefijo para distinguirlos) en vez de la route genérica, para que
+        // el tap navegue directo al chat -- ver _navigate.
+        payload:
+            data['type'] == 'chat_message'
+                ? 'chat:${data['rideId']}'
+                : data['route'] as String?,
       );
     } catch (e) {
       debugPrint(
@@ -91,9 +124,33 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
     }
   }
 
-  void _navigate(String? route) {
-    if (route == null || route.isEmpty) return;
-    AppRouter.router.push(route);
+  void _handleOpenedMessage(RemoteMessage message) {
+    if (message.data['type'] == 'chat_message') {
+      _requestChatNavigation(message.data);
+      return;
+    }
+    _navigate(message.data['route'] as String?);
+  }
+
+  void _requestChatNavigation(Map<String, dynamic> data) {
+    final rideId = data['rideId'] as String?;
+    if (rideId == null || rideId.isEmpty) return;
+    pendingChatNavigationTracker.request(rideId: rideId);
+  }
+
+  static const _chatPayloadPrefix = 'chat:';
+
+  void _navigate(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+
+    if (payload.startsWith(_chatPayloadPrefix)) {
+      final rideId = payload.substring(_chatPayloadPrefix.length);
+      if (rideId.isEmpty) return;
+      pendingChatNavigationTracker.request(rideId: rideId);
+      return;
+    }
+
+    AppRouter.router.push(payload);
   }
 
   @override
