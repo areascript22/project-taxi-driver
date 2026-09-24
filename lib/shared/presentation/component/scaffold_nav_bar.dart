@@ -62,9 +62,10 @@ class ScaffoldWithNavBar extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         items: [
-          _buildSvgNavItem(
-            icon: 'assets/icons/svg/location.svg',
-            label: 'Pedir',
+          _buildIconDataNavItem(
+            icon: Icons.local_taxi_outlined,
+            activeIcon: Icons.local_taxi,
+            label: 'Carreras',
             selectedColor: selectedColor,
             unselectedColor: unselectedColor,
           ),
