@@ -5,6 +5,7 @@ import 'package:driver_app/feature/profile/di/profile_service_locator.dart';
 import 'package:driver_app/shared/battery_optimization/di/battery_optimization_service_locator.dart';
 import 'package:driver_app/feature/chat/di/chat_service_locator.dart';
 import 'package:driver_app/shared/chat_presence/di/chat_presence_service_locator.dart';
+import 'package:driver_app/shared/connectivity/di/connectivity_service_locator.dart';
 import 'package:driver_app/shared/feature/session/di/session_service_locator.dart';
 import 'package:driver_app/shared/feature/settings/di/settings_service_locator.dart';
 import 'package:driver_app/shared/feedback/di/feedback_service_locator.dart';
@@ -24,6 +25,9 @@ final GetIt mainServiceLocator = GetIt.instance;
 
 Future<void> initMainServiceLocator() async {
   initDotEnvDI(mainServiceLocator);
+  // Antes que initChatDI: ChatBloc depende de ConnectivityRepository para
+  // reintentar watchMessages en cuanto vuelve la conexión.
+  initConnectivityDI(mainServiceLocator);
   initChatPresenceDI(mainServiceLocator);
   initPushNotificationsDI(mainServiceLocator);
   initImagePickerDI(mainServiceLocator);
