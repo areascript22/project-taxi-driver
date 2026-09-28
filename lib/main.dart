@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:driver_app/shared/connectivity/presentation/component/connectivity_banner.dart';
+import 'package:driver_app/shared/connectivity/presentation/cubit/connectivity_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/feature/settings/presentation/bloc/settings_bloc.dart';
 import 'package:driver_app/shared/notifications/service/push_notifications_service.dart';
@@ -56,6 +58,13 @@ class MyApp extends StatelessWidget {
           create:
               (context) => GetIt.instance<SettingsBloc>()..add(LoadSettings()),
         ),
+        // Singleton de GetIt: vive durante toda la sesión, no solo mientras
+        // este widget está montado (igual que SessionBloc/SettingsBloc de
+        // arriba) -- así el banner de conectividad puede mostrarse desde el
+        // primer frame (splash) hasta el último.
+        BlocProvider<ConnectivityCubit>(
+          create: (context) => GetIt.instance<ConnectivityCubit>(),
+        ),
       ],
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
@@ -66,6 +75,15 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.dark,
             themeMode: settingsState.themeMode,
             routerConfig: AppRouter.router,
+            // Envuelve TODO lo que arma go_router (incluidas splash/login,
+            // fuera del StatefulShellRoute) para que el banner de "sin
+            // conexión" pueda mostrarse sin importar la pantalla -- ver
+            // ConnectivityBannerOverlay.
+            builder: (context, child) {
+              return ConnectivityBannerOverlay(
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),

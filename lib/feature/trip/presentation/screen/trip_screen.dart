@@ -57,6 +57,9 @@ class _TripViewState extends State<_TripView> {
     // actualizándose mientras el conductor está en TripScreen sin haber
     // entrado al chat.
     _chatBloc = GetIt.instance<ChatBloc>();
+    debugPrint(
+      'ChatFlowDebug | TripScreen.initState -> rideId=${widget.request.rideId}',
+    );
     _chatBloc.add(WatchMessages(rideId: widget.request.rideId));
 
     // Cubre los 3 casos de un push de chat tocado (ver
@@ -190,12 +193,11 @@ class _TripViewState extends State<_TripView> {
             BlocBuilder<ChatBloc, ChatState>(
               bloc: _chatBloc,
               builder: (context, state) {
-                return IconButton(
-                  onPressed: _openChat,
-                  icon: Badge(
-                    label: Text('${state.unreadCount}'),
-                    isLabelVisible: state.unreadCount > 0,
-                    child: const Icon(Icons.chat_bubble_outline_rounded),
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _ChatButton(
+                    unreadCount: state.unreadCount,
+                    onTap: _openChat,
                   ),
                 );
               },
@@ -398,29 +400,114 @@ class _TripViewState extends State<_TripView> {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _openInGoogleMaps,
-              icon: Icon(Icons.map_outlined, color: colorScheme.primary, size: 20),
-              label: Text(
-                'Abrir en Google Maps',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.primary,
+          _buildOpenMapsButton(colorScheme),
+        ],
+      ),
+    );
+  }
+
+  // Antes era un OutlinedButton.icon con un ícono genérico -- se reemplaza
+  // por una tarjeta con el ícono real de Google Maps en su propio tile
+  // (mismo lenguaje visual que _buildPassengerCard/_buildPickupCard) más un
+  // subtítulo, para que se lea de una como "esto abre otra app para
+  // navegar" y no como un simple botón de texto.
+  Widget _buildOpenMapsButton(ColorScheme colorScheme) {
+    return Material(
+      color: colorScheme.primary.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: _openInGoogleMaps,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.onSurface.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Image.asset('assets/icons/maps.png', fit: BoxFit.contain),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Abrir en Google Maps',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Navega hasta el punto de recogida',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.4)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: colorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Chip circular tintado (en vez de un IconButton "pelado") para que el
+// acceso al chat se lea como una acción de primer nivel del AppBar, no como
+// un ícono suelto -- mismo lenguaje visual que _buildOpenMapsButton.
+class _ChatButton extends StatelessWidget {
+  const _ChatButton({required this.unreadCount, required this.onTap});
+
+  final int unreadCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.primary.withValues(alpha: 0.1),
+      shape: const CircleBorder(),
+      child: Tooltip(
+        message: 'Chat con el pasajero',
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Badge(
+              label: Text('$unreadCount'),
+              isLabelVisible: unreadCount > 0,
+              child: Image.asset(
+                'assets/icons/chat_bubble.png',
+                width: 22,
+                height: 22,
+                color: colorScheme.primary,
+                colorBlendMode: BlendMode.srcIn,
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
