@@ -31,7 +31,12 @@ class DriverDetailScreen extends StatelessWidget {
 class _DriverDetailView extends StatelessWidget {
   const _DriverDetailView();
 
-  bool _canDelete({required String viewerRole, required String targetRole}) {
+  // Misma jerarquía que ya aplica en el server (DriverAdminService):
+  // nadie -- ni otro superuser -- puede actuar sobre un superuser, y un
+  // admin normal no puede actuar sobre otro admin. Se usa tanto para el
+  // ícono de eliminar como para decidir si se muestra la barra de acciones
+  // (aprobar/rechazar/bloquear/desbloquear) de más abajo.
+  bool _canModerate({required String viewerRole, required String targetRole}) {
     if (targetRole == 'superuser') return false;
     if (viewerRole == 'superuser') return true;
     if (viewerRole == 'admin') return targetRole == 'driver';
@@ -66,7 +71,7 @@ class _DriverDetailView extends StatelessWidget {
       },
       builder: (context, state) {
         final driver = state.driver;
-        final canDelete = _canDelete(
+        final canModerate = _canModerate(
           viewerRole: viewerRole,
           targetRole: driver.role,
         );
@@ -79,7 +84,7 @@ class _DriverDetailView extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             actions: [
-              if (canDelete)
+              if (canModerate)
                 IconButton(
                   tooltip: 'Eliminar conductor',
                   icon: Icon(Icons.delete_outline, color: colorScheme.error),
@@ -122,12 +127,15 @@ class _DriverDetailView extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildVehicleSection(context, driver),
                     const SizedBox(height: 28),
-                    _buildActionBar(
-                      context,
-                      driver: driver,
-                      isProcessing: state.isProcessing,
-                      cubit: cubit,
-                    ),
+                    if (canModerate)
+                      _buildActionBar(
+                        context,
+                        driver: driver,
+                        isProcessing: state.isProcessing,
+                        cubit: cubit,
+                      )
+                    else
+                      _buildNoPermissionNotice(context),
                     const SizedBox(height: 150),
                   ],
                 ),
@@ -136,6 +144,48 @@ class _DriverDetailView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  // Se muestra en vez de la barra de acciones cuando el conductor abierto es
+  // de un nivel igual o superior al del admin que está mirando (otro admin,
+  // o un superuser) -- explica por qué no hay botones en vez de dejar la
+  // sección vacía sin explicación.
+  Widget _buildNoPermissionNotice(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.lock_outline_rounded,
+              size: 18,
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'No tienes permisos para gestionar el estado de esta cuenta.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -420,6 +420,9 @@ class _AdminViewState extends State<AdminView> {
     required String viewerRole,
     required String targetRole,
   }) {
+    // Ni siquiera un superuser puede cambiarle el rol a otro superuser --
+    // misma regla que ya aplica para eliminar/aprobar/bloquear.
+    if (targetRole == 'superuser') return false;
     return viewerRole == 'superuser';
   }
 
