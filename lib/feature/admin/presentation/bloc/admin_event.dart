@@ -17,12 +17,6 @@ class AdminPageChanged extends AdminEvent {
   AdminPageChanged({required this.page});
 }
 
-class AdminDeleteDriverRequested extends AdminEvent {
-  final String uid;
-
-  AdminDeleteDriverRequested({required this.uid});
-}
-
 class AdminRoleChangeRequested extends AdminEvent {
   final String uid;
   final String role;

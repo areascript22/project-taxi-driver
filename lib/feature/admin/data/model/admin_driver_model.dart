@@ -11,6 +11,12 @@ class AdminDriverModel {
   final String fcmToken;
   final double rating;
   final String role;
+  final String approvalStatus;
+  final bool isBlocked;
+  final String? blockReason;
+  final DateTime? blockedAt;
+  final String? blockedBy;
+  final String? rejectionReason;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final AdminVehicleModel? vehicle;
@@ -25,6 +31,12 @@ class AdminDriverModel {
     required this.fcmToken,
     required this.rating,
     required this.role,
+    this.approvalStatus = 'approved',
+    this.isBlocked = false,
+    this.blockReason,
+    this.blockedAt,
+    this.blockedBy,
+    this.rejectionReason,
     this.createdAt,
     this.updatedAt,
     this.vehicle,
@@ -41,6 +53,12 @@ class AdminDriverModel {
       fcmToken: json['fcmToken'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
       role: json['role'] as String? ?? 'driver',
+      approvalStatus: json['approvalStatus'] as String? ?? 'approved',
+      isBlocked: json['isBlocked'] as bool? ?? false,
+      blockReason: json['blockReason'] as String?,
+      blockedAt: DateTime.tryParse(json['blockedAt'] as String? ?? ''),
+      blockedBy: json['blockedBy'] as String?,
+      rejectionReason: json['rejectionReason'] as String?,
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
       updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? ''),
       vehicle:
@@ -63,6 +81,10 @@ class AdminDriverModel {
       'fcmToken': fcmToken,
       'rating': rating,
       'role': role,
+      'approvalStatus': approvalStatus,
+      'isBlocked': isBlocked,
+      'blockReason': blockReason,
+      'rejectionReason': rejectionReason,
     };
   }
 
@@ -77,6 +99,12 @@ class AdminDriverModel {
       fcmToken: fcmToken,
       rating: rating,
       role: role,
+      approvalStatus: approvalStatus,
+      isBlocked: isBlocked,
+      blockReason: blockReason,
+      blockedAt: blockedAt,
+      blockedBy: blockedBy,
+      rejectionReason: rejectionReason,
       createdAt: createdAt,
       updatedAt: updatedAt,
       vehicle: vehicle?.toEntity(),

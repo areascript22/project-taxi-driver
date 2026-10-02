@@ -39,7 +39,7 @@ void main() {
 
   group('AdminLoadRequested', () {
     blocTest<AdminBloc, AdminState>(
-      'emits loading then the driver list on success, resetting currentPage',
+      'clamps currentPage down when the new list no longer has that many pages',
       setUp: () {
         when(
           () => repository.listDrivers(),
@@ -53,6 +53,22 @@ void main() {
         predicate<AdminState>(
           (s) => !s.isLoading && s.drivers.length == 2 && s.currentPage == 0,
         ),
+      ],
+    );
+
+    blocTest<AdminBloc, AdminState>(
+      'keeps currentPage when it is still within range (refresh after visiting a driver detail)',
+      setUp: () {
+        when(() => repository.listDrivers()).thenAnswer(
+          (_) async => Right(List.generate(15, (i) => _driver('$i'))),
+        );
+      },
+      build: buildBloc,
+      seed: () => const AdminState(currentPage: 1),
+      act: (bloc) => bloc.add(AdminLoadRequested()),
+      expect: () => [
+        predicate<AdminState>((s) => s.isLoading),
+        predicate<AdminState>((s) => !s.isLoading && s.currentPage == 1),
       ],
     );
 
@@ -158,72 +174,6 @@ void main() {
     );
   });
 
-  group('AdminDeleteDriverRequested', () {
-    blocTest<AdminBloc, AdminState>(
-      'removes the driver from the list on success and clears actionUid',
-      setUp: () {
-        when(
-          () => repository.deleteDriver(uid: '1'),
-        ).thenAnswer((_) async => Right(unit));
-      },
-      build: buildBloc,
-      seed: () => AdminState(drivers: [_driver('1'), _driver('2')]),
-      act: (bloc) => bloc.add(AdminDeleteDriverRequested(uid: '1')),
-      expect: () => [
-        predicate<AdminState>((s) => s.actionUid == '1'),
-        predicate<AdminState>(
-          (s) =>
-              s.actionUid == null &&
-              s.drivers.length == 1 &&
-              s.drivers.first.uid == '2',
-        ),
-      ],
-      verify: (_) {
-        verify(() => repository.deleteDriver(uid: '1')).called(1);
-      },
-    );
-
-    blocTest<AdminBloc, AdminState>(
-      'keeps the list and reports the error on failure',
-      setUp: () {
-        when(() => repository.deleteDriver(uid: '1')).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo borrar')),
-        );
-      },
-      build: buildBloc,
-      seed: () => AdminState(drivers: [_driver('1')]),
-      act: (bloc) => bloc.add(AdminDeleteDriverRequested(uid: '1')),
-      expect: () => [
-        predicate<AdminState>((s) => s.actionUid == '1'),
-        predicate<AdminState>(
-          (s) =>
-              s.actionUid == null &&
-              s.errorMessage == 'no se pudo borrar' &&
-              s.drivers.length == 1,
-        ),
-      ],
-    );
-
-    blocTest<AdminBloc, AdminState>(
-      'clamps currentPage down when deleting empties out the last page',
-      setUp: () {
-        when(
-          () => repository.deleteDriver(uid: 'last'),
-        ).thenAnswer((_) async => Right(unit));
-      },
-      build: buildBloc,
-      seed: () => AdminState(
-        drivers: [..._twoOnFirstPage(), _driver('last')],
-        currentPage: 1,
-      ),
-      act: (bloc) => bloc.add(AdminDeleteDriverRequested(uid: 'last')),
-      expect: () => [
-        predicate<AdminState>((s) => s.actionUid == 'last'),
-        predicate<AdminState>((s) => s.currentPage == 0),
-      ],
-    );
-  });
-
   group('AdminRoleChangeRequested', () {
     blocTest<AdminBloc, AdminState>(
       'updates the role of the matching driver on success',
@@ -272,6 +222,3 @@ void main() {
     );
   });
 }
-
-List<AdminDriverEntity> _twoOnFirstPage() =>
-    List.generate(10, (i) => _driver('page-$i'));

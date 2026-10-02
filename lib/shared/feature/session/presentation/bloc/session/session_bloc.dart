@@ -61,6 +61,24 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       return;
     }
 
+    // Se chequea ANTES de armar SessionAuthenticated: un conductor bloqueado
+    // o no aprobado no debe llegar a ninguna pantalla autenticada (Incoming
+    // Requests, perfil, admin, etc.), no solo a la de "ir online".
+    if (driver.isBlocked) {
+      emit(SessionBlocked(user: user, blockReason: driver.blockReason));
+      return;
+    }
+    if (driver.approvalStatus != 'approved') {
+      emit(
+        SessionPendingApproval(
+          user: user,
+          approvalStatus: driver.approvalStatus,
+          rejectionReason: driver.rejectionReason,
+        ),
+      );
+      return;
+    }
+
     final activeTripResult = await tripRepository.findActiveTripForDriver();
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 

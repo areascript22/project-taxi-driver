@@ -84,4 +84,85 @@ class AdminRepositoryImpl implements AdminRepository {
       return Left(Failure(message: 'No se pudo actualizar el rol'));
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> updateApprovalStatus({
+    required String uid,
+    required String status,
+    String? reason,
+  }) async {
+    try {
+      await _dio.put(
+        '/api/drivers/$uid/approval-status',
+        data: {'status': status, 'reason': reason},
+      );
+      return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('AdminDebug | Error en updateApprovalStatus: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(message: 'No tienes permisos para esta acción'),
+        );
+      }
+      if (e.response?.statusCode == 404) {
+        return Left(Failure(message: 'El conductor ya no existe'));
+      }
+      if (e.response?.statusCode == 400) {
+        return Left(
+          Failure(message: 'Falta el motivo para rechazar al conductor'),
+        );
+      }
+      return Left(
+        Failure(message: 'No se pudo actualizar el estado del conductor'),
+      );
+    } catch (e) {
+      debugPrint('AdminDebug | Error inesperado en updateApprovalStatus: $e');
+      return Left(
+        Failure(message: 'No se pudo actualizar el estado del conductor'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateBlockStatus({
+    required String uid,
+    required bool blocked,
+    String? reason,
+  }) async {
+    try {
+      await _dio.put(
+        '/api/drivers/$uid/block-status',
+        data: {'blocked': blocked, 'reason': reason},
+      );
+      return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('AdminDebug | Error en updateBlockStatus: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(message: 'No tienes permisos para esta acción'),
+        );
+      }
+      if (e.response?.statusCode == 404) {
+        return Left(Failure(message: 'El conductor ya no existe'));
+      }
+      if (e.response?.statusCode == 409) {
+        return Left(
+          Failure(
+            message: 'No se puede bloquear a un conductor que no está aprobado',
+          ),
+        );
+      }
+      if (e.response?.statusCode == 400) {
+        return Left(Failure(message: 'Falta el motivo del bloqueo'));
+      }
+      return Left(
+        Failure(message: 'No se pudo actualizar el bloqueo del conductor'),
+      );
+    } catch (e) {
+      debugPrint('AdminDebug | Error inesperado en updateBlockStatus: $e');
+      return Left(
+        Failure(message: 'No se pudo actualizar el bloqueo del conductor'),
+      );
+    }
+  }
 }

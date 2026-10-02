@@ -24,7 +24,17 @@ class MockDriverProfileRepository extends Mock
 class MockPushNotificationsService extends Mock
     implements PushNotificationsService {}
 
-DriverEntity _driver({String role = 'driver'}) {
+// Simula un conductor normal ya existente (fetched de Firestore) -- a
+// diferencia del default del constructor de DriverEntity (pensado para un
+// registro nuevo, approvalStatus='pending'), acá el default es 'approved'
+// para no romper los escenarios de "todo funciona normalmente" de abajo.
+DriverEntity _driver({
+  String role = 'driver',
+  String approvalStatus = 'approved',
+  bool isBlocked = false,
+  String? blockReason,
+  String? rejectionReason,
+}) {
   return DriverEntity(
     id: 'u1',
     firstName: 'Juan',
@@ -32,6 +42,10 @@ DriverEntity _driver({String role = 'driver'}) {
     email: 'j@example.com',
     phoneNumber: '123',
     role: role,
+    approvalStatus: approvalStatus,
+    isBlocked: isBlocked,
+    blockReason: blockReason,
+    rejectionReason: rejectionReason,
   );
 }
 
@@ -254,6 +268,99 @@ void main() {
           ),
         ).called(1);
       },
+    );
+  });
+
+  group('SessionCheckRequested - approval/block gating', () {
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionBlocked (not SessionAuthenticated) when the driver is blocked',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async => Right(
+            _driver(isBlocked: true, blockReason: 'quejas de pasajeros'),
+          ),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionBlocked>().having(
+          (s) => s.blockReason,
+          'blockReason',
+          'quejas de pasajeros',
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => tripRepository.findActiveTripForDriver());
+      },
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionPendingApproval when the driver is still pending',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(
+          () => driverProfileRepository.getDriver(driverId: 'u1'),
+        ).thenAnswer((_) async => Right(_driver(approvalStatus: 'pending')));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionPendingApproval>().having(
+          (s) => s.approvalStatus,
+          'approvalStatus',
+          'pending',
+        ),
+      ],
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionPendingApproval with the rejection reason when rejected',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async => Right(
+            _driver(
+              approvalStatus: 'rejected',
+              rejectionReason: 'documentos vencidos',
+            ),
+          ),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionPendingApproval>()
+            .having((s) => s.approvalStatus, 'approvalStatus', 'rejected')
+            .having(
+              (s) => s.rejectionReason,
+              'rejectionReason',
+              'documentos vencidos',
+            ),
+      ],
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'checks isBlocked before approvalStatus -- a blocked driver never reaches SessionPendingApproval',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async =>
+              Right(_driver(approvalStatus: 'pending', isBlocked: true)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [isA<SessionBlocked>()],
     );
   });
 

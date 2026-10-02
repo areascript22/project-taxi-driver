@@ -43,3 +43,36 @@ final class SessionCheckFailed extends SessionState {
 
   SessionCheckFailed({required this.user});
 }
+
+// El conductor existe y tiene approvalStatus == 'approved', pero un admin lo
+// bloqueó (ver DriverAdminService.updateBlockStatus en el server). Se chequea
+// ANTES de emitir SessionAuthenticated -- así ninguna pantalla autenticada
+// (Incoming Requests, perfil, etc.) es alcanzable mientras la cuenta esté
+// bloqueada, no solo la pantalla de "ir online".
+//
+// Solo expone los campos primitivos que la UI necesita (igual que `role` en
+// SessionAuthenticated) en vez de todo el DriverEntity, para no acoplar a
+// quien escuche SessionState con el dominio del feature driver_profile.
+final class SessionBlocked extends SessionState {
+  final UserEntity user;
+  final String? blockReason;
+
+  SessionBlocked({required this.user, this.blockReason});
+}
+
+// El conductor existe pero su approvalStatus todavía no es 'approved'
+// ('pending' recién registrado, o 'rejected' por un admin). Mismo motivo que
+// SessionBlocked: se corta acá, antes de llegar a ninguna pantalla
+// autenticada.
+final class SessionPendingApproval extends SessionState {
+  final UserEntity user;
+  // 'pending' | 'rejected'
+  final String approvalStatus;
+  final String? rejectionReason;
+
+  SessionPendingApproval({
+    required this.user,
+    required this.approvalStatus,
+    this.rejectionReason,
+  });
+}

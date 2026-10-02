@@ -11,4 +11,18 @@ abstract class AdminRepository {
     required String uid,
     required String role,
   });
+
+  // status: 'approved' | 'rejected'. reason es obligatorio solo para 'rejected'.
+  Future<Either<Failure, Unit>> updateApprovalStatus({
+    required String uid,
+    required String status,
+    String? reason,
+  });
+
+  // reason es obligatorio cuando blocked == true.
+  Future<Either<Failure, Unit>> updateBlockStatus({
+    required String uid,
+    required bool blocked,
+    String? reason,
+  });
 }

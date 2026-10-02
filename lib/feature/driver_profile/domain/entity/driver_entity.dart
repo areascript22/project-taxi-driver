@@ -9,6 +9,13 @@ class DriverEntity {
   final String vehicleId;
   final double rating;
   final String role;
+  // 'pending' | 'approved' | 'rejected'. Un conductor nuevo nace 'pending'
+  // (ver registro en driver_onboarding_bloc.dart) y necesita que un admin lo
+  // apruebe antes de poder recibir carreras -- ver SessionBloc.
+  final String approvalStatus;
+  final bool isBlocked;
+  final String? blockReason;
+  final String? rejectionReason;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -23,6 +30,10 @@ class DriverEntity {
     this.vehicleId = '',
     this.rating = 5.0,
     this.role = 'driver',
+    this.approvalStatus = 'pending',
+    this.isBlocked = false,
+    this.blockReason,
+    this.rejectionReason,
     this.createdAt,
     this.updatedAt,
   });
@@ -39,6 +50,10 @@ class DriverEntity {
       vehicleId: vehicleId ?? this.vehicleId,
       rating: rating,
       role: role,
+      approvalStatus: approvalStatus,
+      isBlocked: isBlocked,
+      blockReason: blockReason,
+      rejectionReason: rejectionReason,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../domain/entity/admin_driver_entity.dart';
+import '../../domain/repository/admin_repository.dart';
+import '../bloc/driver_detail_cubit.dart';
+import '../component/delete_driver_confirm_dialog.dart';
+import '../component/reason_input_dialog.dart';
+import '../component/unblock_driver_confirm_dialog.dart';
 
 class DriverDetailScreen extends StatelessWidget {
   final AdminDriverEntity driver;
@@ -9,41 +17,236 @@ class DriverDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Detalle del conductor',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: context.appColors.backgroundGradient,
+    return BlocProvider(
+      create:
+          (_) => DriverDetailCubit(
+            adminRepository: mainServiceLocator<AdminRepository>(),
+            driver: driver,
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                _DriverHeader(driver: driver),
-                const SizedBox(height: 32),
-                _buildDriverInfoCard(context),
-                const SizedBox(height: 24),
-                _buildVehicleSection(context),
-                const SizedBox(height: 100),
-              ],
+      child: const _DriverDetailView(),
+    );
+  }
+}
+
+class _DriverDetailView extends StatelessWidget {
+  const _DriverDetailView();
+
+  bool _canDelete({required String viewerRole, required String targetRole}) {
+    if (targetRole == 'superuser') return false;
+    if (viewerRole == 'superuser') return true;
+    if (viewerRole == 'admin') return targetRole == 'driver';
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final sessionState = context.read<SessionBloc>().state;
+    final viewerRole =
+        sessionState is SessionAuthenticated ? sessionState.role : 'driver';
+
+    return BlocConsumer<DriverDetailCubit, DriverDetailState>(
+      listenWhen:
+          (previous, current) =>
+              (current.errorMessage != null &&
+                  current.errorMessage != previous.errorMessage) ||
+              current.wasDeleted != previous.wasDeleted,
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: colorScheme.error,
+            ),
+          );
+        }
+        if (state.wasDeleted) {
+          Navigator.of(context).pop();
+        }
+      },
+      builder: (context, state) {
+        final driver = state.driver;
+        final canDelete = _canDelete(
+          viewerRole: viewerRole,
+          targetRole: driver.role,
+        );
+        final cubit = context.read<DriverDetailCubit>();
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Detalle del conductor',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            actions: [
+              if (canDelete)
+                IconButton(
+                  tooltip: 'Eliminar conductor',
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                  onPressed:
+                      state.isProcessing
+                          ? null
+                          : () async {
+                            final confirmed = await DeleteDriverConfirmDialog.show(
+                              context: context,
+                              driverName:
+                                  driver.fullName.isEmpty
+                                      ? driver.email
+                                      : driver.fullName,
+                            );
+                            if (confirmed == true && context.mounted) {
+                              cubit.delete();
+                            }
+                          },
+                ),
+            ],
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: context.appColors.backgroundGradient,
+              ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _DriverHeader(driver: driver),
+                    const SizedBox(height: 20),
+                    _ApprovalStatusBanner(driver: driver),
+                    const SizedBox(height: 24),
+                    _buildDriverInfoCard(context, driver),
+                    const SizedBox(height: 24),
+                    _buildVehicleSection(context, driver),
+                    const SizedBox(height: 28),
+                    _buildActionBar(
+                      context,
+                      driver: driver,
+                      isProcessing: state.isProcessing,
+                      cubit: cubit,
+                    ),
+                    const SizedBox(height: 150),
+                  ],
+                ),
+              ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActionBar(
+    BuildContext context, {
+    required AdminDriverEntity driver,
+    required bool isProcessing,
+    required DriverDetailCubit cubit,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final List<Widget> buttons;
+    if (driver.isBlocked) {
+      buttons = [
+        Expanded(
+          child: FilledButton(
+            onPressed:
+                isProcessing
+                    ? null
+                    : () async {
+                      final confirmed = await UnblockDriverConfirmDialog.show(
+                        context: context,
+                        driverName:
+                            driver.fullName.isEmpty
+                                ? driver.email
+                                : driver.fullName,
+                      );
+                      if (confirmed == true) cubit.unblock();
+                    },
+            child: const Text('Desbloquear'),
+          ),
         ),
+      ];
+    } else if (driver.approvalStatus == 'approved') {
+      buttons = [
+        Expanded(
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colorScheme.error,
+              side: BorderSide(color: colorScheme.error),
+            ),
+            onPressed:
+                isProcessing
+                    ? null
+                    : () async {
+                      final reason = await ReasonInputDialog.show(
+                        context: context,
+                        title: 'Bloquear conductor',
+                        description:
+                            'Este motivo se le mostrará directamente al conductor en la app.',
+                        confirmLabel: 'Bloquear',
+                      );
+                      if (reason != null) cubit.block(reason: reason);
+                    },
+            child: const Text('Bloquear'),
+          ),
+        ),
+      ];
+    } else {
+      final isPending = driver.approvalStatus == 'pending';
+      buttons = [
+        if (isPending)
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.error,
+                side: BorderSide(color: colorScheme.error),
+              ),
+              onPressed:
+                  isProcessing
+                      ? null
+                      : () async {
+                        final reason = await ReasonInputDialog.show(
+                          context: context,
+                          title: 'Rechazar conductor',
+                          description:
+                              'Cuéntale al conductor qué debe corregir para volver a postularse.',
+                          confirmLabel: 'Rechazar',
+                        );
+                        if (reason != null) cubit.reject(reason: reason);
+                      },
+              child: const Text('Rechazar'),
+            ),
+          ),
+        if (isPending) const SizedBox(width: 12),
+        Expanded(
+          child: FilledButton(
+            onPressed: isProcessing ? null : cubit.approve,
+            child: const Text('Aprobar'),
+          ),
+        ),
+      ];
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isProcessing)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: LinearProgressIndicator(),
+            ),
+          Row(children: buttons),
+        ],
       ),
     );
   }
 
-  Widget _buildDriverInfoCard(BuildContext context) {
+  Widget _buildDriverInfoCard(BuildContext context, AdminDriverEntity driver) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
@@ -101,7 +304,7 @@ class DriverDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVehicleSection(BuildContext context) {
+  Widget _buildVehicleSection(BuildContext context, AdminDriverEntity driver) {
     final colorScheme = Theme.of(context).colorScheme;
     final vehicle = driver.vehicle;
 
@@ -292,6 +495,97 @@ class _RoleBadge extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: color,
           letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// Banner con el estado de autorización del conductor (pendiente/rechazado/
+// bloqueado/activo) + el motivo cuando aplica. Es lo primero que ve el admin
+// al abrir el detalle, antes de decidir qué acción tomar abajo.
+class _ApprovalStatusBanner extends StatelessWidget {
+  final AdminDriverEntity driver;
+
+  const _ApprovalStatusBanner({required this.driver});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final appColors = context.appColors;
+
+    final String label;
+    final String? description;
+    final Color color;
+
+    if (driver.isBlocked) {
+      label = 'Cuenta bloqueada';
+      description =
+          (driver.blockReason?.isNotEmpty ?? false)
+              ? 'Motivo: ${driver.blockReason}'
+              : null;
+      color = colorScheme.error;
+    } else {
+      switch (driver.approvalStatus) {
+        case 'approved':
+          label = 'Conductor activo';
+          description = null;
+          color = appColors.success;
+          break;
+        case 'rejected':
+          label = 'Solicitud rechazada';
+          description =
+              (driver.rejectionReason?.isNotEmpty ?? false)
+                  ? 'Motivo: ${driver.rejectionReason}'
+                  : null;
+          color = colorScheme.error;
+          break;
+        default:
+          label = 'Pendiente de aprobación';
+          description = 'Este conductor todavía no puede recibir carreras.';
+          color = appColors.warning;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.circle, size: 10, color: color),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            if (description != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

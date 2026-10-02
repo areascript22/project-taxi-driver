@@ -7,7 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../domain/entity/admin_driver_entity.dart';
 import '../bloc/admin_bloc.dart';
-import '../component/delete_driver_confirm_dialog.dart';
+import '../component/change_role_dialog.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -168,6 +168,19 @@ class _AdminViewState extends State<AdminView> {
     );
   }
 
+  Future<void> _openDriverDetail(
+    BuildContext context, {
+    required AdminDriverEntity driver,
+  }) async {
+    // DriverDetailScreen maneja aprobar/rechazar/bloquear/desbloquear/
+    // eliminar con su propio cubit -- al volver, simplemente refrescamos la
+    // lista en vez de tratar de sincronizar el resultado a mano.
+    await context.push(driverDetailRoute.route, extra: driver);
+    if (context.mounted) {
+      context.read<AdminBloc>().add(AdminLoadRequested());
+    }
+  }
+
   Widget _buildDriverTile(
     BuildContext context, {
     required AdminDriverEntity driver,
@@ -175,17 +188,13 @@ class _AdminViewState extends State<AdminView> {
     required bool isBusy,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final canDelete = _canDelete(
-      viewerRole: viewerRole,
-      targetRole: driver.role,
-    );
     final canToggleRole = _canToggleRole(
       viewerRole: viewerRole,
       targetRole: driver.role,
     );
 
     return GestureDetector(
-      onTap: () => context.push(driverDetailRoute.route, extra: driver),
+      onTap: () => _openDriverDetail(context, driver: driver),
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.onSurface.withValues(alpha: 0.05),
@@ -236,7 +245,14 @@ class _AdminViewState extends State<AdminView> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
-                  _buildRoleBadge(context, driver.role),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _buildRoleBadge(context, driver.role),
+                      _buildApprovalBadge(context, driver),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -252,50 +268,48 @@ class _AdminViewState extends State<AdminView> {
                   ),
                 ),
               )
-            else ...[
-              if (canToggleRole)
-                PopupMenuButton<String>(
-                  tooltip: 'Cambiar rol',
-                  icon: Icon(
-                    Icons.swap_vert_rounded,
-                    color: colorScheme.primary,
-                  ),
-                  onSelected: (newRole) {
-                    context.read<AdminBloc>().add(
-                      AdminRoleChangeRequested(uid: driver.uid, role: newRole),
-                    );
-                  },
-                  itemBuilder:
-                      (context) =>
-                          _rolesFor(driver.role)
-                              .map(
-                                (role) => PopupMenuItem<String>(
-                                  value: role,
-                                  child: Text(_roleLabel(role)),
-                                ),
-                              )
-                              .toList(),
+            else
+              PopupMenuButton<String>(
+                tooltip: 'Más opciones',
+                icon: Icon(
+                  Icons.more_vert,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
-              if (canDelete)
-                IconButton(
-                  tooltip: 'Eliminar conductor',
-                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                  onPressed: () async {
-                    final confirmed = await DeleteDriverConfirmDialog.show(
-                      context: context,
-                      driverName:
-                          driver.fullName.isEmpty
-                              ? driver.email
-                              : driver.fullName,
-                    );
-                    if (confirmed == true && context.mounted) {
-                      context.read<AdminBloc>().add(
-                        AdminDeleteDriverRequested(uid: driver.uid),
+                onSelected: (value) async {
+                  switch (value) {
+                    case 'review':
+                      await _openDriverDetail(context, driver: driver);
+                      break;
+                    case 'change_role':
+                      final newRole = await ChangeRoleDialog.show(
+                        context: context,
+                        availableRoles: _rolesFor(driver.role),
+                        roleLabel: _roleLabel,
                       );
-                    }
-                  },
-                ),
-            ],
+                      if (newRole != null && context.mounted) {
+                        context.read<AdminBloc>().add(
+                          AdminRoleChangeRequested(
+                            uid: driver.uid,
+                            role: newRole,
+                          ),
+                        );
+                      }
+                      break;
+                  }
+                },
+                itemBuilder:
+                    (context) => [
+                      const PopupMenuItem(
+                        value: 'review',
+                        child: Text('Revisar'),
+                      ),
+                      if (canToggleRole)
+                        const PopupMenuItem(
+                          value: 'change_role',
+                          child: Text('Cambiar rol'),
+                        ),
+                    ],
+              ),
           ],
         ),
       ),
@@ -307,6 +321,36 @@ class _AdminViewState extends State<AdminView> {
     final label = _roleLabel(role);
     final color =
         role == 'driver' ? colorScheme.onSurface : colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApprovalBadge(BuildContext context, AdminDriverEntity driver) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final appColors = context.appColors;
+
+    final (label, color) =
+        driver.isBlocked
+            ? ('Bloqueado', colorScheme.error)
+            : switch (driver.approvalStatus) {
+              'approved' => ('Aprobado', appColors.success),
+              'rejected' => ('Rechazado', colorScheme.error),
+              _ => ('Pendiente', appColors.warning),
+            };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -370,13 +414,6 @@ class _AdminViewState extends State<AdminView> {
         ],
       ),
     );
-  }
-
-  bool _canDelete({required String viewerRole, required String targetRole}) {
-    if (targetRole == 'superuser') return false;
-    if (viewerRole == 'superuser') return true;
-    if (viewerRole == 'admin') return targetRole == 'driver';
-    return false;
   }
 
   bool _canToggleRole({
