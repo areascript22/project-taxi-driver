@@ -12,6 +12,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   AdminBloc({required this.adminRepository}) : super(const AdminState()) {
     on<AdminLoadRequested>(_onLoadRequested);
     on<AdminSearchChanged>(_onSearchChanged);
+    on<AdminStatusFilterChanged>(_onStatusFilterChanged);
     on<AdminNextPageRequested>(_onNextPageRequested);
     on<AdminPreviousPageRequested>(_onPreviousPageRequested);
     on<AdminRoleChangeRequested>(_onRoleChangeRequested);
@@ -24,7 +25,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   ) async {
     emit(state.copyWith(isLoading: true, clearError: true, currentPage: 0));
 
-    if (state.isSearching) {
+    if (state.isFiltering) {
       await _loadSearchResults(emit);
       return;
     }
@@ -61,13 +62,24 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     AdminSearchChanged event,
     Emitter<AdminState> emit,
   ) async {
-    final willSearch = event.query.trim().isNotEmpty;
     emit(state.copyWith(searchQuery: event.query, currentPage: 0));
+    await _ensureFilteredDataLoaded(emit);
+  }
 
-    // Se busca una sola vez por sesión de búsqueda -- si ya hay resultados
-    // cacheados (de una búsqueda anterior), no hace falta volver a pedirlos
-    // en cada tecla.
-    if (willSearch && state.searchResults == null) {
+  Future<void> _onStatusFilterChanged(
+    AdminStatusFilterChanged event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(state.copyWith(statusFilter: event.filter, currentPage: 0));
+    await _ensureFilteredDataLoaded(emit);
+  }
+
+  // Tanto el buscador como las pills de estado necesitan ver a TODOS los
+  // conductores para filtrar -- se piden una sola vez por "sesión de
+  // filtrado" (se cachean en searchResults); si ya están cargados, cambiar
+  // de texto o de pill solo vuelve a filtrar localmente, sin red.
+  Future<void> _ensureFilteredDataLoaded(Emitter<AdminState> emit) async {
+    if (state.isFiltering && state.searchResults == null) {
       emit(state.copyWith(isLoading: true, clearError: true));
       await _loadSearchResults(emit);
     }
@@ -86,7 +98,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       return;
     }
 
-    // Modo navegación únicamente: en modo búsqueda ya está todo cargado, así
+    // Modo navegación únicamente: en modo filtrado ya está todo cargado, así
     // que canGoNext ya habría sido false si no hubiera página cacheada.
     emit(state.copyWith(isLoading: true, clearError: true));
 

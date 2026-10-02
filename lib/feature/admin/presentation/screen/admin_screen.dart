@@ -74,6 +74,13 @@ class _AdminViewState extends State<AdminView> {
             child: Column(
               children: [
                 _buildSearchBar(context),
+                BlocBuilder<AdminBloc, AdminState>(
+                  buildWhen:
+                      (previous, current) =>
+                          previous.statusFilter != current.statusFilter,
+                  builder: (context, state) => _buildFilterBar(context, state),
+                ),
+                const SizedBox(height: 8),
                 Expanded(
                   child: BlocBuilder<AdminBloc, AdminState>(
                     builder: (context, state) {
@@ -132,6 +139,83 @@ class _AdminViewState extends State<AdminView> {
     );
   }
 
+  // Pills de selección única: "Todos" + los 4 estados reales y mutuamente
+  // excluyentes (un conductor bloqueado siempre está approved, así que
+  // nunca hay overlap entre, por ejemplo, Pendientes y Bloqueados).
+  static const List<(AdminStatusFilter, String)> _statusFilters = [
+    (AdminStatusFilter.all, 'Todos'),
+    (AdminStatusFilter.pending, 'Pendientes'),
+    (AdminStatusFilter.rejected, 'Rechazados'),
+    (AdminStatusFilter.active, 'Activos'),
+    (AdminStatusFilter.blocked, 'Bloqueados'),
+  ];
+
+  Widget _buildFilterBar(BuildContext context, AdminState state) {
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _statusFilters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final (filter, label) = _statusFilters[index];
+          return _buildFilterChip(
+            context,
+            label: label,
+            isSelected: state.statusFilter == filter,
+            onTap:
+                () => context.read<AdminBloc>().add(
+                  AdminStatusFilterChanged(filter: filter),
+                ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+    BuildContext context, {
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color:
+                isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color:
+                isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBody(BuildContext context, AdminState state, String viewerRole) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -184,9 +268,9 @@ class _AdminViewState extends State<AdminView> {
             height: MediaQuery.of(context).size.height * 0.6,
             child: Center(
               child: Text(
-                state.searchQuery.isEmpty
-                    ? 'No hay conductores registrados'
-                    : 'No se encontraron resultados',
+                state.isFiltering
+                    ? 'No se encontraron resultados'
+                    : 'No hay conductores registrados',
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),

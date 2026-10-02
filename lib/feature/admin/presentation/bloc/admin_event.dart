@@ -14,6 +14,12 @@ class AdminSearchChanged extends AdminEvent {
   AdminSearchChanged({required this.query});
 }
 
+class AdminStatusFilterChanged extends AdminEvent {
+  final AdminStatusFilter filter;
+
+  AdminStatusFilterChanged({required this.filter});
+}
+
 // Solo avanza/retrocede un paso -- no se puede "saltar" a una página
 // arbitraria bajo paginación por cursor (hay que recorrerlas en orden para
 // obtener el cursor de cada una). Coincide con los botones de flecha que ya

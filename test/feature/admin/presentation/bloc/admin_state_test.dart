@@ -2,7 +2,13 @@ import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart'
 import 'package:driver_app/feature/admin/presentation/bloc/admin_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-AdminDriverEntity _driver(String uid, {String? firstName, String? role}) {
+AdminDriverEntity _driver(
+  String uid, {
+  String? firstName,
+  String? role,
+  String approvalStatus = 'approved',
+  bool isBlocked = false,
+}) {
   return AdminDriverEntity(
     uid: uid,
     firstName: firstName ?? 'First$uid',
@@ -10,6 +16,8 @@ AdminDriverEntity _driver(String uid, {String? firstName, String? role}) {
     email: '$uid@example.com',
     phoneNumber: '555-$uid',
     role: role ?? 'driver',
+    approvalStatus: approvalStatus,
+    isBlocked: isBlocked,
   );
 }
 
@@ -74,6 +82,85 @@ void main() {
       );
 
       expect(state.filteredDrivers, isEmpty);
+    });
+  });
+
+  group('AdminState.statusFilter', () {
+    test('isFiltering is true when a non-"all" pill is active, even without search text', () {
+      const state = AdminState(statusFilter: AdminStatusFilter.pending);
+      expect(state.isFiltering, isTrue);
+    });
+
+    test('pending shows only pending drivers', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchResults: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'approved'),
+          _driver('3', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('rejected shows only rejected drivers', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.rejected,
+        searchResults: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['2']);
+    });
+
+    test('active shows only approved drivers that are not blocked', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.active,
+        searchResults: [
+          _driver('1', approvalStatus: 'approved'),
+          _driver('2', approvalStatus: 'approved', isBlocked: true),
+          _driver('3', approvalStatus: 'pending'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('blocked shows only blocked drivers -- pending/rejected never match', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.blocked,
+        searchResults: [
+          _driver('1', approvalStatus: 'approved', isBlocked: true),
+          _driver('2', approvalStatus: 'approved'),
+          _driver('3', approvalStatus: 'pending'),
+          _driver('4', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('all ignores status entirely -- only the search text (if any) applies', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.all,
+        loadedDrivers: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'approved', isBlocked: true),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1', '2']);
+    });
+
+    test('combines search text AND the active status pill', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchQuery: 'ana',
+        searchResults: [
+          _driver('1', firstName: 'Ana', approvalStatus: 'pending'),
+          _driver('2', firstName: 'Ana', approvalStatus: 'approved'),
+          _driver('3', firstName: 'Beto', approvalStatus: 'pending'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
     });
   });
 

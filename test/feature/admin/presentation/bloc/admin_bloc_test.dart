@@ -120,7 +120,7 @@ void main() {
     );
   });
 
-  group('AdminLoadRequested (search mode)', () {
+  group('AdminLoadRequested (filtered mode)', () {
     blocTest<AdminBloc, AdminState>(
       'fetches the full list via searchAllDrivers instead of listDriversPage',
       setUp: () {
@@ -176,6 +176,61 @@ void main() {
       seed: () => AdminState(searchQuery: 'ana', searchResults: [_driver('1')]),
       act: (bloc) => bloc.add(AdminSearchChanged(query: '')),
       expect: () => [predicate<AdminState>((s) => s.searchQuery == '' && s.currentPage == 0)],
+      verify: (_) {
+        verifyNever(() => repository.searchAllDrivers());
+      },
+    );
+  });
+
+  group('AdminStatusFilterChanged', () {
+    blocTest<AdminBloc, AdminState>(
+      'fetches searchAllDrivers the first time a non-"all" filter is selected',
+      setUp: () {
+        when(
+          () => repository.searchAllDrivers(),
+        ).thenAnswer((_) async => Right([_driver('1')]));
+      },
+      build: buildBloc,
+      act: (bloc) =>
+          bloc.add(AdminStatusFilterChanged(filter: AdminStatusFilter.pending)),
+      expect: () => [
+        predicate<AdminState>(
+          (s) => s.statusFilter == AdminStatusFilter.pending && s.currentPage == 0,
+        ),
+        predicate<AdminState>((s) => s.isLoading),
+        predicate<AdminState>((s) => !s.isLoading && s.searchResults?.length == 1),
+      ],
+    );
+
+    blocTest<AdminBloc, AdminState>(
+      'switching between filters reuses the already-cached full list',
+      build: buildBloc,
+      seed: () => AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchResults: [_driver('1')],
+      ),
+      act: (bloc) =>
+          bloc.add(AdminStatusFilterChanged(filter: AdminStatusFilter.blocked)),
+      expect: () => [
+        predicate<AdminState>((s) => s.statusFilter == AdminStatusFilter.blocked),
+      ],
+      verify: (_) {
+        verifyNever(() => repository.searchAllDrivers());
+      },
+    );
+
+    blocTest<AdminBloc, AdminState>(
+      'returning to "all" (with no search text) does not trigger any fetch',
+      build: buildBloc,
+      seed: () => AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchResults: [_driver('1')],
+      ),
+      act: (bloc) =>
+          bloc.add(AdminStatusFilterChanged(filter: AdminStatusFilter.all)),
+      expect: () => [
+        predicate<AdminState>((s) => s.statusFilter == AdminStatusFilter.all),
+      ],
       verify: (_) {
         verifyNever(() => repository.searchAllDrivers());
       },
