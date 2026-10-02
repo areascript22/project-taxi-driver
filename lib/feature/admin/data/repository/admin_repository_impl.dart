@@ -4,29 +4,33 @@ import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../domain/entity/admin_driver_entity.dart';
+import '../../domain/entity/driver_page_entity.dart';
 import '../../domain/repository/admin_repository.dart';
 import '../model/admin_driver_model.dart';
+import '../model/driver_page_model.dart';
 
 class AdminRepositoryImpl implements AdminRepository {
   final Dio _dio = DioClient.instance;
 
   @override
-  Future<Either<Failure, List<AdminDriverEntity>>> listDrivers() async {
+  Future<Either<Failure, DriverPageEntity>> listDriversPage({
+    required int pageSize,
+    String? cursor,
+  }) async {
     try {
-      final response = await _dio.get('/api/drivers');
-      final data = response.data as List<dynamic>;
-      final drivers =
-          data
-              .map(
-                (json) =>
-                    AdminDriverModel.fromJson(
-                      json as Map<String, dynamic>,
-                    ).toEntity(),
-              )
-              .toList();
-      return Right(drivers);
+      final response = await _dio.get(
+        '/api/drivers',
+        queryParameters: {
+          'pageSize': pageSize,
+          if (cursor != null) 'cursor': cursor,
+        },
+      );
+      final page = DriverPageModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      return Right(page.toEntity());
     } on DioException catch (e) {
-      debugPrint('AdminDebug | Error en listDrivers: $e');
+      debugPrint('AdminDebug | Error en listDriversPage: $e');
       if (e.response?.statusCode == 403) {
         return Left(Failure(message: 'No tienes permisos para ver esta lista'));
       }
@@ -34,10 +38,59 @@ class AdminRepositoryImpl implements AdminRepository {
         Failure(message: 'No se pudo obtener la lista de conductores'),
       );
     } catch (e) {
-      debugPrint('AdminDebug | Error inesperado en listDrivers: $e');
+      debugPrint('AdminDebug | Error inesperado en listDriversPage: $e');
       return Left(
         Failure(message: 'No se pudo obtener la lista de conductores'),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<AdminDriverEntity>>> searchAllDrivers() async {
+    try {
+      final response = await _dio.get('/api/drivers');
+      final page = DriverPageModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      return Right(page.drivers.map((model) => model.toEntity()).toList());
+    } on DioException catch (e) {
+      debugPrint('AdminDebug | Error en searchAllDrivers: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(Failure(message: 'No tienes permisos para ver esta lista'));
+      }
+      return Left(
+        Failure(message: 'No se pudo obtener la lista de conductores'),
+      );
+    } catch (e) {
+      debugPrint('AdminDebug | Error inesperado en searchAllDrivers: $e');
+      return Left(
+        Failure(message: 'No se pudo obtener la lista de conductores'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, AdminDriverEntity?>> getDriver({
+    required String uid,
+  }) async {
+    try {
+      final response = await _dio.get('/api/drivers/$uid');
+      final driver = AdminDriverModel.fromJson(
+        response.data as Map<String, dynamic>,
+      ).toEntity();
+      return Right(driver);
+    } on DioException catch (e) {
+      debugPrint('AdminDebug | Error en getDriver: $e');
+      if (e.response?.statusCode == 404) {
+        return const Right(null);
+      }
+      if (e.response?.statusCode == 403) {
+        return Left(Failure(message: 'No tienes permisos para ver este conductor'));
+      }
+      return Left(Failure(message: 'No se pudo actualizar la información del conductor'));
+    } catch (e) {
+      debugPrint('AdminDebug | Error inesperado en getDriver: $e');
+      return Left(Failure(message: 'No se pudo actualizar la información del conductor'));
     }
   }
 

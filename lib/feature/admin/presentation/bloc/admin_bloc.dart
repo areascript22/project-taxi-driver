@@ -12,46 +12,111 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   AdminBloc({required this.adminRepository}) : super(const AdminState()) {
     on<AdminLoadRequested>(_onLoadRequested);
     on<AdminSearchChanged>(_onSearchChanged);
-    on<AdminPageChanged>(_onPageChanged);
+    on<AdminNextPageRequested>(_onNextPageRequested);
+    on<AdminPreviousPageRequested>(_onPreviousPageRequested);
     on<AdminRoleChangeRequested>(_onRoleChangeRequested);
+    on<AdminDriverRefreshRequested>(_onDriverRefreshRequested);
   }
 
   Future<void> _onLoadRequested(
     AdminLoadRequested event,
     Emitter<AdminState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, clearError: true));
+    emit(state.copyWith(isLoading: true, clearError: true, currentPage: 0));
 
-    final result = await adminRepository.listDrivers();
+    if (state.isSearching) {
+      await _loadSearchResults(emit);
+      return;
+    }
+
+    final result = await adminRepository.listDriversPage(pageSize: _pageSize);
 
     result.fold(
       (failure) =>
           emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
-      (drivers) {
-        // No forzamos currentPage a 0: este evento también se usa para
-        // refrescar la lista al volver de la pantalla de detalle (después de
-        // aprobar/rechazar/bloquear/eliminar), y el admin no debería perder
-        // la página en la que estaba. Si la lista encogió (p.ej. se eliminó
-        // un conductor de la última página), solo recortamos al rango válido.
-        final newState = state.copyWith(isLoading: false, drivers: drivers);
-        final maxPage = newState.totalPages - 1;
-        emit(
-          newState.copyWith(
-            currentPage: newState.currentPage.clamp(0, maxPage < 0 ? 0 : maxPage),
-          ),
-        );
-      },
+      (page) => emit(
+        state.copyWith(
+          isLoading: false,
+          loadedDrivers: page.drivers,
+          nextCursor: page.nextCursor,
+          clearNextCursor: page.nextCursor == null,
+          hasMore: page.hasMore,
+        ),
+      ),
     );
   }
 
-  void _onSearchChanged(AdminSearchChanged event, Emitter<AdminState> emit) {
-    emit(state.copyWith(searchQuery: event.query, currentPage: 0));
+  Future<void> _loadSearchResults(Emitter<AdminState> emit) async {
+    final result = await adminRepository.searchAllDrivers();
+
+    result.fold(
+      (failure) =>
+          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+      (drivers) =>
+          emit(state.copyWith(isLoading: false, searchResults: drivers)),
+    );
   }
 
-  void _onPageChanged(AdminPageChanged event, Emitter<AdminState> emit) {
-    final maxPage = state.totalPages - 1;
-    final page = event.page.clamp(0, maxPage < 0 ? 0 : maxPage);
-    emit(state.copyWith(currentPage: page));
+  Future<void> _onSearchChanged(
+    AdminSearchChanged event,
+    Emitter<AdminState> emit,
+  ) async {
+    final willSearch = event.query.trim().isNotEmpty;
+    emit(state.copyWith(searchQuery: event.query, currentPage: 0));
+
+    // Se busca una sola vez por sesión de búsqueda -- si ya hay resultados
+    // cacheados (de una búsqueda anterior), no hace falta volver a pedirlos
+    // en cada tecla.
+    if (willSearch && state.searchResults == null) {
+      emit(state.copyWith(isLoading: true, clearError: true));
+      await _loadSearchResults(emit);
+    }
+  }
+
+  Future<void> _onNextPageRequested(
+    AdminNextPageRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    if (!state.canGoNext) return;
+
+    final hasCachedNextPage =
+        (state.currentPage + 1) * _pageSize < state.filteredDrivers.length;
+    if (hasCachedNextPage) {
+      emit(state.copyWith(currentPage: state.currentPage + 1));
+      return;
+    }
+
+    // Modo navegación únicamente: en modo búsqueda ya está todo cargado, así
+    // que canGoNext ya habría sido false si no hubiera página cacheada.
+    emit(state.copyWith(isLoading: true, clearError: true));
+
+    final result = await adminRepository.listDriversPage(
+      pageSize: _pageSize,
+      cursor: state.nextCursor,
+    );
+
+    result.fold(
+      (failure) =>
+          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+      (page) => emit(
+        state.copyWith(
+          isLoading: false,
+          loadedDrivers: [...state.loadedDrivers, ...page.drivers],
+          nextCursor: page.nextCursor,
+          clearNextCursor: page.nextCursor == null,
+          hasMore: page.hasMore,
+          currentPage: state.currentPage + 1,
+        ),
+      ),
+    );
+  }
+
+  void _onPreviousPageRequested(
+    AdminPreviousPageRequested event,
+    Emitter<AdminState> emit,
+  ) {
+    if (!state.canGoPrevious) return;
+    emit(state.copyWith(currentPage: state.currentPage - 1));
   }
 
   Future<void> _onRoleChangeRequested(
@@ -70,12 +135,60 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         state.copyWith(clearActionUid: true, errorMessage: failure.message),
       ),
       (_) {
-        final updatedDrivers =
-            state.drivers.map((driver) {
-              if (driver.uid != event.uid) return driver;
-              return driver.copyWith(role: event.role);
-            }).toList();
-        emit(state.copyWith(drivers: updatedDrivers, clearActionUid: true));
+        AdminDriverEntity patch(AdminDriverEntity driver) =>
+            driver.uid == event.uid
+                ? driver.copyWith(role: event.role)
+                : driver;
+
+        emit(
+          state.copyWith(
+            loadedDrivers: state.loadedDrivers.map(patch).toList(),
+            searchResults: state.searchResults?.map(patch).toList(),
+            clearActionUid: true,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _onDriverRefreshRequested(
+    AdminDriverRefreshRequested event,
+    Emitter<AdminState> emit,
+  ) async {
+    final result = await adminRepository.getDriver(uid: event.uid);
+
+    result.fold(
+      (failure) {
+        // Error transitorio (red, etc.) -- no interrumpe al admin, se queda
+        // con los datos cacheados hasta el próximo refresh real.
+      },
+      (driver) {
+        if (driver == null) {
+          // Se eliminó mientras se veía el detalle -- se quita de ambas listas.
+          emit(
+            state.copyWith(
+              loadedDrivers:
+                  state.loadedDrivers
+                      .where((d) => d.uid != event.uid)
+                      .toList(),
+              searchResults:
+                  state.searchResults
+                      ?.where((d) => d.uid != event.uid)
+                      .toList(),
+            ),
+          );
+          return;
+        }
+
+        AdminDriverEntity patch(AdminDriverEntity d) =>
+            d.uid == event.uid ? driver : d;
+
+        emit(
+          state.copyWith(
+            loadedDrivers: state.loadedDrivers.map(patch).toList(),
+            searchResults: state.searchResults?.map(patch).toList(),
+          ),
+        );
       },
     );
   }

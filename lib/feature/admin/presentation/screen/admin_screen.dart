@@ -135,24 +135,70 @@ class _AdminViewState extends State<AdminView> {
   Widget _buildBody(BuildContext context, AdminState state, String viewerRole) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (state.isLoading && state.drivers.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(color: colorScheme.primary),
+    return RefreshIndicator(
+      color: colorScheme.primary,
+      onRefresh: () => _refresh(context),
+      child: _buildListContent(context, state, viewerRole),
+    );
+  }
+
+  // RefreshIndicator necesita un Future que se resuelva cuando el refresh
+  // termine -- como AdminBloc es fire-and-forget (add() no devuelve nada),
+  // esperamos a que el stream emita el primer estado con isLoading=false.
+  Future<void> _refresh(BuildContext context) {
+    final bloc = context.read<AdminBloc>();
+    bloc.add(AdminLoadRequested());
+    return bloc.stream.firstWhere((state) => !state.isLoading);
+  }
+
+  Widget _buildListContent(
+    BuildContext context,
+    AdminState state,
+    String viewerRole,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // RefreshIndicator exige un hijo desplazable para poder "jalar" -- los
+    // estados de carga/vacío también usan ListView (con un alto generoso)
+    // en vez de un Center plano, para que el pull-to-refresh funcione
+    // incluso cuando todavía no hay nada que mostrar.
+    if (state.isLoading && state.pageDrivers.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: CircularProgressIndicator(color: colorScheme.primary),
+            ),
+          ),
+        ],
       );
     }
 
     if (state.pageDrivers.isEmpty) {
-      return Center(
-        child: Text(
-          state.searchQuery.isEmpty
-              ? 'No hay conductores registrados'
-              : 'No se encontraron resultados',
-          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
-        ),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Text(
+                state.searchQuery.isEmpty
+                    ? 'No hay conductores registrados'
+                    : 'No se encontraron resultados',
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: state.pageDrivers.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -173,11 +219,14 @@ class _AdminViewState extends State<AdminView> {
     required AdminDriverEntity driver,
   }) async {
     // DriverDetailScreen maneja aprobar/rechazar/bloquear/desbloquear/
-    // eliminar con su propio cubit -- al volver, simplemente refrescamos la
-    // lista en vez de tratar de sincronizar el resultado a mano.
+    // eliminar con su propio cubit -- al volver, solo resincronizamos ESE
+    // conductor puntualmente (sin perder la página en la que estábamos, a
+    // diferencia de un reload completo bajo paginación por cursor).
     await context.push(driverDetailRoute.route, extra: driver);
     if (context.mounted) {
-      context.read<AdminBloc>().add(AdminLoadRequested());
+      context.read<AdminBloc>().add(
+        AdminDriverRefreshRequested(uid: driver.uid),
+      );
     }
   }
 
@@ -374,6 +423,16 @@ class _AdminViewState extends State<AdminView> {
 
     if (state.filteredDrivers.isEmpty) return const SizedBox.shrink();
 
+    // El total de páginas solo se conoce con certeza en modo búsqueda (ya
+    // se cargó todo) o cuando la navegación llegó al final del listado --
+    // bajo paginación por cursor no hay forma barata de saber cuántas
+    // páginas quedan por delante sin recorrerlas.
+    final totalPages = state.totalPages;
+    final pageLabel =
+        totalPages != null
+            ? 'Página ${state.currentPage + 1} de $totalPages'
+            : 'Página ${state.currentPage + 1}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
@@ -381,9 +440,9 @@ class _AdminViewState extends State<AdminView> {
         children: [
           IconButton(
             onPressed:
-                state.currentPage > 0
+                !state.isLoading && state.canGoPrevious
                     ? () => context.read<AdminBloc>().add(
-                      AdminPageChanged(page: state.currentPage - 1),
+                      AdminPreviousPageRequested(),
                     )
                     : null,
             icon: Icon(
@@ -392,7 +451,7 @@ class _AdminViewState extends State<AdminView> {
             ),
           ),
           Text(
-            'Página ${state.currentPage + 1} de ${state.totalPages}',
+            pageLabel,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -401,9 +460,9 @@ class _AdminViewState extends State<AdminView> {
           ),
           IconButton(
             onPressed:
-                state.currentPage < state.totalPages - 1
+                !state.isLoading && state.canGoNext
                     ? () => context.read<AdminBloc>().add(
-                      AdminPageChanged(page: state.currentPage + 1),
+                      AdminNextPageRequested(),
                     )
                     : null,
             icon: Icon(
@@ -426,10 +485,14 @@ class _AdminViewState extends State<AdminView> {
     return viewerRole == 'superuser';
   }
 
-  static const List<String> _allRoles = ['driver', 'admin', 'superuser'];
+  // "superuser" nunca es una opción asignable desde acá -- ni siquiera un
+  // superuser puede promover a nadie a superuser (ver
+  // DriverAdminService.updateDriverRole en el server, que rechaza ese
+  // destino explícitamente).
+  static const List<String> _assignableRoles = ['driver', 'admin'];
 
   List<String> _rolesFor(String currentRole) {
-    return _allRoles.where((role) => role != currentRole).toList();
+    return _assignableRoles.where((role) => role != currentRole).toList();
   }
 
   String _roleLabel(String role) {
