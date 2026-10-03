@@ -1,3 +1,4 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -28,7 +29,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       (failure) => emit(
         state.copyWith(
           locationProcess: LocationProcess.permissionsError,
-          errorMessage: failure.message,
+          errorCode: failure.code,
         ),
       ),
       (permission) => emit(
@@ -53,7 +54,7 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
       (failure) => emit(
         state.copyWith(
           locationProcess: LocationProcess.permissionsError,
-          errorMessage: failure.message,
+          errorCode: failure.code,
         ),
       ),
       (permission) => emit(

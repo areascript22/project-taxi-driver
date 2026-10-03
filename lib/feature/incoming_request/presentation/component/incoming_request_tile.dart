@@ -1,5 +1,5 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'dart:async';
-
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
-
+import '../../../../l10n/app_localizations.dart';
 import '../bloc/incoming_request_bloc.dart';
 
 class IncomingRequestTile extends StatefulWidget {
@@ -87,7 +87,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
       setState(() => _isRequestingLocation = false);
       AppToast.error(
         context,
-        message: 'Se necesita acceso a tu ubicación para aceptar carreras.',
+        message: AppLocalizations.of(context).locationRequiredToAccept,
       );
       return;
     }
@@ -99,7 +99,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
     locationResult.fold(
       (failure) {
         setState(() => _isRequestingLocation = false);
-        AppToast.error(context, message: failure.message);
+        AppToast.error(context, message: context.failureText(failure.code));
       },
       (driverLocation) {
         // No apagamos _isRequestingLocation acá: si lo hiciéramos, quedaría
@@ -148,7 +148,9 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        'Esperando conductor · ${_remaining.inSeconds}s',
+        AppLocalizations.of(
+          context,
+        ).requestWaitingSeconds(_remaining.inSeconds),
         style: TextStyle(
           color: badgeColor,
           fontSize: 10,
@@ -243,7 +245,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Punto de recogida',
+                      AppLocalizations.of(context).commonPickupPoint,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -302,8 +304,8 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                               ),
                             ),
                           )
-                          : const Text(
-                            'Aceptar carrera',
+                          : Text(
+                            AppLocalizations.of(context).requestAccept,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,

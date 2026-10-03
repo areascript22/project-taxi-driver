@@ -65,13 +65,13 @@ void main() {
       'falls back to safe defaults (true/true/system) when every read fails',
       setUp: () {
         when(() => repository.isVoiceEnabled()).thenAnswer(
-          (_) async => Left(Failure(message: 'err')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
         when(() => repository.isVibrationEnabled()).thenAnswer(
-          (_) async => Left(Failure(message: 'err')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
         when(() => repository.getThemeMode()).thenAnswer(
-          (_) async => Left(Failure(message: 'err')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,

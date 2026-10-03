@@ -1,3 +1,5 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/component/app_version.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +46,7 @@ class SignInView extends StatelessWidget {
             child: BlocConsumer<AuthBloc, AuthState>(
               listener: (context, state) {
                 if (state is AuthError) {
-                  AppToast.error(context, message: state.message);
+                  AppToast.error(context, message: context.failureText(state.code));
                 }
 
                 if (state is AuthAuthenticated) {
@@ -91,7 +93,7 @@ class SignInView extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Conductor',
+                        AppLocalizations.of(context).brandRoleLabel,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w300,
@@ -101,7 +103,7 @@ class SignInView extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Inicia sesión para comenzar a conducir',
+                        AppLocalizations.of(context).signInTagline,
                         style: TextStyle(
                           fontSize: 14,
                           color: onSurface.withValues(alpha: 0.5),
@@ -141,8 +143,8 @@ class SignInView extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const SizedBox(width: 12),
-                                      const Text(
-                                        'Continuar con Google',
+                                      Text(
+                                        AppLocalizations.of(context).signInGoogle,
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,

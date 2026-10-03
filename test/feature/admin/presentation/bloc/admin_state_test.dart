@@ -1,3 +1,4 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart';
 import 'package:driver_app/feature/admin/presentation/bloc/admin_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -264,20 +265,20 @@ void main() {
   });
 
   group('AdminState.copyWith', () {
-    test('clearError resets errorMessage to null regardless of value passed', () {
-      const state = AdminState(errorMessage: 'boom');
+    test('clearError resets errorCode to null regardless of value passed', () {
+      const state = AdminState(errorCode: FailureCode.unexpected);
 
-      final result = state.copyWith(clearError: true, errorMessage: 'ignored');
+      final result = state.copyWith(clearError: true, errorCode: FailureCode.unexpected);
 
-      expect(result.errorMessage, isNull);
+      expect(result.errorCode, isNull);
     });
 
-    test('without clearError, errorMessage falls back to the previous value', () {
-      const state = AdminState(errorMessage: 'boom');
+    test('without clearError, errorCode falls back to the previous value', () {
+      const state = AdminState(errorCode: FailureCode.unexpected);
 
       final result = state.copyWith(isLoading: true);
 
-      expect(result.errorMessage, 'boom');
+      expect(result.errorCode, FailureCode.unexpected);
     });
 
     test('clearActionUid resets actionUid to null', () {

@@ -34,7 +34,7 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en getDriver: $e');
       return Left(
-        Failure(message: 'No se pudo verificar tu información de conductor'),
+        Failure(code: FailureCode.driverProfileCheckFailed),
       );
     }
   }
@@ -59,7 +59,7 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en getVehicle: $e');
       return Left(
-        Failure(message: 'No se pudo obtener la información del vehículo'),
+        Failure(code: FailureCode.vehicleFetchFailed),
       );
     }
   }
@@ -114,9 +114,7 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en registerDriver: $e');
       return Left(
-        Failure(
-          message: 'No se pudo guardar tu información. Intenta nuevamente.',
-        ),
+        Failure(code: FailureCode.profileSaveFailed),
       );
     }
   }
@@ -134,7 +132,7 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateFcmToken: $e');
       return Left(
-        Failure(message: 'No se pudo registrar el token de notificaciones'),
+        Failure(code: FailureCode.fcmTokenSaveFailed),
       );
     }
   }

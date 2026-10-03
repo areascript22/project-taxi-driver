@@ -44,7 +44,7 @@ void main() {
           (s) =>
               s.locationProcess == LocationProcess.permissionsReady &&
               s.isGranted &&
-              s.errorMessage == null,
+              s.errorCode == null,
         ),
       ],
     );
@@ -75,7 +75,7 @@ void main() {
       'reports permissionsError with the failure message',
       setUp: () {
         when(() => service.checkPermission()).thenAnswer(
-          (_) async => Left(Failure(message: 'servicio deshabilitado')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -87,7 +87,7 @@ void main() {
         predicate<LocationState>(
           (s) =>
               s.locationProcess == LocationProcess.permissionsError &&
-              s.errorMessage == 'servicio deshabilitado',
+              s.errorCode != null,
         ),
       ],
     );
@@ -120,7 +120,7 @@ void main() {
       'reports permissionsError on failure',
       setUp: () {
         when(() => service.checkAndRequestPermission()).thenAnswer(
-          (_) async => Left(Failure(message: 'error')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -145,7 +145,7 @@ void main() {
       build: buildBloc,
       seed: () => const LocationState(
         locationProcess: LocationProcess.permissionsError,
-        errorMessage: 'error viejo',
+        errorCode: FailureCode.unexpected,
       ),
       act: (bloc) => bloc.add(CheckAndRequestPermissionEvent()),
       expect: () => [
@@ -153,7 +153,7 @@ void main() {
           (s) => s.locationProcess == LocationProcess.checkingPermissions,
         ),
         predicate<LocationState>(
-          (s) => s.errorMessage == null && s.isGranted,
+          (s) => s.errorCode == null && s.isGranted,
         ),
       ],
     );

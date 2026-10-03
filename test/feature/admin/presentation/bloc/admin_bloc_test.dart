@@ -35,7 +35,7 @@ void main() {
     expect(bloc.state.isLoading, isFalse);
     expect(bloc.state.loadedDrivers, isEmpty);
     expect(bloc.state.currentPage, 0);
-    expect(bloc.state.errorMessage, isNull);
+    expect(bloc.state.errorCode, isNull);
   });
 
   group('AdminLoadRequested (browse mode)', () {
@@ -57,7 +57,7 @@ void main() {
       build: buildBloc,
       act: (bloc) => bloc.add(AdminLoadRequested()),
       expect: () => [
-        predicate<AdminState>((s) => s.isLoading && s.errorMessage == null),
+        predicate<AdminState>((s) => s.isLoading && s.errorCode == null),
         predicate<AdminState>(
           (s) =>
               !s.isLoading &&
@@ -109,13 +109,13 @@ void main() {
       setUp: () {
         when(
           () => repository.listDriversPage(pageSize: 10),
-        ).thenAnswer((_) async => Left(Failure(message: 'no autorizado')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(AdminLoadRequested()),
       expect: () => [
         predicate<AdminState>((s) => s.isLoading),
-        predicate<AdminState>((s) => !s.isLoading && s.errorMessage == 'no autorizado'),
+        predicate<AdminState>((s) => !s.isLoading && s.errorCode != null),
       ],
     );
   });
@@ -347,7 +347,7 @@ void main() {
         when(
           () => repository.updateDriverRole(uid: '1', role: 'admin'),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo actualizar')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -359,7 +359,7 @@ void main() {
         predicate<AdminState>(
           (s) =>
               s.actionUid == null &&
-              s.errorMessage == 'no se pudo actualizar' &&
+              s.errorCode != null &&
               s.loadedDrivers.first.role == 'driver',
         ),
       ],
@@ -420,7 +420,7 @@ void main() {
       setUp: () {
         when(
           () => repository.getDriver(uid: '1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'network')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       seed: () => AdminState(loadedDrivers: [_driver('1')]),

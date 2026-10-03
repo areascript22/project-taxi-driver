@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/presentation/component/custom_button.dart';
 import 'onboarding_step_header.dart';
 import 'onboarding_text_field.dart';
@@ -38,6 +39,7 @@ class DriverPersonalForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
@@ -47,11 +49,11 @@ class DriverPersonalForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const OnboardingStepHeader(
+            OnboardingStepHeader(
               step: 1,
               totalSteps: 2,
-              title: 'Tus datos',
-              subtitle: 'Cuéntanos quién eres para poder verificarte.',
+              title: l10n.onboardingPersonalTitle,
+              subtitle: l10n.onboardingPersonalSubtitle,
             ),
             const SizedBox(height: 28),
             Center(
@@ -64,37 +66,37 @@ class DriverPersonalForm extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             OnboardingTextField(
-              label: 'Nombres',
+              label: l10n.fieldFirstName,
               controller: firstNameController,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa tus nombres';
+                  return l10n.validationFirstName;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 16),
             OnboardingTextField(
-              label: 'Apellidos',
+              label: l10n.fieldLastName,
               controller: lastNameController,
               textCapitalization: TextCapitalization.words,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa tus apellidos';
+                  return l10n.validationLastName;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 16),
             OnboardingTextField(
-              label: 'Correo electrónico',
+              label: l10n.commonEmail,
               controller: emailController,
               enabled: false,
             ),
             const SizedBox(height: 16),
             OnboardingTextField(
-              label: 'Número de celular',
+              label: l10n.fieldMobile,
               controller: phoneController,
               keyboardType: TextInputType.phone,
               maxLength: 9,
@@ -116,17 +118,17 @@ class DriverPersonalForm extends StatelessWidget {
               validator: (value) {
                 final digits = value?.trim() ?? '';
                 if (digits.isEmpty) {
-                  return 'Ingresa tu número de celular';
+                  return l10n.validationMobileRequired;
                 }
                 if (!ecuadorMobileRegex.hasMatch(digits)) {
-                  return 'Número de celular ecuatoriano inválido';
+                  return l10n.validationMobileInvalid;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 32),
             CustomButton(
-              textButton: 'Siguiente',
+              textButton: l10n.commonNext,
               backgroundColor: colorScheme.primary,
               onTap: onNext,
             ),

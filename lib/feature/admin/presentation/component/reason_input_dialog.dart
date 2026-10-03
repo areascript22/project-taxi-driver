@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Diálogo genérico para pedirle al admin un motivo obligatorio -- usado
@@ -51,7 +52,9 @@ class _ReasonInputDialogState extends State<ReasonInputDialog> {
   void _submit() {
     final reason = _controller.text.trim();
     if (reason.isEmpty) {
-      setState(() => _errorText = 'Este campo es obligatorio');
+      setState(
+        () => _errorText = AppLocalizations.of(context).adminReasonRequired,
+      );
       return;
     }
     Navigator.of(context).pop(reason);
@@ -59,6 +62,7 @@ class _ReasonInputDialogState extends State<ReasonInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
@@ -88,7 +92,7 @@ class _ReasonInputDialogState extends State<ReasonInputDialog> {
             maxLines: 3,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Escribe el motivo...',
+              hintText: l10n.adminReasonHint,
               errorText: _errorText,
               border: const OutlineInputBorder(),
             ),
@@ -102,7 +106,7 @@ class _ReasonInputDialogState extends State<ReasonInputDialog> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
-            'Cancelar',
+            l10n.commonCancel,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,

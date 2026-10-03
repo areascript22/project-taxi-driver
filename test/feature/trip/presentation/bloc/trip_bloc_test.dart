@@ -121,7 +121,7 @@ void main() {
       act: (bloc) => bloc.add(CancelTripRequested(passengerId: 'p1')),
       wait: const Duration(seconds: 2, milliseconds: 100),
       expect: () => [
-        predicate<TripState>((s) => s.isCancelling && s.errorMessage == null),
+        predicate<TripState>((s) => s.isCancelling && s.errorCode == null),
         predicate<TripState>((s) => !s.isCancelling),
       ],
     );
@@ -131,7 +131,7 @@ void main() {
       setUp: () {
         when(
           () => repository.cancelRide(passengerId: 'p1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'no se pudo cancelar')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(CancelTripRequested(passengerId: 'p1')),
@@ -139,7 +139,7 @@ void main() {
       expect: () => [
         predicate<TripState>((s) => s.isCancelling),
         predicate<TripState>(
-          (s) => !s.isCancelling && s.errorMessage == 'no se pudo cancelar',
+          (s) => !s.isCancelling && s.errorCode != null,
         ),
       ],
     );
@@ -175,7 +175,7 @@ void main() {
       act: (bloc) => bloc.add(DriverArrivedRequested(passengerId: 'p1')),
       expect: () => [
         predicate<TripState>((s) => s.isMarkingArrived),
-        predicate<TripState>((s) => !s.isMarkingArrived && s.errorMessage == null),
+        predicate<TripState>((s) => !s.isMarkingArrived && s.errorCode == null),
       ],
     );
 
@@ -184,14 +184,14 @@ void main() {
       setUp: () {
         when(
           () => repository.markDriverArrived(passengerId: 'p1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'error de red')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(DriverArrivedRequested(passengerId: 'p1')),
       expect: () => [
         predicate<TripState>((s) => s.isMarkingArrived),
         predicate<TripState>(
-          (s) => !s.isMarkingArrived && s.errorMessage == 'error de red',
+          (s) => !s.isMarkingArrived && s.errorCode != null,
         ),
       ],
     );
@@ -221,7 +221,7 @@ void main() {
       setUp: () {
         when(
           () => repository.completeTrip(passengerId: 'p1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'no se pudo completar')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(CompleteTripRequested(passengerId: 'p1')),
@@ -231,7 +231,7 @@ void main() {
           (s) =>
               !s.isCompleting &&
               !s.isCompleted &&
-              s.errorMessage == 'no se pudo completar',
+              s.errorCode != null,
         ),
       ],
       verify: (_) {

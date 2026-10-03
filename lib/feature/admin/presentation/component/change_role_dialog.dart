@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class ChangeRoleDialog extends StatelessWidget {
@@ -27,12 +28,13 @@ class ChangeRoleDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
-        'Cambiar rol',
+        l10n.adminChangeRole,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -59,7 +61,7 @@ class ChangeRoleDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
-            'Cancelar',
+            l10n.commonCancel,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,

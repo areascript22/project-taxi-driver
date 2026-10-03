@@ -105,7 +105,7 @@ void main() {
         when(
           () => imagePicker.pickImage(source: ProfileImageSource.camera),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'permiso denegado')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -114,7 +114,7 @@ void main() {
       expect: () => [
         predicate<DriverOnboardingState>((s) => s.isPickingImage),
         predicate<DriverOnboardingState>(
-          (s) => !s.isPickingImage && s.errorMessage == 'permiso denegado',
+          (s) => !s.isPickingImage && s.errorCode != null,
         ),
       ],
     );
@@ -193,7 +193,7 @@ void main() {
             profileImage: any(named: 'profileImage'),
           ),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo registrar')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -216,7 +216,7 @@ void main() {
         predicate<DriverOnboardingState>(
           (s) =>
               !s.isSubmitting &&
-              s.errorMessage == 'no se pudo registrar' &&
+              s.errorCode != null &&
               !s.registrationSuccess,
         ),
       ],

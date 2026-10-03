@@ -1,9 +1,11 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:driver_app/core/routing/app_routes.dart';
 import 'package:driver_app/core/service_locator/main_service_locator.dart';
 import 'package:driver_app/core/theme/app_colors.dart';
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:driver_app/shared/feature/account/presentation/component/delete_account_confirm_dialog.dart';
 import 'package:driver_app/shared/feature/account/presentation/cubit/account_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
@@ -28,6 +30,7 @@ class _SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return MultiBlocListener(
       listeners: [
@@ -38,11 +41,11 @@ class _SettingsView extends StatelessWidget {
               // y a la navegación al login que vienen justo después.
               AppToast.success(
                 context,
-                message: 'Cuenta eliminada correctamente',
+                message: l10n.deleteAccountSuccess,
               );
               context.read<SessionBloc>().add(SessionLogoutRequested());
-            } else if (state.errorMessage != null) {
-              AppToast.error(context, message: state.errorMessage!);
+            } else if (state.errorCode != null) {
+              AppToast.error(context, message: context.failureText(state.errorCode!));
             }
           },
         ),
@@ -69,8 +72,8 @@ class _SettingsView extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-            title: const Text(
-              'Ajustes',
+            title: Text(
+              l10n.settingsTitle,
               style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
           ),
@@ -90,11 +93,11 @@ class _SettingsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionLabel(text: 'APARIENCIA'),
+                    _SectionLabel(text: l10n.settingsSectionAppearance),
                     const SizedBox(height: 12),
                     _ThemeModeSelector(themeMode: state.themeMode),
                     const SizedBox(height: 28),
-                    _SectionLabel(text: 'NOTIFICACIONES'),
+                    _SectionLabel(text: l10n.settingsSectionNotifications),
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
@@ -109,8 +112,8 @@ class _SettingsView extends StatelessWidget {
                           _buildToggleTile(
                             context,
                             icon: Icons.record_voice_over_rounded,
-                            title: 'Voz',
-                            subtitle: 'Anuncios hablados de la app',
+                            title: l10n.settingsVoiceTitle,
+                            subtitle: l10n.settingsVoiceSubtitle,
                             value: state.voiceEnabled,
                             onChanged:
                                 (_) => context.read<SettingsBloc>().add(
@@ -127,8 +130,8 @@ class _SettingsView extends StatelessWidget {
                           _buildToggleTile(
                             context,
                             icon: Icons.vibration_rounded,
-                            title: 'Vibración',
-                            subtitle: 'Vibrar en eventos importantes',
+                            title: l10n.settingsVibrationTitle,
+                            subtitle: l10n.settingsVibrationSubtitle,
                             value: state.vibrationEnabled,
                             onChanged:
                                 (_) => context.read<SettingsBloc>().add(
@@ -139,7 +142,7 @@ class _SettingsView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    _SectionLabel(text: 'CUENTA'),
+                    _SectionLabel(text: l10n.settingsSectionAccount),
                     const SizedBox(height: 12),
                     BlocBuilder<AccountCubit, AccountState>(
                       builder: (context, accountState) {
@@ -234,6 +237,7 @@ class _ThemeModeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(6),
@@ -248,7 +252,7 @@ class _ThemeModeSelector extends StatelessWidget {
         children: [
           _ThemeModeOption(
             icon: Icons.dark_mode_rounded,
-            label: 'Oscuro',
+            label: l10n.settingsThemeDark,
             selected: themeMode == ThemeMode.dark,
             onTap:
                 () => context.read<SettingsBloc>().add(
@@ -257,7 +261,7 @@ class _ThemeModeSelector extends StatelessWidget {
           ),
           _ThemeModeOption(
             icon: Icons.light_mode_rounded,
-            label: 'Claro',
+            label: l10n.settingsThemeLight,
             selected: themeMode == ThemeMode.light,
             onTap:
                 () => context.read<SettingsBloc>().add(
@@ -266,7 +270,7 @@ class _ThemeModeSelector extends StatelessWidget {
           ),
           _ThemeModeOption(
             icon: Icons.settings_suggest_rounded,
-            label: 'Sistema',
+            label: l10n.settingsThemeSystem,
             selected: themeMode == ThemeMode.system,
             onTap:
                 () => context.read<SettingsBloc>().add(
@@ -345,6 +349,7 @@ class _DeleteAccountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -367,7 +372,7 @@ class _DeleteAccountTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Eliminar cuenta',
+          l10n.deleteAccountTitle,
           style: TextStyle(
             color: colorScheme.error,
             fontSize: 15,
@@ -375,7 +380,7 @@ class _DeleteAccountTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          'Esta acción no se puede deshacer',
+          l10n.deleteAccountSubtitle,
           style: TextStyle(
             color: colorScheme.error.withValues(alpha: 0.7),
             fontSize: 12,

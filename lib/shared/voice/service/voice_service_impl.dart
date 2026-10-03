@@ -26,7 +26,7 @@ class VoiceServiceImpl implements VoiceService {
       await _flutterTts.speak(text);
       return const Right(unit);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -36,7 +36,7 @@ class VoiceServiceImpl implements VoiceService {
       await _flutterTts.stop();
       return const Right(unit);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 }

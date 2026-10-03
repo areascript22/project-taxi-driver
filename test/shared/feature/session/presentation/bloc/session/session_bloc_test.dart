@@ -99,7 +99,7 @@ void main() {
       'emits SessionUnauthenticated when there is no authenticated user',
       setUp: () {
         when(() => sessionRepository.isUserAuthenticated()).thenAnswer(
-          (_) async => Left(Failure(message: 'no session')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -122,7 +122,7 @@ void main() {
         ).thenAnswer((_) async => Right(user));
         when(
           () => driverProfileRepository.getDriver(driverId: 'u1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'network')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(SessionCheckRequested()),
@@ -195,7 +195,7 @@ void main() {
           () => driverProfileRepository.getDriver(driverId: 'u1'),
         ).thenAnswer((_) async => Right(_driver()));
         when(() => tripRepository.findActiveTripForDriver()).thenAnswer(
-          (_) async => Left(Failure(message: 'network')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -382,7 +382,7 @@ void main() {
       setUp: () {
         when(
           () => sessionRepository.signOut(),
-        ).thenAnswer((_) async => Left(Failure(message: 'error')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       seed: () => SessionAuthenticated(user: user),

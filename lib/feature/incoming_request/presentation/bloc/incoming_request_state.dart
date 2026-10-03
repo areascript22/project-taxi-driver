@@ -15,26 +15,26 @@ final class IncomingRequestLoaded extends IncomingRequestState {
   // una carrera esta desaparece de `requests` (deja de matchear el query de
   // Firebase `status == pending`) antes de que la UI pueda navegar con sus datos.
   final IncomingRequestEntity? processingRequest;
-  final String? acceptErrorMessage;
+  final FailureCode? acceptErrorCode;
 
   IncomingRequestLoaded({
     required this.requests,
     this.acceptStatus = AcceptRideStatus.idle,
     this.processingRequest,
-    this.acceptErrorMessage,
+    this.acceptErrorCode,
   });
 
   IncomingRequestLoaded copyWith({
     List<IncomingRequestEntity>? requests,
     AcceptRideStatus? acceptStatus,
     IncomingRequestEntity? processingRequest,
-    String? acceptErrorMessage,
+    FailureCode? acceptErrorCode,
   }) {
     return IncomingRequestLoaded(
       requests: requests ?? this.requests,
       acceptStatus: acceptStatus ?? this.acceptStatus,
       processingRequest: processingRequest ?? this.processingRequest,
-      acceptErrorMessage: acceptErrorMessage ?? this.acceptErrorMessage,
+      acceptErrorCode: acceptErrorCode ?? this.acceptErrorCode,
     );
   }
 }

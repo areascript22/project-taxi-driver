@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Diálogo informativo mostrado al conductor cuando es el PASAJERO quien
@@ -17,6 +18,7 @@ class PassengerCancelledDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return PopScope(
@@ -51,7 +53,7 @@ class PassengerCancelledDialog extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                "Carrera cancelada",
+                l10n.passengerCancelledTitle,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -61,7 +63,7 @@ class PassengerCancelledDialog extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                "El pasajero canceló esta carrera. Ya puedes volver a la lista de peticiones entrantes.",
+                l10n.passengerCancelledBody,
                 style: TextStyle(
                   fontSize: 14,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -83,8 +85,8 @@ class PassengerCancelledDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    "Entendido",
+                  child: Text(
+                    l10n.commonUnderstood,
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                 ),

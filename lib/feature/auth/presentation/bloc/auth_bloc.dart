@@ -1,3 +1,4 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
@@ -22,7 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await authRepository.signInWithGoogle();
 
     result.fold(
-      (failure) => emit(AuthError(failure.message)),
+      (failure) => emit(AuthError(failure.code)),
       (user) => emit(AuthAuthenticated(user: user)),
     );
   }

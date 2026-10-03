@@ -1,7 +1,9 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../../../shared/presentation/component/app_toast.dart';
 import '../../domain/entity/admin_driver_entity.dart';
@@ -54,12 +56,12 @@ class _DriverDetailView extends StatelessWidget {
     return BlocConsumer<DriverDetailCubit, DriverDetailState>(
       listenWhen:
           (previous, current) =>
-              (current.errorMessage != null &&
-                  current.errorMessage != previous.errorMessage) ||
+              (current.errorCode != null &&
+                  current.errorCode != previous.errorCode) ||
               current.wasDeleted != previous.wasDeleted,
       listener: (context, state) {
-        if (state.errorMessage != null) {
-          AppToast.error(context, message: state.errorMessage!);
+        if (state.errorCode != null) {
+          AppToast.error(context, message: context.failureText(state.errorCode!));
         }
         if (state.wasDeleted) {
           Navigator.of(context).pop();
@@ -75,14 +77,14 @@ class _DriverDetailView extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
-              'Detalle del conductor',
+            title: Text(
+              AppLocalizations.of(context).adminDriverDetailTitle,
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             actions: [
               if (canModerate)
                 IconButton(
-                  tooltip: 'Eliminar conductor',
+                  tooltip: AppLocalizations.of(context).adminDeleteDriver,
                   icon: Icon(Icons.delete_outline, color: colorScheme.error),
                   onPressed:
                       state.isProcessing
@@ -172,7 +174,7 @@ class _DriverDetailView extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'No tienes permisos para gestionar el estado de esta cuenta.',
+                AppLocalizations.of(context).adminNoModeratePermission,
                 style: TextStyle(
                   fontSize: 13,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -211,7 +213,7 @@ class _DriverDetailView extends StatelessWidget {
                       );
                       if (confirmed == true) cubit.unblock();
                     },
-            child: const Text('Desbloquear'),
+            child: Text(AppLocalizations.of(context).adminUnblock),
           ),
         ),
       ];
@@ -229,14 +231,14 @@ class _DriverDetailView extends StatelessWidget {
                     : () async {
                       final reason = await ReasonInputDialog.show(
                         context: context,
-                        title: 'Bloquear conductor',
+                        title: AppLocalizations.of(context).adminBlockDriver,
                         description:
-                            'Este motivo se le mostrará directamente al conductor en la app.',
-                        confirmLabel: 'Bloquear',
+                            AppLocalizations.of(context).adminBlockReasonHelp,
+                        confirmLabel: AppLocalizations.of(context).adminBlock,
                       );
                       if (reason != null) cubit.block(reason: reason);
                     },
-            child: const Text('Bloquear'),
+            child: Text(AppLocalizations.of(context).adminBlock),
           ),
         ),
       ];
@@ -256,21 +258,21 @@ class _DriverDetailView extends StatelessWidget {
                       : () async {
                         final reason = await ReasonInputDialog.show(
                           context: context,
-                          title: 'Rechazar conductor',
+                          title: AppLocalizations.of(context).adminRejectDriver,
                           description:
-                              'Cuéntale al conductor qué debe corregir para volver a postularse.',
-                          confirmLabel: 'Rechazar',
+                              AppLocalizations.of(context).adminRejectReasonHelp,
+                          confirmLabel: AppLocalizations.of(context).adminReject,
                         );
                         if (reason != null) cubit.reject(reason: reason);
                       },
-              child: const Text('Rechazar'),
+              child: Text(AppLocalizations.of(context).adminReject),
             ),
           ),
         if (isPending) const SizedBox(width: 12),
         Expanded(
           child: FilledButton(
             onPressed: isProcessing ? null : cubit.approve,
-            child: const Text('Aprobar'),
+            child: Text(AppLocalizations.of(context).adminApprove),
           ),
         ),
       ];
@@ -309,40 +311,48 @@ class _DriverDetailView extends StatelessWidget {
           children: [
             _InfoTile(
               icon: Icons.email_outlined,
-              title: 'Correo',
+              title: AppLocalizations.of(context).adminEmailLabel,
               value: driver.email,
               isFirst: true,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.phone_outlined,
-              title: 'Teléfono',
+              title: AppLocalizations.of(context).commonPhone,
               value: driver.phoneNumber,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.star_outline_rounded,
-              title: 'Calificación',
+              title: AppLocalizations.of(context).adminRating,
               value: driver.rating.toStringAsFixed(1),
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.notifications_outlined,
-              title: 'Token de notificaciones',
+              title: AppLocalizations.of(context).adminFcmToken,
               value:
-                  driver.fcmToken.isEmpty ? 'No registrado' : driver.fcmToken,
+                  driver.fcmToken.isEmpty
+                      ? AppLocalizations.of(context).commonNotProvided
+                      : driver.fcmToken,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.event_available_outlined,
-              title: 'Registrado el',
-              value: _formatDate(driver.createdAt),
+              title: AppLocalizations.of(context).adminRegisteredAt,
+              value: _formatDate(
+                l10n: AppLocalizations.of(context),
+                date: driver.createdAt,
+              ),
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.update_outlined,
-              title: 'Última actualización',
-              value: _formatDate(driver.updatedAt),
+              title: AppLocalizations.of(context).adminUpdatedAt,
+              value: _formatDate(
+                l10n: AppLocalizations.of(context),
+                date: driver.updatedAt,
+              ),
             ),
           ],
         ),
@@ -360,7 +370,7 @@ class _DriverDetailView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vehículo',
+            AppLocalizations.of(context).adminVehicleSection,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -380,7 +390,7 @@ class _DriverDetailView extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Este conductor no tiene un vehículo registrado',
+                AppLocalizations.of(context).adminNoVehicle,
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -418,31 +428,31 @@ class _DriverDetailView extends StatelessWidget {
                   _divider(colorScheme),
                   _InfoTile(
                     icon: Icons.branding_watermark_outlined,
-                    title: 'Marca',
+                    title: AppLocalizations.of(context).vehicleBrand,
                     value: vehicle.brand,
                   ),
                   _divider(colorScheme),
                   _InfoTile(
                     icon: Icons.directions_car_filled_outlined,
-                    title: 'Modelo',
+                    title: AppLocalizations.of(context).vehicleModel,
                     value: vehicle.model,
                   ),
                   _divider(colorScheme),
                   _InfoTile(
                     icon: Icons.calendar_today_outlined,
-                    title: 'Año',
+                    title: AppLocalizations.of(context).vehicleYear,
                     value: '${vehicle.year}',
                   ),
                   _divider(colorScheme),
                   _InfoTile(
                     icon: Icons.palette_outlined,
-                    title: 'Color',
+                    title: AppLocalizations.of(context).vehicleColor,
                     value: vehicle.color,
                   ),
                   _divider(colorScheme),
                   _InfoTile(
                     icon: Icons.badge_outlined,
-                    title: 'Número de matrícula',
+                    title: AppLocalizations.of(context).vehicleRegistrationNumber,
                     value: vehicle.registrationNumber,
                   ),
                 ],
@@ -461,8 +471,10 @@ class _DriverDetailView extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Sin datos';
+  // Recibe l10n por parámetro (no BuildContext) porque es un helper puro de
+  // formato: así no depende del árbol de widgets y se puede testear directo.
+  String _formatDate({required AppLocalizations l10n, DateTime? date}) {
+    if (date == null) return l10n.commonNoData;
     final local = date.toLocal();
     final day = local.day.toString().padLeft(2, '0');
     final month = local.month.toString().padLeft(2, '0');
@@ -497,7 +509,9 @@ class _DriverHeader extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          driver.fullName.isEmpty ? 'Sin nombre' : driver.fullName,
+          driver.fullName.isEmpty
+              ? AppLocalizations.of(context).commonNoName
+              : driver.fullName,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -519,10 +533,12 @@ class _RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+    // 'superuser'/'admin' son valores del backend y no se traducen.
     final label = switch (role) {
-      'superuser' => 'Superusuario',
-      'admin' => 'Administrador',
-      _ => 'Conductor',
+      'superuser' => l10n.roleSuperuser,
+      'admin' => l10n.roleAdmin,
+      _ => l10n.roleDriver,
     };
     final color =
         role == 'driver' ? colorScheme.onSurface : colorScheme.primary;
@@ -559,36 +575,37 @@ class _ApprovalStatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final appColors = context.appColors;
+    final l10n = AppLocalizations.of(context);
 
     final String label;
     final String? description;
     final Color color;
 
     if (driver.isBlocked) {
-      label = 'Cuenta bloqueada';
+      label = l10n.adminAccountBlocked;
       description =
           (driver.blockReason?.isNotEmpty ?? false)
-              ? 'Motivo: ${driver.blockReason}'
+              ? l10n.commonReasonWithValue(driver.blockReason!)
               : null;
       color = colorScheme.error;
     } else {
       switch (driver.approvalStatus) {
         case 'approved':
-          label = 'Conductor activo';
+          label = l10n.adminDriverActive;
           description = null;
           color = appColors.success;
           break;
         case 'rejected':
-          label = 'Solicitud rechazada';
+          label = l10n.adminApplicationRejected;
           description =
               (driver.rejectionReason?.isNotEmpty ?? false)
-                  ? 'Motivo: ${driver.rejectionReason}'
+                  ? l10n.commonReasonWithValue(driver.rejectionReason!)
                   : null;
           color = colorScheme.error;
           break;
         default:
-          label = 'Pendiente de aprobación';
-          description = 'Este conductor todavía no puede recibir carreras.';
+          label = l10n.adminPendingApproval;
+          description = l10n.adminPendingApprovalBody;
           color = appColors.warning;
       }
     }
@@ -647,11 +664,12 @@ class _VerificationBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final appColors = context.appColors;
+    final l10n = AppLocalizations.of(context);
 
     final (label, color) = switch (status) {
-      'approved' => ('Aprobado', appColors.success),
-      'rejected' => ('Rechazado', colorScheme.error),
-      _ => ('En revisión', appColors.warning),
+      'approved' => (l10n.adminStatusApproved, appColors.success),
+      'rejected' => (l10n.adminStatusRejected, colorScheme.error),
+      _ => (l10n.vehicleStatusInReview, appColors.warning),
     };
 
     return Container(
@@ -715,7 +733,9 @@ class _InfoTile extends StatelessWidget {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
-            value.isEmpty ? 'Sin datos' : value,
+            value.isEmpty
+                ? AppLocalizations.of(context).commonNoData
+                : value,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,

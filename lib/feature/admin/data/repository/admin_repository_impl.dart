@@ -32,15 +32,15 @@ class AdminRepositoryImpl implements AdminRepository {
     } on DioException catch (e) {
       debugPrint('AdminDebug | Error en listDriversPage: $e');
       if (e.response?.statusCode == 403) {
-        return Left(Failure(message: 'No tienes permisos para ver esta lista'));
+        return Left(Failure(code: FailureCode.noPermission));
       }
       return Left(
-        Failure(message: 'No se pudo obtener la lista de conductores'),
+        Failure(code: FailureCode.driversFetchFailed),
       );
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en listDriversPage: $e');
       return Left(
-        Failure(message: 'No se pudo obtener la lista de conductores'),
+        Failure(code: FailureCode.driversFetchFailed),
       );
     }
   }
@@ -56,15 +56,15 @@ class AdminRepositoryImpl implements AdminRepository {
     } on DioException catch (e) {
       debugPrint('AdminDebug | Error en searchAllDrivers: $e');
       if (e.response?.statusCode == 403) {
-        return Left(Failure(message: 'No tienes permisos para ver esta lista'));
+        return Left(Failure(code: FailureCode.noPermission));
       }
       return Left(
-        Failure(message: 'No se pudo obtener la lista de conductores'),
+        Failure(code: FailureCode.driversFetchFailed),
       );
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en searchAllDrivers: $e');
       return Left(
-        Failure(message: 'No se pudo obtener la lista de conductores'),
+        Failure(code: FailureCode.driversFetchFailed),
       );
     }
   }
@@ -85,12 +85,12 @@ class AdminRepositoryImpl implements AdminRepository {
         return const Right(null);
       }
       if (e.response?.statusCode == 403) {
-        return Left(Failure(message: 'No tienes permisos para ver este conductor'));
+        return Left(Failure(code: FailureCode.noPermission));
       }
-      return Left(Failure(message: 'No se pudo actualizar la información del conductor'));
+      return Left(Failure(code: FailureCode.driverUpdateFailed));
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en getDriver: $e');
-      return Left(Failure(message: 'No se pudo actualizar la información del conductor'));
+      return Left(Failure(code: FailureCode.driverUpdateFailed));
     }
   }
 
@@ -103,16 +103,16 @@ class AdminRepositoryImpl implements AdminRepository {
       debugPrint('AdminDebug | Error en deleteDriver: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permisos para eliminar a este usuario'),
+          Failure(code: FailureCode.noPermission),
         );
       }
       if (e.response?.statusCode == 404) {
-        return Left(Failure(message: 'El conductor ya no existe'));
+        return Left(Failure(code: FailureCode.driverNotFound));
       }
-      return Left(Failure(message: 'No se pudo eliminar al conductor'));
+      return Left(Failure(code: FailureCode.driverDeleteFailed));
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en deleteDriver: $e');
-      return Left(Failure(message: 'No se pudo eliminar al conductor'));
+      return Left(Failure(code: FailureCode.driverDeleteFailed));
     }
   }
 
@@ -128,13 +128,13 @@ class AdminRepositoryImpl implements AdminRepository {
       debugPrint('AdminDebug | Error en updateDriverRole: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permisos para cambiar este rol'),
+          Failure(code: FailureCode.noPermission),
         );
       }
-      return Left(Failure(message: 'No se pudo actualizar el rol'));
+      return Left(Failure(code: FailureCode.driverUpdateFailed));
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en updateDriverRole: $e');
-      return Left(Failure(message: 'No se pudo actualizar el rol'));
+      return Left(Failure(code: FailureCode.driverUpdateFailed));
     }
   }
 
@@ -154,24 +154,24 @@ class AdminRepositoryImpl implements AdminRepository {
       debugPrint('AdminDebug | Error en updateApprovalStatus: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permisos para esta acción'),
+          Failure(code: FailureCode.noPermission),
         );
       }
       if (e.response?.statusCode == 404) {
-        return Left(Failure(message: 'El conductor ya no existe'));
+        return Left(Failure(code: FailureCode.driverNotFound));
       }
       if (e.response?.statusCode == 400) {
         return Left(
-          Failure(message: 'Falta el motivo para rechazar al conductor'),
+          Failure(code: FailureCode.rejectReasonMissing),
         );
       }
       return Left(
-        Failure(message: 'No se pudo actualizar el estado del conductor'),
+        Failure(code: FailureCode.driverUpdateFailed),
       );
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en updateApprovalStatus: $e');
       return Left(
-        Failure(message: 'No se pudo actualizar el estado del conductor'),
+        Failure(code: FailureCode.driverUpdateFailed),
       );
     }
   }
@@ -192,29 +192,27 @@ class AdminRepositoryImpl implements AdminRepository {
       debugPrint('AdminDebug | Error en updateBlockStatus: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permisos para esta acción'),
+          Failure(code: FailureCode.noPermission),
         );
       }
       if (e.response?.statusCode == 404) {
-        return Left(Failure(message: 'El conductor ya no existe'));
+        return Left(Failure(code: FailureCode.driverNotFound));
       }
       if (e.response?.statusCode == 409) {
         return Left(
-          Failure(
-            message: 'No se puede bloquear a un conductor que no está aprobado',
-          ),
+          Failure(code: FailureCode.driverNotApproved),
         );
       }
       if (e.response?.statusCode == 400) {
-        return Left(Failure(message: 'Falta el motivo del bloqueo'));
+        return Left(Failure(code: FailureCode.blockReasonMissing));
       }
       return Left(
-        Failure(message: 'No se pudo actualizar el bloqueo del conductor'),
+        Failure(code: FailureCode.driverUpdateFailed),
       );
     } catch (e) {
       debugPrint('AdminDebug | Error inesperado en updateBlockStatus: $e');
       return Left(
-        Failure(message: 'No se pudo actualizar el bloqueo del conductor'),
+        Failure(code: FailureCode.driverUpdateFailed),
       );
     }
   }

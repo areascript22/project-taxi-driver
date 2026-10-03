@@ -61,7 +61,7 @@ class ForegroundServiceBloc
         await batteryOptimizationService.isIgnoringBatteryOptimizations();
     final isBatteryOptimizationIgnored = batteryResult.fold((failure) {
       debugPrint(
-        'ForegroundLocationDebug | No se pudo consultar optimización de batería: ${failure.message}',
+        'ForegroundLocationDebug | No se pudo consultar optimización de batería: ${failure.code}',
       );
       return false;
     }, (granted) => granted);
@@ -131,7 +131,7 @@ class ForegroundServiceBloc
         await batteryOptimizationService.requestIgnoreBatteryOptimizations();
     var granted = result.fold((failure) {
       debugPrint(
-        'ForegroundLocationDebug | Error solicitando permiso de batería: ${failure.message}',
+        'ForegroundLocationDebug | Error solicitando permiso de batería: ${failure.code}',
       );
       return false;
     }, (granted) => granted);
@@ -261,7 +261,7 @@ class ForegroundServiceBloc
           await batteryOptimizationService.isIgnoringBatteryOptimizations();
       granted = result.fold((failure) {
         debugPrint(
-          'ForegroundLocationDebug | Error en poll de batería (intento $attempt/$maxAttempts): ${failure.message}',
+          'ForegroundLocationDebug | Error en poll de batería (intento $attempt/$maxAttempts): ${failure.code}',
         );
         return false;
       }, (value) => value);

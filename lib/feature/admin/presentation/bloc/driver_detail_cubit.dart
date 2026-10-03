@@ -1,3 +1,4 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import '../../domain/entity/admin_driver_entity.dart';
@@ -7,27 +8,27 @@ import '../../domain/repository/admin_repository.dart';
 class DriverDetailState {
   final AdminDriverEntity driver;
   final bool isProcessing;
-  final String? errorMessage;
+  final FailureCode? errorCode;
   final bool wasDeleted;
 
   const DriverDetailState({
     required this.driver,
     this.isProcessing = false,
-    this.errorMessage,
+    this.errorCode,
     this.wasDeleted = false,
   });
 
   DriverDetailState copyWith({
     AdminDriverEntity? driver,
     bool? isProcessing,
-    String? errorMessage,
+    FailureCode? errorCode,
     bool? wasDeleted,
     bool clearError = false,
   }) {
     return DriverDetailState(
       driver: driver ?? this.driver,
       isProcessing: isProcessing ?? this.isProcessing,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorCode: clearError ? null : (errorCode ?? this.errorCode),
       wasDeleted: wasDeleted ?? this.wasDeleted,
     );
   }
@@ -55,7 +56,7 @@ class DriverDetailCubit extends Cubit<DriverDetailState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isProcessing: false, errorMessage: failure.message),
+        state.copyWith(isProcessing: false, errorCode: failure.code),
       ),
       (_) => emit(
         state.copyWith(
@@ -80,7 +81,7 @@ class DriverDetailCubit extends Cubit<DriverDetailState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isProcessing: false, errorMessage: failure.message),
+        state.copyWith(isProcessing: false, errorCode: failure.code),
       ),
       (_) => emit(
         state.copyWith(
@@ -105,7 +106,7 @@ class DriverDetailCubit extends Cubit<DriverDetailState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isProcessing: false, errorMessage: failure.message),
+        state.copyWith(isProcessing: false, errorCode: failure.code),
       ),
       (_) => emit(
         state.copyWith(
@@ -126,7 +127,7 @@ class DriverDetailCubit extends Cubit<DriverDetailState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isProcessing: false, errorMessage: failure.message),
+        state.copyWith(isProcessing: false, errorCode: failure.code),
       ),
       (_) => emit(
         state.copyWith(
@@ -144,7 +145,7 @@ class DriverDetailCubit extends Cubit<DriverDetailState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isProcessing: false, errorMessage: failure.message),
+        state.copyWith(isProcessing: false, errorCode: failure.code),
       ),
       (_) => emit(state.copyWith(isProcessing: false, wasDeleted: true)),
     );

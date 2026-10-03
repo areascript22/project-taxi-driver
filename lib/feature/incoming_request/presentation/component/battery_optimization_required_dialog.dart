@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Explica por qué se necesita el permiso de "ignorar optimización de
@@ -21,6 +22,7 @@ class BatteryOptimizationRequiredDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return PopScope(
@@ -54,7 +56,7 @@ class BatteryOptimizationRequiredDialog extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'Necesitamos un permiso más',
+                l10n.batteryDialogTitle,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -64,9 +66,7 @@ class BatteryOptimizationRequiredDialog extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Para no perder tu ubicación durante un viaje -- incluso si '
-                'la app se cierra por accidente -- necesitamos que excluyas a '
-                'TaxiGo Conductor de la optimización de batería del sistema.',
+                l10n.batteryDialogBody,
                 style: TextStyle(
                   fontSize: 14,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -89,8 +89,8 @@ class BatteryOptimizationRequiredDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Ahora no',
+                      child: Text(
+                        l10n.commonNotNow,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -111,8 +111,8 @@ class BatteryOptimizationRequiredDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Activar',
+                      child: Text(
+                        l10n.commonActivate,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

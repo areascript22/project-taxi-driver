@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class UnblockDriverConfirmDialog extends StatelessWidget {
@@ -17,12 +18,13 @@ class UnblockDriverConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
-        'Desbloquear conductor',
+        l10n.adminUnblockDriver,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -30,7 +32,7 @@ class UnblockDriverConfirmDialog extends StatelessWidget {
         ),
       ),
       content: Text(
-        '¿Seguro que deseas desbloquear a $driverName? Podrá volver a recibir carreras de inmediato.',
+        l10n.adminUnblockDriverBody(driverName),
         style: TextStyle(
           fontSize: 16,
           color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -40,7 +42,7 @@ class UnblockDriverConfirmDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            'Cancelar',
+            l10n.commonCancel,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -51,7 +53,7 @@ class UnblockDriverConfirmDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
           child: Text(
-            'Desbloquear',
+            l10n.adminUnblock,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,

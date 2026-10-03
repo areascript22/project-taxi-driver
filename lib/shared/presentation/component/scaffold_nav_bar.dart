@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../feature/session/presentation/bloc/session/session_bloc.dart';
 
 // Índices de StatefulShellBranch en app_routing.dart: 0=Booking, 1=Admin,
@@ -36,6 +37,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   Widget _buildBottomNavigationBar(BuildContext context, bool showAdminTab) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final selectedColor = colorScheme.primary;
     final unselectedColor = colorScheme.onSurface.withValues(alpha: 0.35);
 
@@ -65,7 +67,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
           _buildIconDataNavItem(
             icon: Icons.local_taxi_outlined,
             activeIcon: Icons.local_taxi,
-            label: 'Carreras',
+            label: l10n.navRides,
             selectedColor: selectedColor,
             unselectedColor: unselectedColor,
           ),
@@ -73,13 +75,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
             _buildIconDataNavItem(
               icon: Icons.admin_panel_settings_outlined,
               activeIcon: Icons.admin_panel_settings,
-              label: 'Admin',
+              label: l10n.navAdmin,
               selectedColor: selectedColor,
               unselectedColor: unselectedColor,
             ),
           _buildSvgNavItem(
             icon: 'assets/icons/svg/profile.svg',
-            label: 'Perfil',
+            label: l10n.navProfile,
             selectedColor: selectedColor,
             unselectedColor: unselectedColor,
           ),

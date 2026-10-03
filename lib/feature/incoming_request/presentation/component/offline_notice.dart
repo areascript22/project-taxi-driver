@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
 
 // Se muestra en el body de IncomingRequestScreen cuando el toggle está
@@ -10,6 +11,7 @@ class OfflineNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -28,7 +30,7 @@ class OfflineNotice extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Estás offline',
+              l10n.offlineTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface,
@@ -38,7 +40,7 @@ class OfflineNotice extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Activa el switch en la parte superior para empezar a recibir peticiones de carrera.',
+              l10n.offlineBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -62,8 +64,8 @@ class OfflineNotice extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Conectarme',
+                child: Text(
+                  l10n.offlineConnect,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),

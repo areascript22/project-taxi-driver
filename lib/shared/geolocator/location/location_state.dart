@@ -10,12 +10,12 @@ enum LocationProcess {
 @immutable
 class LocationState {
   final LocationPermission? permissionStatus;
-  final String? errorMessage;
+  final FailureCode? errorCode;
   final LocationProcess locationProcess;
 
   const LocationState({
     this.permissionStatus,
-    this.errorMessage,
+    this.errorCode,
     this.locationProcess = LocationProcess.initial,
   });
 
@@ -28,13 +28,13 @@ class LocationState {
 
   LocationState copyWith({
     LocationPermission? permissionStatus,
-    String? errorMessage,
+    FailureCode? errorCode,
     LocationProcess? locationProcess,
     bool clearError = false,
   }) {
     return LocationState(
       permissionStatus: permissionStatus ?? this.permissionStatus,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorCode: clearError ? null : (errorCode ?? this.errorCode),
       locationProcess: locationProcess ?? this.locationProcess,
     );
   }

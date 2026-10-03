@@ -1,9 +1,11 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../../../shared/presentation/component/app_toast.dart';
 import '../../domain/entity/admin_driver_entity.dart';
@@ -47,15 +49,15 @@ class _AdminViewState extends State<AdminView> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Administración'),
+        title: Text(AppLocalizations.of(context).adminTitle),
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listenWhen:
             (previous, current) =>
-                current.errorMessage != null &&
-                current.errorMessage != previous.errorMessage,
+                current.errorCode != null &&
+                current.errorCode != previous.errorCode,
         listener: (context, state) {
-          AppToast.error(context, message: state.errorMessage!);
+          AppToast.error(context, message: context.failureText(state.errorCode!));
         },
         child: Container(
           decoration: BoxDecoration(
@@ -117,7 +119,7 @@ class _AdminViewState extends State<AdminView> {
               ),
           style: TextStyle(color: colorScheme.onSurface),
           decoration: InputDecoration(
-            hintText: 'Buscar por nombre, correo o teléfono',
+            hintText: AppLocalizations.of(context).adminSearchHint,
             hintStyle: TextStyle(
               color: colorScheme.onSurface.withValues(alpha: 0.4),
               fontSize: 14,
@@ -137,13 +139,27 @@ class _AdminViewState extends State<AdminView> {
   // Pills de selección única: "Todos" + los 4 estados reales y mutuamente
   // excluyentes (un conductor bloqueado siempre está approved, así que
   // nunca hay overlap entre, por ejemplo, Pendientes y Bloqueados).
-  static const List<(AdminStatusFilter, String)> _statusFilters = [
-    (AdminStatusFilter.all, 'Todos'),
-    (AdminStatusFilter.pending, 'Pendientes'),
-    (AdminStatusFilter.rejected, 'Rechazados'),
-    (AdminStatusFilter.active, 'Activos'),
-    (AdminStatusFilter.blocked, 'Bloqueados'),
+  // La lista sigue siendo `static const` (es el orden de las pills, un dato
+  // fijo); la etiqueta se resuelve al construir cada pill, porque una
+  // traducción no puede ser constante en tiempo de compilación.
+  static const List<AdminStatusFilter> _statusFilters = [
+    AdminStatusFilter.all,
+    AdminStatusFilter.pending,
+    AdminStatusFilter.rejected,
+    AdminStatusFilter.active,
+    AdminStatusFilter.blocked,
   ];
+
+  String _statusFilterLabel(AdminStatusFilter filter) {
+    final l10n = AppLocalizations.of(context);
+    return switch (filter) {
+      AdminStatusFilter.all => l10n.adminFilterAll,
+      AdminStatusFilter.pending => l10n.adminFilterPending,
+      AdminStatusFilter.rejected => l10n.adminFilterRejected,
+      AdminStatusFilter.active => l10n.adminFilterActive,
+      AdminStatusFilter.blocked => l10n.adminFilterBlocked,
+    };
+  }
 
   Widget _buildFilterBar(BuildContext context, AdminState state) {
     return SizedBox(
@@ -154,10 +170,10 @@ class _AdminViewState extends State<AdminView> {
         itemCount: _statusFilters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final (filter, label) = _statusFilters[index];
+          final filter = _statusFilters[index];
           return _buildFilterChip(
             context,
-            label: label,
+            label: _statusFilterLabel(filter),
             isSelected: state.statusFilter == filter,
             onTap:
                 () => context.read<AdminBloc>().add(
@@ -264,8 +280,8 @@ class _AdminViewState extends State<AdminView> {
             child: Center(
               child: Text(
                 state.isFiltering
-                    ? 'No se encontraron resultados'
-                    : 'No hay conductores registrados',
+                    ? AppLocalizations.of(context).adminNoResults
+                    : AppLocalizations.of(context).adminNoDrivers,
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -355,7 +371,9 @@ class _AdminViewState extends State<AdminView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    driver.fullName.isEmpty ? 'Sin nombre' : driver.fullName,
+                    driver.fullName.isEmpty
+                        ? AppLocalizations.of(context).commonNoName
+                        : driver.fullName,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -398,7 +416,7 @@ class _AdminViewState extends State<AdminView> {
               )
             else
               PopupMenuButton<String>(
-                tooltip: 'Más opciones',
+                tooltip: AppLocalizations.of(context).commonMoreOptions,
                 icon: Icon(
                   Icons.more_vert,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -427,14 +445,14 @@ class _AdminViewState extends State<AdminView> {
                 },
                 itemBuilder:
                     (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'review',
-                        child: Text('Revisar'),
+                        child: Text(AppLocalizations.of(context).adminReview),
                       ),
                       if (canToggleRole)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'change_role',
-                          child: Text('Cambiar rol'),
+                          child: Text(AppLocalizations.of(context).adminChangeRole),
                         ),
                     ],
               ),
@@ -473,11 +491,20 @@ class _AdminViewState extends State<AdminView> {
 
     final (label, color) =
         driver.isBlocked
-            ? ('Bloqueado', colorScheme.error)
+            ? (AppLocalizations.of(context).adminStatusBlocked, colorScheme.error)
             : switch (driver.approvalStatus) {
-              'approved' => ('Aprobado', appColors.success),
-              'rejected' => ('Rechazado', colorScheme.error),
-              _ => ('Pendiente', appColors.warning),
+              'approved' => (
+                AppLocalizations.of(context).adminStatusApproved,
+                appColors.success,
+              ),
+              'rejected' => (
+                AppLocalizations.of(context).adminStatusRejected,
+                colorScheme.error,
+              ),
+              _ => (
+                AppLocalizations.of(context).adminStatusPending,
+                appColors.warning,
+              ),
             };
 
     return Container(
@@ -509,8 +536,10 @@ class _AdminViewState extends State<AdminView> {
     final totalPages = state.totalPages;
     final pageLabel =
         totalPages != null
-            ? 'Página ${state.currentPage + 1} de $totalPages'
-            : 'Página ${state.currentPage + 1}';
+            ? AppLocalizations.of(
+              context,
+            ).adminPageOf(state.currentPage + 1, totalPages)
+            : AppLocalizations.of(context).adminPage(state.currentPage + 1);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -574,11 +603,14 @@ class _AdminViewState extends State<AdminView> {
     return _assignableRoles.where((role) => role != currentRole).toList();
   }
 
+  // Los valores del backend ('superuser'/'admin') no se traducen; sí la
+  // etiqueta que ve el usuario.
   String _roleLabel(String role) {
+    final l10n = AppLocalizations.of(context);
     return switch (role) {
-      'superuser' => 'Superusuario',
-      'admin' => 'Administrador',
-      _ => 'Conductor',
+      'superuser' => l10n.roleSuperuser,
+      'admin' => l10n.roleAdmin,
+      _ => l10n.roleDriver,
     };
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 
 class SessionScreen extends StatefulWidget {
@@ -63,9 +64,8 @@ class SessionView extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'No se pudo verificar tu sesión. Revisa tu conexión e '
-                      'intenta de nuevo.',
+                    Text(
+                      AppLocalizations.of(context).sessionCheckFailed,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -73,7 +73,7 @@ class SessionView extends StatelessWidget {
                       onPressed: () => context.read<SessionBloc>().add(
                         SessionCheckRequested(),
                       ),
-                      child: const Text('Reintentar'),
+                      child: Text(AppLocalizations.of(context).commonRetry),
                     ),
                   ],
                 ),
@@ -131,7 +131,7 @@ class _DriverBlockedView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Tu cuenta está bloqueada',
+              AppLocalizations.of(context).sessionBlockedTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface,
@@ -141,8 +141,7 @@ class _DriverBlockedView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Un administrador bloqueó temporalmente tu cuenta y no puedes '
-              'recibir carreras mientras tanto.',
+              AppLocalizations.of(context).sessionBlockedBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -166,7 +165,7 @@ class _DriverBlockedView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Motivo',
+                      AppLocalizations.of(context).commonReason,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -203,8 +202,8 @@ class _DriverBlockedView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Verificar de nuevo',
+                child: Text(
+                  AppLocalizations.of(context).commonVerifyAgain,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -216,7 +215,7 @@ class _DriverBlockedView extends StatelessWidget {
                     SessionLogoutRequested(),
                   ),
               child: Text(
-                'Cerrar sesión',
+                AppLocalizations.of(context).commonSignOut,
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w600,
@@ -273,8 +272,8 @@ class _DriverPendingApprovalView extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               isRejected
-                  ? 'Tu solicitud fue rechazada'
-                  : 'Tu cuenta está en revisión',
+                  ? AppLocalizations.of(context).sessionRejectedTitle
+                  : AppLocalizations.of(context).sessionPendingTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface,
@@ -285,9 +284,8 @@ class _DriverPendingApprovalView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               isRejected
-                  ? 'Un administrador revisó tu registro y no fue aprobado.'
-                  : 'Un administrador está revisando tu registro. Te '
-                      'avisaremos apenas puedas empezar a recibir carreras.',
+                  ? AppLocalizations.of(context).sessionRejectedBody
+                  : AppLocalizations.of(context).sessionPendingBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -311,7 +309,7 @@ class _DriverPendingApprovalView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Motivo',
+                      AppLocalizations.of(context).commonReason,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -348,8 +346,8 @@ class _DriverPendingApprovalView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Verificar de nuevo',
+                child: Text(
+                  AppLocalizations.of(context).commonVerifyAgain,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -361,7 +359,7 @@ class _DriverPendingApprovalView extends StatelessWidget {
                     SessionLogoutRequested(),
                   ),
               child: Text(
-                'Cerrar sesión',
+                AppLocalizations.of(context).commonSignOut,
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w600,

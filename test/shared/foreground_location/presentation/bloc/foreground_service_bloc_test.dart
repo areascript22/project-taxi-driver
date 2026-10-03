@@ -61,7 +61,7 @@ void main() {
       setUp: () {
         when(() => foregroundService.isRunning()).thenAnswer((_) async => false);
         when(() => batteryService.isIgnoringBatteryOptimizations()).thenAnswer(
-          (_) async => Left(Failure(message: 'no disponible')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,

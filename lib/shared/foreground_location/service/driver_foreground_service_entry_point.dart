@@ -1,4 +1,5 @@
   import 'dart:async';
+import 'package:driver_app/shared/l10n/isolate_localizations.dart';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -67,7 +68,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       await result.fold(
         (failure) async {
           debugPrint(
-            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.message}',
+            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.code}',
           );
         },
         (location) async {
@@ -101,7 +102,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
           );
           updateResult.fold(
             (failure) => debugPrint(
-              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.message}',
+              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.code}',
             ),
             (_) => debugPrint(
               'ForegroundLocationDebug | updateDriverLocation() OK para passengerId=$passengerId',
@@ -156,6 +157,11 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   final Set<String> knownPendingIds = {};
 
   Future<void> startNewRequestAlerts() async {
+    // Este isolate no tiene BuildContext: las traducciones se cargan a mano,
+    // una sola vez, antes de suscribirse (el listener de onChildAdded es
+    // sincrono y no puede hacer await).
+    final isolateL10n = await loadIsolateLocalizations();
+
     try {
       // Puebla el set con los ids que YA existen antes de suscribirse --
       // onChildAdded dispara retroactivamente por cada hijo ya presente, y
@@ -197,7 +203,9 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
               : '';
 
       feedbackService.announce(
-        address.isNotEmpty ? 'Carrera hacia $address' : 'Nueva carrera',
+        address.isNotEmpty
+            ? isolateL10n.isolateRideTowards(address)
+            : isolateL10n.isolateNewRide,
         withVibration: true,
       );
     });

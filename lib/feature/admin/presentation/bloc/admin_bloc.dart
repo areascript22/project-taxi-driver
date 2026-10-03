@@ -1,3 +1,4 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import '../../domain/entity/admin_driver_entity.dart';
@@ -34,7 +35,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
 
     result.fold(
       (failure) =>
-          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+          emit(state.copyWith(isLoading: false, errorCode: failure.code)),
       (page) => emit(
         state.copyWith(
           isLoading: false,
@@ -52,7 +53,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
 
     result.fold(
       (failure) =>
-          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+          emit(state.copyWith(isLoading: false, errorCode: failure.code)),
       (drivers) =>
           emit(state.copyWith(isLoading: false, searchResults: drivers)),
     );
@@ -109,7 +110,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
 
     result.fold(
       (failure) =>
-          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+          emit(state.copyWith(isLoading: false, errorCode: failure.code)),
       (page) => emit(
         state.copyWith(
           isLoading: false,
@@ -144,7 +145,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(clearActionUid: true, errorMessage: failure.message),
+        state.copyWith(clearActionUid: true, errorCode: failure.code),
       ),
       (_) {
         AdminDriverEntity patch(AdminDriverEntity driver) =>

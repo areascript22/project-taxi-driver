@@ -52,18 +52,14 @@ void main() {
       'emits [AuthLoading, AuthError] when sign-in fails',
       setUp: () {
         when(() => authRepository.signInWithGoogle()).thenAnswer(
-          (_) async => Left(Failure(message: 'Google sign-in cancelado')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
       act: (bloc) => bloc.add(AuthSignInWithGoogle()),
       expect: () => [
         isA<AuthLoading>(),
-        isA<AuthError>().having(
-          (s) => s.message,
-          'message',
-          'Google sign-in cancelado',
-        ),
+        isA<AuthError>().having((s) => s.code, 'code', FailureCode.unexpected),
       ],
     );
 
@@ -72,13 +68,13 @@ void main() {
       setUp: () {
         when(
           () => authRepository.signInWithGoogle(),
-        ).thenAnswer((_) async => Left(Failure(message: '')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(AuthSignInWithGoogle()),
       expect: () => [
         isA<AuthLoading>(),
-        isA<AuthError>().having((s) => s.message, 'message', ''),
+        isA<AuthError>().having((s) => s.code, 'code', FailureCode.unexpected),
       ],
     );
 

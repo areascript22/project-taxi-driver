@@ -15,7 +15,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final prefs = await SharedPreferences.getInstance();
       return Right(prefs.getBool(_voiceKey) ?? true);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -25,7 +25,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final prefs = await SharedPreferences.getInstance();
       return Right(prefs.getBool(_vibrationKey) ?? true);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -36,7 +36,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await prefs.setBool(_voiceKey, enabled);
       return const Right(unit);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -47,7 +47,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await prefs.setBool(_vibrationKey, enabled);
       return const Right(unit);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -58,7 +58,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final stored = prefs.getString(_themeModeKey);
       return Right(_themeModeFromString(stored));
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -69,7 +69,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await prefs.setString(_themeModeKey, mode.name);
       return const Right(unit);
     } catch (e) {
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 

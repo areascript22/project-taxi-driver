@@ -12,7 +12,7 @@ enum AdminStatusFilter { all, pending, rejected, active, blocked }
 @immutable
 class AdminState {
   final bool isLoading;
-  final String? errorMessage;
+  final FailureCode? errorCode;
   final String searchQuery;
   final AdminStatusFilter statusFilter;
   final int currentPage;
@@ -35,7 +35,7 @@ class AdminState {
 
   const AdminState({
     this.isLoading = false,
-    this.errorMessage,
+    this.errorCode,
     this.searchQuery = '',
     this.statusFilter = AdminStatusFilter.all,
     this.currentPage = 0,
@@ -110,7 +110,7 @@ class AdminState {
 
   AdminState copyWith({
     bool? isLoading,
-    String? errorMessage,
+    FailureCode? errorCode,
     String? searchQuery,
     AdminStatusFilter? statusFilter,
     int? currentPage,
@@ -126,7 +126,7 @@ class AdminState {
   }) {
     return AdminState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorCode: clearError ? null : (errorCode ?? this.errorCode),
       searchQuery: searchQuery ?? this.searchQuery,
       statusFilter: statusFilter ?? this.statusFilter,
       currentPage: currentPage ?? this.currentPage,

@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Se muestra en el body de IncomingRequestScreen en vez de OfflineNotice
@@ -17,6 +18,7 @@ class BatteryOptimizationDeniedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -39,7 +41,7 @@ class BatteryOptimizationDeniedBanner extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No puedes recibir carreras todavía',
+              l10n.batteryBannerTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface,
@@ -49,8 +51,7 @@ class BatteryOptimizationDeniedBanner extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Necesitas excluir a TaxiGo Conductor de la optimización de '
-              'batería para que tu ubicación no se pierda durante un viaje.',
+              l10n.batteryBannerBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -71,8 +72,8 @@ class BatteryOptimizationDeniedBanner extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Reintentar',
+                child: Text(
+                  l10n.commonRetry,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -94,8 +95,8 @@ class BatteryOptimizationDeniedBanner extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Abrir ajustes',
+                child: Text(
+                  l10n.batteryOpenSettings,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),

@@ -77,7 +77,7 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
     } catch (e) {
       debugPrint('NotificationsDebug | Error en initialize: $e');
       return Left(
-        Failure(message: 'No se pudo inicializar las notificaciones push'),
+        Failure(code: FailureCode.pushInitFailed),
       );
     }
   }
@@ -161,7 +161,7 @@ class PushNotificationsServiceImpl implements PushNotificationsService {
     } catch (e) {
       debugPrint('NotificationsDebug | Error en getToken: $e');
       return Left(
-        Failure(message: 'No se pudo obtener el token de notificaciones'),
+        Failure(code: FailureCode.pushTokenFailed),
       );
     }
   }

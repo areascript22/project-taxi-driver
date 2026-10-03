@@ -43,7 +43,7 @@ void main() {
     final cubit = buildCubit(driver: driver);
     expect(cubit.state.driver, driver);
     expect(cubit.state.isProcessing, isFalse);
-    expect(cubit.state.errorMessage, isNull);
+    expect(cubit.state.errorCode, isNull);
     expect(cubit.state.wasDeleted, isFalse);
   });
 
@@ -81,7 +81,7 @@ void main() {
         when(
           () => repository.updateApprovalStatus(uid: '1', status: 'approved'),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo aprobar')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildCubit,
@@ -92,7 +92,7 @@ void main() {
             predicate<DriverDetailState>(
               (s) =>
                   !s.isProcessing &&
-                  s.errorMessage == 'no se pudo aprobar' &&
+                  s.errorCode != null &&
                   s.driver.approvalStatus == 'pending',
             ),
           ],
@@ -135,7 +135,7 @@ void main() {
             reason: 'motivo',
           ),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo rechazar')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildCubit,
@@ -144,7 +144,7 @@ void main() {
           () => [
             predicate<DriverDetailState>((s) => s.isProcessing),
             predicate<DriverDetailState>(
-              (s) => !s.isProcessing && s.errorMessage == 'no se pudo rechazar',
+              (s) => !s.isProcessing && s.errorCode != null,
             ),
           ],
     );
@@ -186,7 +186,7 @@ void main() {
             reason: 'motivo',
           ),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo bloquear')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: () => buildCubit(driver: _driver(approvalStatus: 'approved')),
@@ -197,7 +197,7 @@ void main() {
             predicate<DriverDetailState>(
               (s) =>
                   !s.isProcessing &&
-                  s.errorMessage == 'no se pudo bloquear' &&
+                  s.errorCode != null &&
                   !s.driver.isBlocked,
             ),
           ],
@@ -239,7 +239,7 @@ void main() {
         when(
           () => repository.updateBlockStatus(uid: '1', blocked: false),
         ).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo desbloquear')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build:
@@ -251,7 +251,7 @@ void main() {
           () => [
             predicate<DriverDetailState>((s) => s.isProcessing),
             predicate<DriverDetailState>(
-              (s) => !s.isProcessing && s.errorMessage == 'no se pudo desbloquear',
+              (s) => !s.isProcessing && s.errorCode != null,
             ),
           ],
     );
@@ -278,7 +278,7 @@ void main() {
       'reports the error and does not mark as deleted on failure',
       setUp: () {
         when(() => repository.deleteDriver(uid: '1')).thenAnswer(
-          (_) async => Left(Failure(message: 'no se pudo eliminar')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildCubit,
@@ -289,7 +289,7 @@ void main() {
             predicate<DriverDetailState>(
               (s) =>
                   !s.isProcessing &&
-                  s.errorMessage == 'no se pudo eliminar' &&
+                  s.errorCode != null &&
                   !s.wasDeleted,
             ),
           ],

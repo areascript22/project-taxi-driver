@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:driver_app/shared/connectivity/presentation/component/connectivity_banner.dart';
 import 'package:driver_app/shared/connectivity/presentation/cubit/connectivity_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
@@ -69,7 +70,12 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
           return MaterialApp.router(
-            title: 'Taxi project - Driver',
+            // onGenerateTitle en vez de `title`: se evalúa con un context que
+            // ya tiene las localizaciones, así el nombre que muestra el
+            // sistema operativo también sale del .arb.
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,

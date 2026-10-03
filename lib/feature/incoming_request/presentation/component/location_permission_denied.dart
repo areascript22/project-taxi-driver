@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class LocationPermissionDenied extends StatelessWidget {
@@ -12,6 +13,7 @@ class LocationPermissionDenied extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
@@ -34,7 +36,7 @@ class LocationPermissionDenied extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Necesitamos tu ubicación',
+              l10n.locationDeniedTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface,
@@ -45,8 +47,8 @@ class LocationPermissionDenied extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               isPermanentlyDenied
-                  ? 'El acceso a tu ubicación está bloqueado. Actívalo desde la configuración del dispositivo para poder ver y aceptar carreras.'
-                  : 'Para ver y aceptar las carreras de los pasajeros necesitamos acceso a tu ubicación.',
+                  ? l10n.locationDeniedBlockedBody
+                  : l10n.locationDeniedBody,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -69,8 +71,8 @@ class LocationPermissionDenied extends StatelessWidget {
                 ),
                 child: Text(
                   isPermanentlyDenied
-                      ? 'Abrir configuración'
-                      : 'Dar permiso de ubicación',
+                      ? l10n.locationOpenSettings
+                      : l10n.locationGrantPermission,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
