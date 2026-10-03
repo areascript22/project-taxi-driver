@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import '../../../../shared/presentation/component/app_toast.dart';
 import '../../domain/entity/admin_driver_entity.dart';
 import '../../domain/repository/admin_repository.dart';
 import '../bloc/driver_detail_cubit.dart';
@@ -58,12 +59,7 @@ class _DriverDetailView extends StatelessWidget {
               current.wasDeleted != previous.wasDeleted,
       listener: (context, state) {
         if (state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          AppToast.error(context, message: state.errorMessage!);
         }
         if (state.wasDeleted) {
           Navigator.of(context).pop();

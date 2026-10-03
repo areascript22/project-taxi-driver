@@ -4,6 +4,7 @@ import 'package:driver_app/feature/incoming_request/presentation/component/incom
 import 'package:driver_app/feature/incoming_request/presentation/component/location_permission_denied.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/offline_notice.dart';
 import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/foreground_location/presentation/component/foreground_service_toggle.dart';
 import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
 import 'package:driver_app/shared/geolocator/location/location_bloc.dart';
@@ -249,13 +250,11 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                         extra: state.processingRequest,
                       );
                     } else if (state.acceptStatus == AcceptRideStatus.error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
+                      AppToast.error(
+                        context,
+                        message:
                             state.acceptErrorMessage ??
-                                'No se pudo aceptar la carrera.',
-                          ),
-                        ),
+                            'No se pudo aceptar la carrera.',
                       );
                     }
                   },

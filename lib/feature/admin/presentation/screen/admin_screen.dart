@@ -5,6 +5,7 @@ import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import '../../../../shared/presentation/component/app_toast.dart';
 import '../../domain/entity/admin_driver_entity.dart';
 import '../bloc/admin_bloc.dart';
 import '../component/change_role_dialog.dart';
@@ -39,7 +40,6 @@ class _AdminViewState extends State<AdminView> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final sessionState = context.read<SessionBloc>().state;
     final viewerRole =
         sessionState is SessionAuthenticated ? sessionState.role : 'driver';
@@ -55,12 +55,7 @@ class _AdminViewState extends State<AdminView> {
                 current.errorMessage != null &&
                 current.errorMessage != previous.errorMessage,
         listener: (context, state) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: colorScheme.error,
-            ),
-          );
+          AppToast.error(context, message: state.errorMessage!);
         },
         child: Container(
           decoration: BoxDecoration(

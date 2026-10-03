@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -84,12 +85,9 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
     if (!permissionGranted) {
       if (!mounted) return;
       setState(() => _isRequestingLocation = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Se necesita acceso a tu ubicación para aceptar carreras.',
-          ),
-        ),
+      AppToast.error(
+        context,
+        message: 'Se necesita acceso a tu ubicación para aceptar carreras.',
       );
       return;
     }
@@ -101,9 +99,7 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
     locationResult.fold(
       (failure) {
         setState(() => _isRequestingLocation = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        AppToast.error(context, message: failure.message);
       },
       (driverLocation) {
         // No apagamos _isRequestingLocation acá: si lo hiciéramos, quedaría

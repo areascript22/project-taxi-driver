@@ -6,6 +6,7 @@ import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import '../../../../shared/presentation/component/app_toast.dart';
 import '../bloc/driver_onboarding_bloc.dart';
 import '../component/driver_personal_form.dart';
 import '../component/image_source_sheet.dart';
@@ -138,9 +139,7 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
         body: BlocConsumer<DriverOnboardingBloc, DriverOnboardingState>(
           listener: (context, state) {
             if (state.errorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage!)),
-              );
+              AppToast.error(context, message: state.errorMessage!);
             }
             if (state.registrationSuccess) {
               context.goNamed(sessionRoute.name);

@@ -1,3 +1,4 @@
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/component/app_version.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,9 +44,7 @@ class SignInView extends StatelessWidget {
             child: BlocConsumer<AuthBloc, AuthState>(
               listener: (context, state) {
                 if (state is AuthError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
+                  AppToast.error(context, message: state.message);
                 }
 
                 if (state is AuthAuthenticated) {

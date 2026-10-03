@@ -7,6 +7,7 @@ import 'package:driver_app/core/theme/app_colors.dart';
 import 'package:driver_app/shared/feature/account/presentation/component/delete_account_confirm_dialog.dart';
 import 'package:driver_app/shared/feature/account/presentation/cubit/account_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import '../bloc/settings_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -33,14 +34,15 @@ class _SettingsView extends StatelessWidget {
         BlocListener<AccountCubit, AccountState>(
           listener: (context, state) {
             if (state.wasDeleted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Cuenta eliminada correctamente')),
+              // El toast vive en el overlay raíz, así que sobrevive al logout
+              // y a la navegación al login que vienen justo después.
+              AppToast.success(
+                context,
+                message: 'Cuenta eliminada correctamente',
               );
               context.read<SessionBloc>().add(SessionLogoutRequested());
             } else if (state.errorMessage != null) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+              AppToast.error(context, message: state.errorMessage!);
             }
           },
         ),

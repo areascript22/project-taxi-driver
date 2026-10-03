@@ -63,6 +63,11 @@ dependencies:
   flutter_local_notifications: ^19.5.0
   map_launcher: ^3.5.0
   connectivity_plus: ^6.1.4
+  # Toasts de la app (ver shared/presentation/component/app_toast.dart).
+  # Resuelve a 3.0.3 y no a la última: toastification 3.1.0 subió su mínimo a
+  # Flutter 3.38 y este proyecto está en 3.29.2. No es un pin manual -- cuando
+  # se suba Flutter, `flutter pub upgrade` toma sola la versión nueva.
+  toastification: ^3.0.3
 
 dev_dependencies:
   flutter_test:

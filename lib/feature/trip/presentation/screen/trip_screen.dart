@@ -1,6 +1,7 @@
 import 'package:driver_app/feature/chat/presentation/bloc/chat_bloc.dart';
 import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/component/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -116,9 +117,7 @@ class _TripViewState extends State<_TripView> {
       'El pasajero está en camino al auto',
       withVibration: true,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('El pasajero está en camino al auto')),
-    );
+    AppToast.success(context, message: 'El pasajero está en camino al auto');
   }
 
   void _onTripCompleted() {
@@ -129,7 +128,7 @@ class _TripViewState extends State<_TripView> {
   // IncomingRequestTile): abrir una app externa es una capacidad de
   // plataforma sin estado ni datos que modelar, no una fuente de datos del
   // dominio. map_launcher lanza si Google Maps no está instalado en el
-  // dispositivo -- se captura y se avisa con un snackbar en vez de dejar
+  // dispositivo -- se captura y se avisa con un toast en vez de dejar
   // que la excepción suba sin manejar.
   Future<void> _openInGoogleMaps() async {
     try {
@@ -145,10 +144,9 @@ class _TripViewState extends State<_TripView> {
     } catch (e) {
       debugPrint('TripDebug | Error al abrir Google Maps: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir Google Maps. ¿Está instalado?'),
-        ),
+      AppToast.error(
+        context,
+        message: 'No se pudo abrir Google Maps. ¿Está instalado?',
       );
     }
   }
