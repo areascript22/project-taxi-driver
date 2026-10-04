@@ -4,6 +4,7 @@ import 'package:driver_app/shared/feature/session/presentation/bloc/session/sess
 import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/failure_text.dart';
+import 'package:driver_app/shared/utils/pickup_label.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -253,8 +254,16 @@ class _IncomingRequestTileState extends State<IncomingRequestTile> {
                       ),
                     ),
                     const SizedBox(height: 4),
+                    // El SECTOR, no la dirección exacta: es lo mismo que acaba
+                    // de escuchar por voz y lo que necesita para decidir. La
+                    // dirección completa aparece al aceptar, en TripScreen.
                     Text(
-                      incomingRequestEntity.pickupLocation.address,
+                      pickupLabel(
+                            sector: incomingRequestEntity.pickupLocation.sector,
+                            address:
+                                incomingRequestEntity.pickupLocation.address,
+                          ) ??
+                          AppLocalizations.of(context).commonNewRide,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

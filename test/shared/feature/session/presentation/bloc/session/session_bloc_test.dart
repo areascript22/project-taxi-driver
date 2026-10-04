@@ -182,6 +182,7 @@ void main() {
               passenger: PassengerEntity(name: 'P', profileImage: ''),
               pickupLocation: PickupLocationEntity(
                 address: 'x',
+                sector: 'La Condamine',
                 latitude: 0,
                 longitude: 0,
               ),

@@ -15,6 +15,7 @@ import '../../feedback/feedback_service.dart';
 import '../../feedback/feedback_service_impl.dart';
 import '../../geolocator/service/geolocator/geolocator_service.dart';
 import '../../geolocator/service/geolocator/geolocator_service_impl.dart';
+import '../../utils/pickup_label.dart';
 import '../../vibration/service/vibration_service_impl.dart';
 import '../../voice/service/voice_service_impl.dart';
 
@@ -195,18 +196,27 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       knownPendingIds.add(id);
 
       // Mismo parseo que usa IncomingRequestBloc en el isolate principal
-      // (IncomingRequestEntity.fromMap) -- así el mensaje hablado usa
-      // exactamente la misma dirección que se ve en la lista.
+      // (IncomingRequestEntity.fromMap) y la misma función de etiqueta que la
+      // tile -- así el conductor escucha exactamente lo que después ve en la
+      // lista.
       final rawValue = event.snapshot.value;
-      final address =
+      final pickup =
           rawValue is Map
-              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation.address
-              : '';
+              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation
+              : null;
+
+      final label =
+          pickup == null
+              ? null
+              : pickupLabel(
+                sector: pickup.sector,
+                address: pickup.address,
+              );
 
       feedbackService.announce(
-        address.isNotEmpty
-            ? isolateL10n.isolateRideTowards(address)
-            : isolateL10n.isolateNewRide,
+        label != null
+            ? isolateL10n.isolateRideTowards(label)
+            : isolateL10n.commonNewRide,
         withVibration: true,
       );
     });

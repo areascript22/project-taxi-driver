@@ -23,6 +23,7 @@ IncomingRequestEntity _request(String rideId, {String status = 'pending'}) {
     passenger: PassengerEntity(name: 'Pass $rideId', profileImage: ''),
     pickupLocation: PickupLocationEntity(
       address: 'Calle $rideId',
+      sector: 'Sector $rideId',
       latitude: 0,
       longitude: 0,
     ),

@@ -1385,17 +1385,17 @@ abstract class AppLocalizations {
   /// **'No se pudo cargar tu información'**
   String get failureProfileLoadFailed;
 
-  /// Alerta hablada de carrera nueva, emitida desde el isolate del foreground service (ver shared/l10n/isolate_localizations.dart)
+  /// Alerta hablada de carrera nueva, emitida desde el isolate del foreground service (ver shared/l10n/isolate_localizations.dart). {place} es el SECTOR del punto de recogida (ej. 'La Condamine'), o la direccion completa si la carrera no trae sector -- ver shared/utils/pickup_label.dart. No lleva articulo ('hacia' y no 'a la') porque los nombres de sector tienen generos distintos: 'a la Multiplaza' o 'a la El terminal' quedarian mal
   ///
   /// In es, this message translates to:
-  /// **'Carrera hacia {address}'**
-  String isolateRideTowards(String address);
+  /// **'Carrera hacia {place}'**
+  String isolateRideTowards(String place);
 
-  /// Alerta hablada cuando la carrera nueva no trae direccion legible
+  /// Referencia generica de una carrera nueva que no trae ni sector ni direccion legible. Se usa en la alerta hablada del isolate y en la tile de solicitudes entrantes (ver shared/utils/pickup_label.dart)
   ///
   /// In es, this message translates to:
   /// **'Nueva carrera'**
-  String get isolateNewRide;
+  String get commonNewRide;
 
   /// Encabezado de la seccion de idioma en ajustes, en mayusculas por estilo visual
   ///

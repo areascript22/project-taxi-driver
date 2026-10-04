@@ -670,12 +670,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failureProfileLoadFailed => 'Your information could not be loaded';
 
   @override
-  String isolateRideTowards(String address) {
-    return 'Ride to $address';
+  String isolateRideTowards(String place) {
+    return 'Ride to $place';
   }
 
   @override
-  String get isolateNewRide => 'New ride';
+  String get commonNewRide => 'New ride';
 
   @override
   String get settingsSectionLanguage => 'LANGUAGE';
