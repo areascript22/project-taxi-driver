@@ -1,7 +1,7 @@
-import 'package:driver_app/core/error/errors.dart';
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import '../../../../shared/connectivity/domain/repository/connectivity_repository.dart';

@@ -676,4 +676,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get isolateNewRide => 'Nueva carrera';
+
+  @override
+  String get settingsSectionLanguage => 'IDIOMA';
+
+  @override
+  String get settingsLanguageSystem => 'Sistema';
+
+  @override
+  String get settingsLanguageSpanish => 'Español';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
 }

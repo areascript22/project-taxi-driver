@@ -1,5 +1,5 @@
-import 'package:driver_app/core/error/errors.dart';
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:flutter/material.dart';
 import '../../../driver_profile/domain/entity/driver_entity.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';

@@ -1396,6 +1396,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Nueva carrera'**
   String get isolateNewRide;
+
+  /// Encabezado de la seccion de idioma en ajustes, en mayusculas por estilo visual
+  ///
+  /// In es, this message translates to:
+  /// **'IDIOMA'**
+  String get settingsSectionLanguage;
+
+  /// Opcion que sigue el idioma del dispositivo (es el default)
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema'**
+  String get settingsLanguageSystem;
+
+  /// Nombre del idioma espanol. NO se traduce: por convencion cada idioma se muestra en si mismo, para que alguien que no entiende el idioma actual lo reconozca
+  ///
+  /// In es, this message translates to:
+  /// **'Español'**
+  String get settingsLanguageSpanish;
+
+  /// Nombre del idioma ingles. NO se traduce, mismo criterio que settingsLanguageSpanish
+  ///
+  /// In es, this message translates to:
+  /// **'English'**
+  String get settingsLanguageEnglish;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

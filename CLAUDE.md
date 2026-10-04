@@ -520,11 +520,60 @@ solo en cada build porque `flutter: generate: true` está activo en
 
 **Dos lugares sin `BuildContext`** que hay que tener presentes:
 
-- El isolate del foreground service no tiene árbol de widgets. Usa
-  `loadIsolateLocalizations()` (`shared/l10n/isolate_localizations.dart`), que
-  resuelve el locale del sistema y carga el delegate a mano.
+- El código que corre **fuera del árbol de widgets** no puede usar
+  `AppLocalizations.of(context)`: el isolate del foreground service (solo en
+  Driver App) y los servicios de TTS. Ahí se usa `loadIsolateLocalizations()`
+  (`shared/l10n/isolate_localizations.dart`), que resuelve el idioma con
+  `resolveAppLocale` —o sea, respeta el que el usuario eligió en Ajustes, no el
+  del sistema (ver 10.1)— y carga el delegate a mano.
 - El copy de las **push notifications lo arma el backend**, así que no pasa por
-  el `.arb`: para traducirlo habría que mandarle el locale al server.
+  el `.arb` sino por el catálogo del server (`messages.properties` /
+  `messages_en.properties`, con el español como bundle por defecto). El server
+  sabe en qué idioma armarlo porque lo tiene guardado en el documento del
+  destinatario (ver 10.1).
+
+### 10.1 Selector de idioma (Sistema / Español / English)
+
+El idioma lo elige el usuario en Ajustes; "Sistema" es el default. El tipo y la
+resolución viven en `core/l10n/app_language.dart`:
+
+- `enum AppLanguage { system, spanish, english }`. `AppLanguage.locale` devuelve
+  `null` para `system`, que es justo lo que espera el `MaterialApp` para
+  delegar la resolución al dispositivo.
+- `resolveAppLocale({preference, deviceLocales})` es la **única fuente de
+  verdad** del locale efectivo: la preferencia si hay una; si no, el primer
+  idioma del dispositivo que esté soportado; y si ninguno lo está,
+  `fallbackLocale` (`es`). No se puede omitir: el fallback implícito de Flutter
+  es el PRIMER elemento de `supportedLocales` y gen-l10n los ordena
+  alfabéticamente (`[en, es]`), así que un teléfono en portugués abriría la app
+  en inglés. En el `MaterialApp` se pasa como `localeListResolutionCallback`,
+  que recibe la lista ordenada de idiomas del dispositivo, no uno solo.
+- La preferencia se persiste con `SettingsRepository.getLanguage()` /
+  `setLanguage()` (SharedPreferences, key `settings_language`). Ese storage es
+  compartido entre isolates: así lo leen el isolate del foreground service y el
+  TTS.
+- **Todo lo que le hable o le escriba al usuario tiene que salir de
+  `resolveAppLocale`, nunca de `Platform.localeName` a secas.** Si el usuario
+  puso la app en inglés, la voz del TTS también va en inglés
+  (`VoiceServiceImpl._resolveLanguageTag`): texto en inglés leído con voz
+  española es casi ininteligible.
+- El selector es la misma fila de pills que el de tema, pero sin iconos: una
+  bandera mapea un país, no un idioma.
+- **El backend también necesita el idioma**, porque el copy de los push lo arma
+  él. Se le manda guardándolo en el documento del usuario
+  (`drivers/{uid}.language` / `passengers/{uid}.language`), junto al `fcmToken`
+  y con el mismo ciclo de vida: al autenticarse y en `onTokenRefresh`
+  (`SessionBloc._registerPushToken`), y **además en el acto al tocar el
+  selector** (`SettingsBloc._syncPushLanguage`) — si solo se escribiera al
+  arrancar, quien acaba de elegir inglés seguiría recibiendo push en español
+  hasta el próximo arranque. Lo que se guarda es un código concreto
+  (`'es'`/`'en'`), nunca `'system'`: el server no conoce el idioma del
+  teléfono.
+- **El idioma NO viaja en un header del request.** El push casi siempre va
+  dirigido al *otro* participante (el conductor acepta → el push es para el
+  pasajero), así que el idioma de quien hace el request es el de la persona
+  equivocada. Por eso vive en el documento del destinatario, que es lo que el
+  server ya lee para sacar el `fcmToken`.
 
 **Al agregar un widget que muestre texto:** si el `Text` era `const` y ahora
 recibe una traducción, hay que quitarle el `const` (una traducción no es

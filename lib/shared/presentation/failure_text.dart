@@ -1,6 +1,6 @@
-import 'package:flutter/widgets.dart';
 import 'package:driver_app/core/error/errors.dart';
 import 'package:driver_app/l10n/app_localizations.dart';
+import 'package:flutter/widgets.dart';
 
 /// Traduce un [FailureCode] al texto que se le muestra al usuario.
 ///
@@ -61,6 +61,8 @@ extension FailureTextX on BuildContext {
       FailureCode.pushTokenFailed => l10n.failureUnexpected,
       // solo para logs; si llega a la UI, mensaje genarico
       FailureCode.fcmTokenSaveFailed => l10n.failureUnexpected,
+      // solo para logs; si llega a la UI, mensaje genarico
+      FailureCode.pushLanguageSaveFailed => l10n.failureUnexpected,
       FailureCode.chatMessagesLoadFailed => l10n.failureChatMessagesLoadFailed,
       FailureCode.profileLoadFailed => l10n.failureProfileLoadFailed,
       FailureCode.unexpected => l10n.failureUnexpected,

@@ -1,7 +1,6 @@
-import 'dart:io';
-
+import 'package:driver_app/core/l10n/app_language.dart';
 import 'package:driver_app/l10n/app_localizations.dart';
-import 'package:flutter/widgets.dart';
+import 'package:driver_app/shared/feature/settings/domain/repository/settings_repository.dart';
 
 /// Carga las traducciones SIN BuildContext, para código que corre fuera del
 /// árbol de widgets.
@@ -9,19 +8,19 @@ import 'package:flutter/widgets.dart';
 /// Lo necesita el isolate del foreground service (ver
 /// driver_foreground_service_entry_point.dart): ese isolate no tiene
 /// MaterialApp ni BuildContext, así que `AppLocalizations.of(context)` no
-/// existe ahí. En vez de dejar ese texto hablado hardcodeado en español, se
-/// resuelve el locale del sistema y se carga el delegate a mano.
+/// existe ahí.
 ///
-/// Ojo: usa el locale del SISTEMA, no el de la app. Si más adelante se agrega
-/// un selector de idioma dentro de la app, el valor elegido habría que
-/// persistirlo (SharedPreferences) y leerlo acá, porque el isolate no comparte
-/// memoria con la UI.
-Future<AppLocalizations> loadIsolateLocalizations() async {
-  final systemCode = Platform.localeName.split(RegExp('[_-]')).first;
-  final locale = AppLocalizations.supportedLocales.firstWhere(
-    (supported) => supported.languageCode == systemCode,
-    // El template del .arb es español: es el fallback natural.
-    orElse: () => const Locale('es'),
+/// Respeta el idioma que el usuario eligió en Ajustes, no solo el del sistema:
+/// la preferencia vive en SharedPreferences, que es el mismo almacenamiento
+/// desde los dos isolates. Sin esto, elegir inglés en la app dejaría la alerta
+/// hablada de "carrera nueva" en el idioma del teléfono.
+Future<AppLocalizations> loadIsolateLocalizations({
+  required SettingsRepository settingsRepository,
+}) async {
+  final result = await settingsRepository.getLanguage();
+  final preference = result.fold((_) => AppLanguage.system, (value) => value);
+
+  return AppLocalizations.delegate.load(
+    resolveSystemAppLocale(preference: preference),
   );
-  return AppLocalizations.delegate.load(locale);
 }

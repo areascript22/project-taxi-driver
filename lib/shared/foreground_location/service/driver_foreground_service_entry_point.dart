@@ -1,13 +1,11 @@
   import 'dart:async';
-import 'package:driver_app/shared/l10n/isolate_localizations.dart';
 import 'dart:ui';
-
+import 'package:driver_app/shared/l10n/isolate_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../../../feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../../feature/trip/data/repository/trip_repository_impl.dart';
 import '../../../feature/trip/domain/repository/trip_repository.dart';
@@ -44,9 +42,10 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
   final TripRepository tripRepository = TripRepositoryImpl();
+  final settingsRepository = SettingsRepositoryImpl();
   final FeedbackService feedbackService = FeedbackServiceImpl(
-    settingsRepository: SettingsRepositoryImpl(),
-    voiceService: VoiceServiceImpl(),
+    settingsRepository: settingsRepository,
+    voiceService: VoiceServiceImpl(settingsRepository: settingsRepository),
     vibrationService: VibrationServiceImpl(),
   );
 
@@ -160,7 +159,9 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
     // Este isolate no tiene BuildContext: las traducciones se cargan a mano,
     // una sola vez, antes de suscribirse (el listener de onChildAdded es
     // sincrono y no puede hacer await).
-    final isolateL10n = await loadIsolateLocalizations();
+    final isolateL10n = await loadIsolateLocalizations(
+      settingsRepository: settingsRepository,
+    );
 
     try {
       // Puebla el set con los ids que YA existen antes de suscribirse --

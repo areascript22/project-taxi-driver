@@ -1,7 +1,7 @@
-import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/component/app_version.dart';
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

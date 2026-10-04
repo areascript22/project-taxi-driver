@@ -50,6 +50,7 @@ enum FailureCode {
   pushInitFailed,
   pushTokenFailed,
   fcmTokenSaveFailed,
+  pushLanguageSaveFailed,
   chatMessagesLoadFailed,
   profileLoadFailed,
   unexpected,

@@ -123,16 +123,36 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
   Future<Either<Failure, Unit>> updateFcmToken({
     required String driverId,
     required String token,
+    required String language,
   }) async {
     try {
       await _firestore.collection(_driversCollection).doc(driverId).update({
         'fcmToken': token,
+        'language': language,
       });
       return const Right(unit);
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateFcmToken: $e');
       return Left(
         Failure(code: FailureCode.fcmTokenSaveFailed),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateLanguage({
+    required String driverId,
+    required String language,
+  }) async {
+    try {
+      await _firestore.collection(_driversCollection).doc(driverId).update({
+        'language': language,
+      });
+      return const Right(unit);
+    } catch (e) {
+      debugPrint('DriverProfileDebug | Error en updateLanguage: $e');
+      return Left(
+        Failure(code: FailureCode.pushLanguageSaveFailed),
       );
     }
   }

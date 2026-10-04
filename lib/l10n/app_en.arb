@@ -220,5 +220,9 @@
   "failureChatMessagesLoadFailed": "The messages could not be loaded. Try again.",
   "failureProfileLoadFailed": "Your information could not be loaded",
   "isolateRideTowards": "Ride to {address}",
-  "isolateNewRide": "New ride"
+  "isolateNewRide": "New ride",
+  "settingsSectionLanguage": "LANGUAGE",
+  "settingsLanguageSystem": "System",
+  "settingsLanguageSpanish": "Español",
+  "settingsLanguageEnglish": "English"
 }

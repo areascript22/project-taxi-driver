@@ -1,4 +1,3 @@
-import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_denied_banner.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_required_dialog.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/incoming_request_tile.dart';
@@ -9,6 +8,7 @@ import 'package:driver_app/shared/foreground_location/presentation/component/for
 import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
 import 'package:driver_app/shared/geolocator/location/location_bloc.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';

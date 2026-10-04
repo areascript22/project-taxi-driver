@@ -1,9 +1,9 @@
-import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'dart:async';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';

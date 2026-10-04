@@ -1,7 +1,4 @@
-import 'package:driver_app/shared/presentation/failure_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:driver_app/core/l10n/app_language.dart';
 import 'package:driver_app/core/routing/app_routes.dart';
 import 'package:driver_app/core/service_locator/main_service_locator.dart';
 import 'package:driver_app/core/theme/app_colors.dart';
@@ -10,6 +7,10 @@ import 'package:driver_app/shared/feature/account/presentation/component/delete_
 import 'package:driver_app/shared/feature/account/presentation/cubit/account_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import 'package:driver_app/shared/presentation/component/app_toast.dart';
+import 'package:driver_app/shared/presentation/failure_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/settings_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -96,6 +97,10 @@ class _SettingsView extends StatelessWidget {
                     _SectionLabel(text: l10n.settingsSectionAppearance),
                     const SizedBox(height: 12),
                     _ThemeModeSelector(themeMode: state.themeMode),
+                    const SizedBox(height: 28),
+                    _SectionLabel(text: l10n.settingsSectionLanguage),
+                    const SizedBox(height: 12),
+                    _LanguageSelector(language: state.language),
                     const SizedBox(height: 28),
                     _SectionLabel(text: l10n.settingsSectionNotifications),
                     const SizedBox(height: 12),
@@ -398,6 +403,103 @@ class _DeleteAccountTile extends StatelessWidget {
                 )
                 : null,
         onTap: isDeleting ? null : onTap,
+      ),
+    );
+  }
+}
+
+// Mismo contenedor y mismas pills que _ThemeModeSelector, pero sin icono: un
+// idioma no tiene un icono que lo represente sin caer en banderas, que mapean
+// paises y no idiomas (el espanol no es "Espania").
+class _LanguageSelector extends StatelessWidget {
+  final AppLanguage language;
+
+  const _LanguageSelector({required this.language});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          _LanguageOption(
+            label: l10n.settingsLanguageSystem,
+            selected: language == AppLanguage.system,
+            onTap:
+                () => context.read<SettingsBloc>().add(
+                  ChangeLanguage(AppLanguage.system),
+                ),
+          ),
+          _LanguageOption(
+            label: l10n.settingsLanguageSpanish,
+            selected: language == AppLanguage.spanish,
+            onTap:
+                () => context.read<SettingsBloc>().add(
+                  ChangeLanguage(AppLanguage.spanish),
+                ),
+          ),
+          _LanguageOption(
+            label: l10n.settingsLanguageEnglish,
+            selected: language == AppLanguage.english,
+            onTap:
+                () => context.read<SettingsBloc>().add(
+                  ChangeLanguage(AppLanguage.english),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageOption extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _LanguageOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? colorScheme.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color:
+                  selected
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
       ),
     );
   }

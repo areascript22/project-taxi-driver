@@ -1,6 +1,6 @@
-import 'package:driver_app/core/error/errors.dart';
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:meta/meta.dart';
 import '../../../../shared/foreground_location/service/driver_foreground_service.dart';
 import '../../domain/entity/trip_status_entity.dart';

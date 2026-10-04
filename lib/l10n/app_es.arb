@@ -920,5 +920,21 @@
   "isolateNewRide": "Nueva carrera",
   "@isolateNewRide": {
     "description": "Alerta hablada cuando la carrera nueva no trae direccion legible"
+  },
+  "settingsSectionLanguage": "IDIOMA",
+  "@settingsSectionLanguage": {
+    "description": "Encabezado de la seccion de idioma en ajustes, en mayusculas por estilo visual"
+  },
+  "settingsLanguageSystem": "Sistema",
+  "@settingsLanguageSystem": {
+    "description": "Opcion que sigue el idioma del dispositivo (es el default)"
+  },
+  "settingsLanguageSpanish": "Español",
+  "@settingsLanguageSpanish": {
+    "description": "Nombre del idioma espanol. NO se traduce: por convencion cada idioma se muestra en si mismo, para que alguien que no entiende el idioma actual lo reconozca"
+  },
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Nombre del idioma ingles. NO se traduce, mismo criterio que settingsLanguageSpanish"
   }
 }

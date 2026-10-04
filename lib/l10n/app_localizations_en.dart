@@ -676,4 +676,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get isolateNewRide => 'New ride';
+
+  @override
+  String get settingsSectionLanguage => 'LANGUAGE';
+
+  @override
+  String get settingsLanguageSystem => 'System';
+
+  @override
+  String get settingsLanguageSpanish => 'Español';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
 }

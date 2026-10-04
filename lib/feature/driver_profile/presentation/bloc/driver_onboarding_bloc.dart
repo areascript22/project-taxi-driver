@@ -1,6 +1,6 @@
-import 'package:driver_app/core/error/errors.dart';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/image_picker/service/profile_image_picker_service.dart';
