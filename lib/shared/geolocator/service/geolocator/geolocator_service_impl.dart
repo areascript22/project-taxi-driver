@@ -22,7 +22,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       return Right(permission);
     } catch (e) {
       debugPrint('GeolocatorDebug | Error en checkAndRequestPermission: $e');
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -34,7 +34,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       return Right(permission);
     } catch (e) {
       debugPrint('GeolocatorDebug | Error en checkPermission: $e');
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -44,7 +44,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
       debugPrint('GeolocatorDebug | isLocationServiceEnabled -> $isServiceEnabled');
       if (!isServiceEnabled) {
-        return Left(Failure(message: 'El servicio de GPS del dispositivo está desactivado.'));
+        return Left(Failure(code: FailureCode.gpsDisabled));
       }
 
       final permission = await Geolocator.checkPermission();
@@ -64,7 +64,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       );
     } catch (e) {
       debugPrint('GeolocatorDebug | Error en getCurrentPosition: $e');
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 
@@ -75,7 +75,7 @@ class GeolocatorServiceServiceImpl implements GeolocatorService {
       return Right(response);
     } catch (e) {
       debugPrint('GeolocatorDebug | Error en openAppSettings: $e');
-      return Left(Failure(message: e.toString()));
+      return Left(Failure(code: FailureCode.unexpected, detail: e.toString()));
     }
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'driver_foreground_service.dart';
 import 'driver_foreground_service_entry_point.dart';
 

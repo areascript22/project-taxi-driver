@@ -25,8 +25,23 @@ abstract class DriverProfileRepository {
 
   // Guarda/actualiza el token FCM del conductor en Firestore -- lo usa el
   // backend para enviarle push notifications.
+  //
+  // El idioma va en la MISMA escritura porque el backend necesita los dos
+  // juntos: el token le dice a qué dispositivo mandar el push y el idioma en
+  // qué lengua armarlo. `language` es un código ya resuelto ('es'/'en'),
+  // nunca 'system': el server no puede resolver "seguir al dispositivo"
+  // porque no conoce el idioma del teléfono.
   Future<Either<Failure, Unit>> updateFcmToken({
     required String driverId,
     required String token,
+    required String language,
+  });
+
+  // Actualiza solo el idioma, para cuando el conductor lo cambia en Ajustes
+  // teniendo el token ya registrado. Sin esto, el backend le seguiría
+  // mandando push en el idioma viejo hasta el próximo arranque de la app.
+  Future<Either<Failure, Unit>> updateLanguage({
+    required String driverId,
+    required String language,
   });
 }

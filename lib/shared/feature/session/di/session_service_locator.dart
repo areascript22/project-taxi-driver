@@ -3,6 +3,7 @@ import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
 import 'package:driver_app/shared/domain/repository/session_repository.dart';
 import 'package:driver_app/shared/feature/session/data/repository/session_repository_impl.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import 'package:driver_app/shared/feature/settings/domain/repository/settings_repository.dart';
 import 'package:driver_app/shared/notifications/service/push_notifications_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -19,6 +20,9 @@ void initSessionDI(GetIt sl) {
       tripRepository: sl<TripRepository>(),
       driverProfileRepository: sl<DriverProfileRepository>(),
       pushNotificationsService: sl<PushNotificationsService>(),
+      // Para registrar, junto al token, el idioma en el que el backend debe
+      // armarle los push a este conductor.
+      settingsRepository: sl<SettingsRepository>(),
     ),
   );
 }

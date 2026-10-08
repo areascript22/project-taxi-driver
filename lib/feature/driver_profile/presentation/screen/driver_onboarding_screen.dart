@@ -1,11 +1,14 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import '../../../../shared/presentation/component/app_toast.dart';
 import '../bloc/driver_onboarding_bloc.dart';
 import '../component/driver_personal_form.dart';
 import '../component/image_source_sheet.dart';
@@ -137,10 +140,8 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
       child: Scaffold(
         body: BlocConsumer<DriverOnboardingBloc, DriverOnboardingState>(
           listener: (context, state) {
-            if (state.errorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage!)),
-              );
+            if (state.errorCode != null) {
+              AppToast.error(context, message: context.failureText(state.errorCode!));
             }
             if (state.registrationSuccess) {
               context.goNamed(sessionRoute.name);
@@ -197,7 +198,7 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
                         context.goNamed(signInRoute.name);
                       },
                       child: Text(
-                        '¿No eres tú? Cerrar sesión',
+                        AppLocalizations.of(context).onboardingSignOutPrompt,
                         style: TextStyle(
                           color: Theme.of(
                             context,

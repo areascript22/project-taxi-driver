@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:meta/meta.dart';
-
 import '../../../../shared/domain/entity/user_location.dart';
 import '../../domain/entity/incoming_request_entity.dart';
 import '../../domain/repository/incoming_request_repository.dart';
@@ -149,7 +149,7 @@ class IncomingRequestBloc
           latest.copyWith(
             acceptStatus: AcceptRideStatus.error,
             processingRequest: event.request,
-            acceptErrorMessage: failure.message,
+            acceptErrorCode: failure.code,
           ),
         );
       },

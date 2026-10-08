@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:driver_app/core/error/errors.dart';
+import 'package:driver_app/core/l10n/app_language.dart';
 import 'package:driver_app/feature/driver_profile/domain/entity/driver_entity.dart';
 import 'package:driver_app/feature/driver_profile/domain/repository/driver_profile_repository.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
@@ -10,6 +11,7 @@ import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
 import 'package:driver_app/shared/domain/entity/user_entity.dart';
 import 'package:driver_app/shared/domain/repository/session_repository.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
+import 'package:driver_app/shared/feature/settings/domain/repository/settings_repository.dart';
 import 'package:driver_app/shared/notifications/service/push_notifications_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -24,7 +26,19 @@ class MockDriverProfileRepository extends Mock
 class MockPushNotificationsService extends Mock
     implements PushNotificationsService {}
 
-DriverEntity _driver({String role = 'driver'}) {
+class MockSettingsRepository extends Mock implements SettingsRepository {}
+
+// Simula un conductor normal ya existente (fetched de Firestore) -- a
+// diferencia del default del constructor de DriverEntity (pensado para un
+// registro nuevo, approvalStatus='pending'), acá el default es 'approved'
+// para no romper los escenarios de "todo funciona normalmente" de abajo.
+DriverEntity _driver({
+  String role = 'driver',
+  String approvalStatus = 'approved',
+  bool isBlocked = false,
+  String? blockReason,
+  String? rejectionReason,
+}) {
   return DriverEntity(
     id: 'u1',
     firstName: 'Juan',
@@ -32,6 +46,10 @@ DriverEntity _driver({String role = 'driver'}) {
     email: 'j@example.com',
     phoneNumber: '123',
     role: role,
+    approvalStatus: approvalStatus,
+    isBlocked: isBlocked,
+    blockReason: blockReason,
+    rejectionReason: rejectionReason,
   );
 }
 
@@ -40,6 +58,7 @@ void main() {
   late MockTripRepository tripRepository;
   late MockDriverProfileRepository driverProfileRepository;
   late MockPushNotificationsService pushNotificationsService;
+  late MockSettingsRepository settingsRepository;
   late StreamController<String> tokenRefreshController;
 
   final user = UserEntity(id: 'u1', email: 'j@example.com');
@@ -49,6 +68,7 @@ void main() {
     tripRepository = MockTripRepository();
     driverProfileRepository = MockDriverProfileRepository();
     pushNotificationsService = MockPushNotificationsService();
+    settingsRepository = MockSettingsRepository();
     tokenRefreshController = StreamController<String>.broadcast();
 
     when(
@@ -61,8 +81,15 @@ void main() {
       () => driverProfileRepository.updateFcmToken(
         driverId: any(named: 'driverId'),
         token: any(named: 'token'),
+        language: any(named: 'language'),
       ),
     ).thenAnswer((_) async => Right(unit));
+    // Preferencia explícita y no AppLanguage.system a propósito: 'system'
+    // resolvería contra el idioma de la máquina que corre el test, que no es
+    // determinístico.
+    when(
+      () => settingsRepository.getLanguage(),
+    ).thenAnswer((_) async => Right(AppLanguage.spanish));
   });
 
   tearDown(() {
@@ -74,6 +101,7 @@ void main() {
     tripRepository: tripRepository,
     driverProfileRepository: driverProfileRepository,
     pushNotificationsService: pushNotificationsService,
+    settingsRepository: settingsRepository,
   );
 
   test('initial state is SessionUnknown', () {
@@ -85,7 +113,7 @@ void main() {
       'emits SessionUnauthenticated when there is no authenticated user',
       setUp: () {
         when(() => sessionRepository.isUserAuthenticated()).thenAnswer(
-          (_) async => Left(Failure(message: 'no session')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -108,7 +136,7 @@ void main() {
         ).thenAnswer((_) async => Right(user));
         when(
           () => driverProfileRepository.getDriver(driverId: 'u1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'network')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(SessionCheckRequested()),
@@ -154,6 +182,7 @@ void main() {
               passenger: PassengerEntity(name: 'P', profileImage: ''),
               pickupLocation: PickupLocationEntity(
                 address: 'x',
+                sector: 'La Condamine',
                 latitude: 0,
                 longitude: 0,
               ),
@@ -181,7 +210,7 @@ void main() {
           () => driverProfileRepository.getDriver(driverId: 'u1'),
         ).thenAnswer((_) async => Right(_driver()));
         when(() => tripRepository.findActiveTripForDriver()).thenAnswer(
-          (_) async => Left(Failure(message: 'network')),
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
         );
       },
       build: buildBloc,
@@ -220,6 +249,7 @@ void main() {
           () => driverProfileRepository.updateFcmToken(
             driverId: 'u1',
             token: 'token-123',
+            language: 'es',
           ),
         ).called(1);
       },
@@ -251,9 +281,184 @@ void main() {
           () => driverProfileRepository.updateFcmToken(
             driverId: 'u1',
             token: 'new-token',
+            language: 'es',
           ),
         ).called(1);
       },
+    );
+
+    // El backend arma el copy de los push, así que necesita el idioma del
+    // destinatario guardado junto al token: sin esto un conductor con la app
+    // en inglés recibiría las notificaciones en español.
+    blocTest<SessionBloc, SessionState>(
+      'registra el idioma elegido en Ajustes junto al token',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(
+          () => driverProfileRepository.getDriver(driverId: 'u1'),
+        ).thenAnswer((_) async => Right(_driver()));
+        when(
+          () => tripRepository.findActiveTripForDriver(),
+        ).thenAnswer((_) async => const Right(null));
+        when(
+          () => pushNotificationsService.getToken(),
+        ).thenAnswer((_) async => const Right('token-123'));
+        when(
+          () => settingsRepository.getLanguage(),
+        ).thenAnswer((_) async => Right(AppLanguage.english));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      wait: const Duration(milliseconds: 50),
+      expect: () => [isA<SessionAuthenticated>()],
+      verify: (_) {
+        verify(
+          () => driverProfileRepository.updateFcmToken(
+            driverId: 'u1',
+            token: 'token-123',
+            language: 'en',
+          ),
+        ).called(1);
+      },
+    );
+
+    // Si la lectura de la preferencia falla se asume el default ('es'), que
+    // es el mismo idioma al que cae el server cuando el campo no está.
+    blocTest<SessionBloc, SessionState>(
+      'guarda el idioma por defecto si no se puede leer la preferencia',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(
+          () => driverProfileRepository.getDriver(driverId: 'u1'),
+        ).thenAnswer((_) async => Right(_driver()));
+        when(
+          () => tripRepository.findActiveTripForDriver(),
+        ).thenAnswer((_) async => const Right(null));
+        when(
+          () => pushNotificationsService.getToken(),
+        ).thenAnswer((_) async => const Right('token-123'));
+        when(() => settingsRepository.getLanguage()).thenAnswer(
+          (_) async => Left(Failure(code: FailureCode.unexpected)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      wait: const Duration(milliseconds: 50),
+      expect: () => [isA<SessionAuthenticated>()],
+      verify: (_) {
+        // No se afirma 'es' a secas porque el default es "seguir al
+        // dispositivo" y eso depende de la máquina que corre el test. Lo que
+        // sí es invariante: nunca se guarda 'system', que el server no sabe
+        // resolver.
+        final language =
+            verify(
+                  () => driverProfileRepository.updateFcmToken(
+                    driverId: 'u1',
+                    token: 'token-123',
+                    language: captureAny(named: 'language'),
+                  ),
+                ).captured.single
+                as String;
+
+        expect(language, isIn(const ['es', 'en']));
+      },
+    );
+  });
+
+  group('SessionCheckRequested - approval/block gating', () {
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionBlocked (not SessionAuthenticated) when the driver is blocked',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async => Right(
+            _driver(isBlocked: true, blockReason: 'quejas de pasajeros'),
+          ),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionBlocked>().having(
+          (s) => s.blockReason,
+          'blockReason',
+          'quejas de pasajeros',
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => tripRepository.findActiveTripForDriver());
+      },
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionPendingApproval when the driver is still pending',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(
+          () => driverProfileRepository.getDriver(driverId: 'u1'),
+        ).thenAnswer((_) async => Right(_driver(approvalStatus: 'pending')));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionPendingApproval>().having(
+          (s) => s.approvalStatus,
+          'approvalStatus',
+          'pending',
+        ),
+      ],
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'emits SessionPendingApproval with the rejection reason when rejected',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async => Right(
+            _driver(
+              approvalStatus: 'rejected',
+              rejectionReason: 'documentos vencidos',
+            ),
+          ),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [
+        isA<SessionPendingApproval>()
+            .having((s) => s.approvalStatus, 'approvalStatus', 'rejected')
+            .having(
+              (s) => s.rejectionReason,
+              'rejectionReason',
+              'documentos vencidos',
+            ),
+      ],
+    );
+
+    blocTest<SessionBloc, SessionState>(
+      'checks isBlocked before approvalStatus -- a blocked driver never reaches SessionPendingApproval',
+      setUp: () {
+        when(
+          () => sessionRepository.isUserAuthenticated(),
+        ).thenAnswer((_) async => Right(user));
+        when(() => driverProfileRepository.getDriver(driverId: 'u1')).thenAnswer(
+          (_) async =>
+              Right(_driver(approvalStatus: 'pending', isBlocked: true)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(SessionCheckRequested()),
+      expect: () => [isA<SessionBlocked>()],
     );
   });
 
@@ -275,7 +480,7 @@ void main() {
       setUp: () {
         when(
           () => sessionRepository.signOut(),
-        ).thenAnswer((_) async => Left(Failure(message: 'error')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       seed: () => SessionAuthenticated(user: user),

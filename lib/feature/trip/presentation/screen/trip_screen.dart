@@ -1,6 +1,7 @@
 import 'package:driver_app/feature/chat/presentation/bloc/chat_bloc.dart';
 import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
 import 'package:driver_app/shared/presentation/component/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:map_launcher/map_launcher.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/chat_presence/service/pending_chat_navigation_tracker.dart';
 import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/trip_bloc.dart';
@@ -100,7 +102,7 @@ class _TripViewState extends State<_TripView> {
   Future<void> _onTripCancelled(String? cancelledBy) async {
     if (cancelledBy == 'passenger') {
       GetIt.instance<FeedbackService>().announce(
-        'El pasajero canceló la carrera',
+        AppLocalizations.of(context).tripPassengerCancelledAnnouncement,
         withVibration: true,
       );
       await PassengerCancelledDialog.show(context: context);
@@ -113,11 +115,12 @@ class _TripViewState extends State<_TripView> {
 
   void _onPassengerOnTheWay() {
     GetIt.instance<FeedbackService>().announce(
-      'El pasajero está en camino al auto',
+      AppLocalizations.of(context).tripPassengerOnTheWay,
       withVibration: true,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('El pasajero está en camino al auto')),
+    AppToast.success(
+      context,
+      message: AppLocalizations.of(context).tripPassengerOnTheWay,
     );
   }
 
@@ -129,7 +132,7 @@ class _TripViewState extends State<_TripView> {
   // IncomingRequestTile): abrir una app externa es una capacidad de
   // plataforma sin estado ni datos que modelar, no una fuente de datos del
   // dominio. map_launcher lanza si Google Maps no está instalado en el
-  // dispositivo -- se captura y se avisa con un snackbar en vez de dejar
+  // dispositivo -- se captura y se avisa con un toast en vez de dejar
   // que la excepción suba sin manejar.
   Future<void> _openInGoogleMaps() async {
     try {
@@ -145,10 +148,9 @@ class _TripViewState extends State<_TripView> {
     } catch (e) {
       debugPrint('TripDebug | Error al abrir Google Maps: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir Google Maps. ¿Está instalado?'),
-        ),
+      AppToast.error(
+        context,
+        message: AppLocalizations.of(context).tripOpenMapsFailed,
       );
     }
   }
@@ -183,7 +185,7 @@ class _TripViewState extends State<_TripView> {
         backgroundColor: context.appColors.backgroundGradient.last,
         appBar: AppBar(
           title: Text(
-            'Viaje en curso',
+            AppLocalizations.of(context).tripInProgressTitle,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
@@ -222,8 +224,8 @@ class _TripViewState extends State<_TripView> {
                         CustomButton(
                           textButton:
                               state.isMarkingArrived
-                                  ? 'Enviando...'
-                                  : 'He llegado',
+                                  ? AppLocalizations.of(context).tripArrivedSending
+                                  : AppLocalizations.of(context).tripArrived,
                           backgroundColor: context.appColors.success,
                           onTap:
                               state.isMarkingArrived
@@ -240,8 +242,8 @@ class _TripViewState extends State<_TripView> {
                         CustomButton(
                           textButton:
                               state.isCompleting
-                                  ? 'Finalizando...'
-                                  : 'Finalizar viaje',
+                                  ? AppLocalizations.of(context).tripFinishing
+                                  : AppLocalizations.of(context).tripFinish,
                           backgroundColor: context.appColors.success,
                           onTap:
                               state.isCompleting
@@ -272,7 +274,7 @@ class _TripViewState extends State<_TripView> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
-                          'Cancelar carrera',
+                          AppLocalizations.of(context).tripCancel,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -325,7 +327,7 @@ class _TripViewState extends State<_TripView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Pasajero',
+                  AppLocalizations.of(context).tripPassengerLabel,
                   style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 12,
@@ -380,7 +382,7 @@ class _TripViewState extends State<_TripView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Punto de recogida',
+                      AppLocalizations.of(context).commonPickupPoint,
                       style: TextStyle(
                         color: colorScheme.onSurface.withValues(alpha: 0.6),
                         fontSize: 12,
@@ -441,7 +443,7 @@ class _TripViewState extends State<_TripView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Abrir en Google Maps',
+                      AppLocalizations.of(context).tripOpenInMaps,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -450,7 +452,7 @@ class _TripViewState extends State<_TripView> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Navega hasta el punto de recogida',
+                      AppLocalizations.of(context).tripNavigateToPickup,
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -489,7 +491,7 @@ class _ChatButton extends StatelessWidget {
       color: colorScheme.primary.withValues(alpha: 0.1),
       shape: const CircleBorder(),
       child: Tooltip(
-        message: 'Chat con el pasajero',
+        message: AppLocalizations.of(context).chatTitle,
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,

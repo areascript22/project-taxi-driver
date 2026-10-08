@@ -14,11 +14,21 @@ class PassengerEntity {
 
 class PickupLocationEntity {
   final String address;
+
+  /// Sector de Riobamba donde hay que recoger al pasajero (ej. "La Condamine").
+  /// Es la referencia que se le anuncia al conductor por voz y la que ve en la
+  /// lista de solicitudes; la dirección exacta la ve al aceptar la carrera.
+  ///
+  /// Vacío en carreras viejas (anteriores al campo) o si passenger_app no pudo
+  /// resolverlo: ahí se cae a [address], que es lo que se hacía antes.
+  final String sector;
+
   final double latitude;
   final double longitude;
 
   PickupLocationEntity({
     required this.address,
+    required this.sector,
     required this.latitude,
     required this.longitude,
   });
@@ -26,6 +36,7 @@ class PickupLocationEntity {
   factory PickupLocationEntity.fromMap(Map<dynamic, dynamic> map) {
     return PickupLocationEntity(
       address: map['address'] ?? '',
+      sector: map['sector'] ?? '',
       latitude: (map['latitude'] ?? 0.0).toDouble(),
       longitude: (map['longitude'] ?? 0.0).toDouble(),
     );

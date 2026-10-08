@@ -1,12 +1,11 @@
   import 'dart:async';
 import 'dart:ui';
-
+import 'package:driver_app/shared/l10n/isolate_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
-
 import '../../../feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import '../../../feature/trip/data/repository/trip_repository_impl.dart';
 import '../../../feature/trip/domain/repository/trip_repository.dart';
@@ -16,6 +15,7 @@ import '../../feedback/feedback_service.dart';
 import '../../feedback/feedback_service_impl.dart';
 import '../../geolocator/service/geolocator/geolocator_service.dart';
 import '../../geolocator/service/geolocator/geolocator_service_impl.dart';
+import '../../utils/pickup_label.dart';
 import '../../vibration/service/vibration_service_impl.dart';
 import '../../voice/service/voice_service_impl.dart';
 
@@ -43,9 +43,10 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
   final TripRepository tripRepository = TripRepositoryImpl();
+  final settingsRepository = SettingsRepositoryImpl();
   final FeedbackService feedbackService = FeedbackServiceImpl(
-    settingsRepository: SettingsRepositoryImpl(),
-    voiceService: VoiceServiceImpl(),
+    settingsRepository: settingsRepository,
+    voiceService: VoiceServiceImpl(settingsRepository: settingsRepository),
     vibrationService: VibrationServiceImpl(),
   );
 
@@ -67,7 +68,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       await result.fold(
         (failure) async {
           debugPrint(
-            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.message}',
+            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.code}',
           );
         },
         (location) async {
@@ -101,7 +102,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
           );
           updateResult.fold(
             (failure) => debugPrint(
-              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.message}',
+              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.code}',
             ),
             (_) => debugPrint(
               'ForegroundLocationDebug | updateDriverLocation() OK para passengerId=$passengerId',
@@ -156,6 +157,13 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   final Set<String> knownPendingIds = {};
 
   Future<void> startNewRequestAlerts() async {
+    // Este isolate no tiene BuildContext: las traducciones se cargan a mano,
+    // una sola vez, antes de suscribirse (el listener de onChildAdded es
+    // sincrono y no puede hacer await).
+    final isolateL10n = await loadIsolateLocalizations(
+      settingsRepository: settingsRepository,
+    );
+
     try {
       // Puebla el set con los ids que YA existen antes de suscribirse --
       // onChildAdded dispara retroactivamente por cada hijo ya presente, y
@@ -188,16 +196,27 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       knownPendingIds.add(id);
 
       // Mismo parseo que usa IncomingRequestBloc en el isolate principal
-      // (IncomingRequestEntity.fromMap) -- así el mensaje hablado usa
-      // exactamente la misma dirección que se ve en la lista.
+      // (IncomingRequestEntity.fromMap) y la misma función de etiqueta que la
+      // tile -- así el conductor escucha exactamente lo que después ve en la
+      // lista.
       final rawValue = event.snapshot.value;
-      final address =
+      final pickup =
           rawValue is Map
-              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation.address
-              : '';
+              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation
+              : null;
+
+      final label =
+          pickup == null
+              ? null
+              : pickupLabel(
+                sector: pickup.sector,
+                address: pickup.address,
+              );
 
       feedbackService.announce(
-        address.isNotEmpty ? 'Carrera hacia $address' : 'Nueva carrera',
+        label != null
+            ? isolateL10n.isolateRideTowards(label)
+            : isolateL10n.commonNewRide,
         withVibration: true,
       );
     });

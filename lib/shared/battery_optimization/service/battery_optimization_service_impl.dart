@@ -18,9 +18,7 @@ class BatteryOptimizationServiceImpl implements BatteryOptimizationService {
         'BatteryOptimizationDebug | Error en isIgnoringBatteryOptimizations: $e',
       );
       return Left(
-        Failure(
-          message: 'No se pudo consultar el estado de optimización de batería',
-        ),
+        Failure(code: FailureCode.batteryStatusFailed),
       );
     }
   }
@@ -38,9 +36,7 @@ class BatteryOptimizationServiceImpl implements BatteryOptimizationService {
         'BatteryOptimizationDebug | Error en requestIgnoreBatteryOptimizations: $e',
       );
       return Left(
-        Failure(
-          message: 'No se pudo solicitar el permiso de optimización de batería',
-        ),
+        Failure(code: FailureCode.batteryRequestFailed),
       );
     }
   }
@@ -54,7 +50,7 @@ class BatteryOptimizationServiceImpl implements BatteryOptimizationService {
     } catch (e) {
       debugPrint('BatteryOptimizationDebug | Error en openAppSettings: $e');
       return Left(
-        Failure(message: 'No se pudo abrir la configuración de la app'),
+        Failure(code: FailureCode.appSettingsFailed),
       );
     }
   }

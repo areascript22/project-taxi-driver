@@ -7,7 +7,7 @@ class TripState {
   // Quién canceló el viaje ('passenger' | 'driver'), solo relevante cuando
   // isCancelled == true.
   final String? cancelledBy;
-  final String? errorMessage;
+  final FailureCode? errorCode;
   // Status crudo actual del viaje ('driverAssigned' | 'driverArrived' |
   // 'tripStarted' | 'tripCompleted' | 'cancelled'), tal como llega de
   // Firebase -- controla qué botones se muestran en TripScreen.
@@ -20,7 +20,7 @@ class TripState {
     this.isCancelling = false,
     this.isCancelled = false,
     this.cancelledBy,
-    this.errorMessage,
+    this.errorCode,
     this.status = '',
     this.isMarkingArrived = false,
     this.isCompleting = false,
@@ -31,7 +31,7 @@ class TripState {
     bool? isCancelling,
     bool? isCancelled,
     String? cancelledBy,
-    String? errorMessage,
+    FailureCode? errorCode,
     String? status,
     bool? isMarkingArrived,
     bool? isCompleting,
@@ -42,7 +42,7 @@ class TripState {
       isCancelled: isCancelled ?? this.isCancelled,
       cancelledBy: cancelledBy ?? this.cancelledBy,
       // Siempre explícito: pasar null limpia el error anterior.
-      errorMessage: errorMessage,
+      errorCode: errorCode,
       status: status ?? this.status,
       isMarkingArrived: isMarkingArrived ?? this.isMarkingArrived,
       isCompleting: isCompleting ?? this.isCompleting,

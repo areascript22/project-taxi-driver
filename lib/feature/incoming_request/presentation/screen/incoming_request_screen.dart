@@ -7,12 +7,15 @@ import 'package:driver_app/shared/foreground_location/presentation/bloc/foregrou
 import 'package:driver_app/shared/foreground_location/presentation/component/foreground_service_toggle.dart';
 import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
 import 'package:driver_app/shared/geolocator/location/location_bloc.dart';
+import 'package:driver_app/shared/presentation/component/app_toast.dart';
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/feedback/feedback_service.dart';
 import '../bloc/incoming_request_bloc.dart';
 
@@ -76,7 +79,10 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
         await GetIt.instance<DriverForegroundService>().isRunning();
     if (alreadyOnline) return;
 
-    GetIt.instance<FeedbackService>().announce('Bienvenido a TaxiGo conductor');
+    if (!mounted) return;
+    GetIt.instance<FeedbackService>().announce(
+      AppLocalizations.of(context).welcomeAnnouncement,
+    );
   }
 
   @override
@@ -150,7 +156,7 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
-            'Peticiones Entrantes',
+            AppLocalizations.of(context).requestsTitle,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
@@ -249,13 +255,14 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                         extra: state.processingRequest,
                       );
                     } else if (state.acceptStatus == AcceptRideStatus.error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            state.acceptErrorMessage ??
-                                'No se pudo aceptar la carrera.',
-                          ),
-                        ),
+                      AppToast.error(
+                        context,
+                        message:
+                            state.acceptErrorCode != null
+                                ? context.failureText(state.acceptErrorCode!)
+                                : AppLocalizations.of(
+                                  context,
+                                ).requestAcceptFailed,
                       );
                     }
                   },
@@ -286,7 +293,7 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No hay clientes buscando\ntaxi en este momento.',
+                                  AppLocalizations.of(context).requestsEmpty,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: colorScheme.onSurface.withValues(

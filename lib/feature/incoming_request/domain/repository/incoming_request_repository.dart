@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-
 import '../../../../core/error/errors.dart';
 import '../../../../shared/domain/entity/user_location.dart';
 import '../entity/incoming_request_entity.dart';

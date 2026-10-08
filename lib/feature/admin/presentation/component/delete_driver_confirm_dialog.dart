@@ -1,3 +1,4 @@
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class DeleteDriverConfirmDialog extends StatelessWidget {
@@ -17,12 +18,13 @@ class DeleteDriverConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
-        'Eliminar conductor',
+        l10n.adminDeleteDriver,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -30,7 +32,7 @@ class DeleteDriverConfirmDialog extends StatelessWidget {
         ),
       ),
       content: Text(
-        '¿Seguro que deseas eliminar a $driverName? Esta acción no se puede deshacer.',
+        l10n.adminDeleteDriverBody(driverName),
         style: TextStyle(
           fontSize: 16,
           color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -40,7 +42,7 @@ class DeleteDriverConfirmDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            'Cancelar',
+            l10n.commonCancel,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -51,7 +53,7 @@ class DeleteDriverConfirmDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
           child: Text(
-            'Eliminar',
+            l10n.adminDelete,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,

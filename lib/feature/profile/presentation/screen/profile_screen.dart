@@ -1,9 +1,11 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/routing/app_routes.dart';
 import '../../../../core/service_locator/main_service_locator.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../../driver_profile/domain/entity/driver_entity.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';
@@ -65,8 +67,9 @@ class ProfileView extends StatelessWidget {
             if (state.driver == null) {
               return Center(
                 child: Text(
-                  state.errorMessage ??
-                      'No se encontró información del conductor',
+                  state.errorCode != null
+                      ? context.failureText(state.errorCode!)
+                      : AppLocalizations.of(context).profileDriverNotFound,
                   style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
@@ -136,7 +139,7 @@ class ProfileView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          fullName.isEmpty ? 'Conductor' : fullName,
+          fullName.isEmpty ? AppLocalizations.of(context).profileFallbackName : fullName,
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -198,7 +201,7 @@ class ProfileView extends StatelessWidget {
             _buildInfoTile(
               context,
               icon: Icons.email_outlined,
-              title: 'Correo electrónico',
+              title: AppLocalizations.of(context).commonEmail,
               value: driver.email,
               isFirst: true,
             ),
@@ -210,10 +213,10 @@ class ProfileView extends StatelessWidget {
             _buildInfoTile(
               context,
               icon: Icons.phone_outlined,
-              title: 'Teléfono',
+              title: AppLocalizations.of(context).commonPhone,
               value:
                   driver.phoneNumber.isEmpty
-                      ? 'No registrado'
+                      ? AppLocalizations.of(context).commonNotProvided
                       : driver.phoneNumber,
             ),
             Divider(
@@ -224,8 +227,8 @@ class ProfileView extends StatelessWidget {
             _buildInfoTile(
               context,
               icon: _roleIcon(driver.role),
-              title: 'Rol',
-              value: _roleLabel(driver.role),
+              title: AppLocalizations.of(context).profileRoleLabel,
+              value: _roleLabel(l10n: AppLocalizations.of(context), role: driver.role),
             ),
           ],
         ),
@@ -241,11 +244,13 @@ class ProfileView extends StatelessWidget {
     };
   }
 
-  String _roleLabel(String role) {
+  // Los valores 'superuser'/'admin' son datos del backend y NO se traducen;
+  // lo que se traduce es la etiqueta que ve el usuario.
+  String _roleLabel({required AppLocalizations l10n, required String role}) {
     return switch (role) {
-      'superuser' => 'Superusuario',
-      'admin' => 'Administrador',
-      _ => 'Conductor',
+      'superuser' => l10n.roleSuperuser,
+      'admin' => l10n.roleAdmin,
+      _ => l10n.roleDriver,
     };
   }
 
@@ -330,7 +335,9 @@ class ProfileView extends StatelessWidget {
             ),
           ),
           title: Text(
-            vehicle == null ? 'Vehículo' : '${vehicle.brand} ${vehicle.model}',
+            vehicle == null
+                ? AppLocalizations.of(context).profileVehicleFallback
+                : '${vehicle.brand} ${vehicle.model}',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
@@ -340,7 +347,9 @@ class ProfileView extends StatelessWidget {
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4.0),
             child: Text(
-              vehicle == null ? 'No registrado' : vehicle.plate,
+              vehicle == null
+                  ? AppLocalizations.of(context).commonNotProvided
+                  : vehicle.plate,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -388,7 +397,7 @@ class ProfileView extends StatelessWidget {
               Icon(Icons.logout_rounded, size: 20, color: colorScheme.primary),
               const SizedBox(width: 10),
               Text(
-                'Cerrar sesión',
+                AppLocalizations.of(context).commonSignOut,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

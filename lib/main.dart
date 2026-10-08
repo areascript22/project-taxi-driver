@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'package:driver_app/core/l10n/app_language.dart';
+import 'package:driver_app/l10n/app_localizations.dart';
 import 'package:driver_app/shared/connectivity/presentation/component/connectivity_banner.dart';
 import 'package:driver_app/shared/connectivity/presentation/cubit/connectivity_cubit.dart';
 import 'package:driver_app/shared/feature/session/presentation/bloc/session/session_bloc.dart';
@@ -69,7 +70,24 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
           return MaterialApp.router(
-            title: 'Taxi project - Driver',
+            // onGenerateTitle en vez de `title`: se evalúa con un context que
+            // ya tiene las localizaciones, así el nombre que muestra el
+            // sistema operativo también sale del .arb.
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            // null cuando el usuario eligio "Sistema": ahi resuelve
+            // localeListResolutionCallback con los idiomas del dispositivo.
+            locale: settingsState.language.locale,
+            // El fallback de Flutter cuando nada matchea es el PRIMER elemento
+            // de supportedLocales, que el generador ordena alfabeticamente
+            // ([en, es]). Sin esto, un telefono en portugues abriria la app en
+            // ingles en vez de espaniol -- ver resolveAppLocale.
+            localeListResolutionCallback:
+                (deviceLocales, _) => resolveAppLocale(
+                  preference: settingsState.language,
+                  deviceLocales: deviceLocales?.toList(),
+                ),
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,

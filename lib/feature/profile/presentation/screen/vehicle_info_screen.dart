@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';
 
 class VehicleInfoScreen extends StatelessWidget {
@@ -11,8 +12,8 @@ class VehicleInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Mi vehículo',
+        title: Text(
+          AppLocalizations.of(context).myVehicleTitle,
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -58,32 +59,32 @@ class VehicleInfoScreen extends StatelessWidget {
           children: [
             _InfoTile(
               icon: Icons.branding_watermark_outlined,
-              title: 'Marca',
+              title: AppLocalizations.of(context).vehicleBrand,
               value: vehicle.brand,
               isFirst: true,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.directions_car_filled_outlined,
-              title: 'Modelo',
+              title: AppLocalizations.of(context).vehicleModel,
               value: vehicle.model,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.calendar_today_outlined,
-              title: 'Año',
+              title: AppLocalizations.of(context).vehicleYear,
               value: '${vehicle.year}',
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.palette_outlined,
-              title: 'Color',
+              title: AppLocalizations.of(context).vehicleColor,
               value: vehicle.color,
             ),
             _divider(colorScheme),
             _InfoTile(
               icon: Icons.badge_outlined,
-              title: 'Número de matrícula',
+              title: AppLocalizations.of(context).vehicleRegistrationNumber,
               value: vehicle.registrationNumber,
             ),
           ],
@@ -154,11 +155,12 @@ class _VerificationBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final appColors = context.appColors;
+    final l10n = AppLocalizations.of(context);
 
     final (label, color) = switch (status) {
-      'approved' => ('Vehículo aprobado', appColors.success),
-      'rejected' => ('Vehículo rechazado', colorScheme.error),
-      _ => ('En revisión', appColors.warning),
+      'approved' => (l10n.vehicleStatusApproved, appColors.success),
+      'rejected' => (l10n.vehicleStatusRejected, colorScheme.error),
+      _ => (l10n.vehicleStatusInReview, appColors.warning),
     };
 
     return Container(

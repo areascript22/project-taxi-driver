@@ -1,10 +1,12 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/routing/app_routes.dart';
-import '../../bloc/trip_bloc.dart';
+import '../../../../../l10n/app_localizations.dart';
 import '../../../../../shared/presentation/component/custom_loader.dart';
+import '../../bloc/trip_bloc.dart';
 
 // Diálogo de confirmación para que el conductor cancele un viaje ya
 // aceptado. Arquitectura basada en ConfirmCancelRideDialog (passenger_app).
@@ -31,6 +33,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<TripBloc, TripState>(
       listenWhen:
           (previous, current) =>
@@ -81,7 +84,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "¿Cancelar carrera?",
+                    l10n.cancelTripDialogTitle,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -91,7 +94,7 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Ya aceptaste esta carrera y el pasajero te está esperando. Si cancelas ahora podría afectar tu reputación como conductor.",
+                    l10n.cancelTripDialogBody,
                     style: TextStyle(
                       fontSize: 14,
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -99,10 +102,10 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (state.errorMessage != null) ...[
+                  if (state.errorCode != null) ...[
                     const SizedBox(height: 12),
                     Text(
-                      state.errorMessage!,
+                      context.failureText(state.errorCode!),
                       style: TextStyle(fontSize: 13, color: colorScheme.error),
                       textAlign: TextAlign.center,
                     ),
@@ -125,8 +128,8 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            "Continuar carrera",
+                          child: Text(
+                            l10n.cancelTripContinue,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -163,8 +166,8 @@ class ConfirmCancelTripDialog extends StatelessWidget {
                                   ? CircularProgressIndicator(
                                     color: colorScheme.onPrimary,
                                   )
-                                  : const Text(
-                                    "Cancelar carrera",
+                                  : Text(
+                                    l10n.tripCancel,
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,

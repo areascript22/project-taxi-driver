@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:meta/meta.dart';
 import '../../../../shared/foreground_location/service/driver_foreground_service.dart';
 import '../../domain/entity/trip_status_entity.dart';
@@ -57,7 +58,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     CancelTripRequested event,
     Emitter<TripState> emit,
   ) async {
-    emit(state.copyWith(isCancelling: true, errorMessage: null));
+    emit(state.copyWith(isCancelling: true, errorCode: null));
 
     await Future.delayed(const Duration(seconds: 2));
 
@@ -65,7 +66,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isCancelling: false, errorMessage: failure.message),
+        state.copyWith(isCancelling: false, errorCode: failure.code),
       ),
       // El stream de watchTrip ya recibirá status == cancelled.
       (_) => emit(state.copyWith(isCancelling: false)),
@@ -86,7 +87,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     DriverArrivedRequested event,
     Emitter<TripState> emit,
   ) async {
-    emit(state.copyWith(isMarkingArrived: true, errorMessage: null));
+    emit(state.copyWith(isMarkingArrived: true, errorCode: null));
 
     final result = await repository.markDriverArrived(
       passengerId: event.passengerId,
@@ -94,7 +95,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isMarkingArrived: false, errorMessage: failure.message),
+        state.copyWith(isMarkingArrived: false, errorCode: failure.code),
       ),
       // El stream de watchTrip ya recibirá status == driverArrived.
       (_) => emit(state.copyWith(isMarkingArrived: false)),
@@ -105,7 +106,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     CompleteTripRequested event,
     Emitter<TripState> emit,
   ) async {
-    emit(state.copyWith(isCompleting: true, errorMessage: null));
+    emit(state.copyWith(isCompleting: true, errorCode: null));
 
     final result = await repository.completeTrip(
       passengerId: event.passengerId,
@@ -113,7 +114,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
 
     result.fold(
       (failure) => emit(
-        state.copyWith(isCompleting: false, errorMessage: failure.message),
+        state.copyWith(isCompleting: false, errorCode: failure.code),
       ),
       (_) {
         driverForegroundService.stopTracking();

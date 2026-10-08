@@ -100,7 +100,7 @@ void main() {
       setUp: () {
         when(
           () => repository.getDriver(driverId: 'd1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'network error')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(ProfileLoadRequested(driverId: 'd1')),
@@ -110,7 +110,7 @@ void main() {
           (s) =>
               !s.isLoading &&
               s.driver == null &&
-              s.errorMessage == 'No se pudo cargar tu información',
+              s.errorCode != null,
         ),
       ],
     );
@@ -130,7 +130,7 @@ void main() {
           (s) =>
               !s.isLoading &&
               s.driver == null &&
-              s.errorMessage == 'No se pudo cargar tu información',
+              s.errorCode != null,
         ),
       ],
     );
@@ -143,7 +143,7 @@ void main() {
         ).thenAnswer((_) async => Right(_driver(vehicleId: 'v1')));
         when(
           () => repository.getVehicle(vehicleId: 'v1'),
-        ).thenAnswer((_) async => Left(Failure(message: 'not found')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(ProfileLoadRequested(driverId: 'd1')),
@@ -154,7 +154,7 @@ void main() {
               !s.isLoading &&
               s.driver != null &&
               s.vehicle == null &&
-              s.errorMessage == null,
+              s.errorCode == null,
         ),
       ],
     );

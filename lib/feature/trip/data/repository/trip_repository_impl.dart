@@ -46,12 +46,12 @@ class TripRepositoryImpl implements TripRepository {
     } on DioException catch (e) {
       debugPrint('TripDebug | Error en findActiveTripForDriver: $e');
       return Left(
-        Failure(message: 'No se pudo verificar si tienes un viaje en curso.'),
+        Failure(code: FailureCode.activeTripCheckFailed),
       );
     } catch (e) {
       debugPrint('TripDebug | Error inesperado en findActiveTripForDriver: $e');
       return Left(
-        Failure(message: 'No se pudo verificar si tienes un viaje en curso.'),
+        Failure(code: FailureCode.activeTripCheckFailed),
       );
     }
   }
@@ -70,21 +70,21 @@ class TripRepositoryImpl implements TripRepository {
       debugPrint('TripDebug | Error en cancelRide: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permiso para cancelar esta carrera.'),
+          Failure(code: FailureCode.rideCancelNotAllowed),
         );
       }
       if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
         return Left(
-          Failure(message: 'La carrera ya no está disponible para cancelar.'),
+          Failure(code: FailureCode.rideCancelUnavailable),
         );
       }
       return Left(
-        Failure(message: 'No se pudo cancelar la carrera. Intenta de nuevo.'),
+        Failure(code: FailureCode.rideCancelFailed),
       );
     } catch (e) {
       debugPrint('TripDebug | Error inesperado en cancelRide: $e');
       return Left(
-        Failure(message: 'No se pudo cancelar la carrera. Intenta de nuevo.'),
+        Failure(code: FailureCode.rideCancelFailed),
       );
     }
   }
@@ -101,7 +101,7 @@ class TripRepositoryImpl implements TripRepository {
       return const Right(unit);
     } catch (e) {
       return Left(
-        Failure(message: 'No se pudo notificar tu llegada. Intenta de nuevo.'),
+        Failure(code: FailureCode.arrivalNotifyFailed),
       );
     }
   }
@@ -122,21 +122,21 @@ class TripRepositoryImpl implements TripRepository {
       debugPrint('TripDebug | Error en completeTrip: $e');
       if (e.response?.statusCode == 403) {
         return Left(
-          Failure(message: 'No tienes permiso para finalizar este viaje.'),
+          Failure(code: FailureCode.tripFinishNotAllowed),
         );
       }
       if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
         return Left(
-          Failure(message: 'El viaje ya no está disponible para finalizar.'),
+          Failure(code: FailureCode.tripFinishUnavailable),
         );
       }
       return Left(
-        Failure(message: 'No se pudo finalizar el viaje. Intenta de nuevo.'),
+        Failure(code: FailureCode.tripFinishFailed),
       );
     } catch (e) {
       debugPrint('TripDebug | Error inesperado en completeTrip: $e');
       return Left(
-        Failure(message: 'No se pudo finalizar el viaje. Intenta de nuevo.'),
+        Failure(code: FailureCode.tripFinishFailed),
       );
     }
   }
@@ -162,7 +162,7 @@ class TripRepositoryImpl implements TripRepository {
       return const Right(unit);
     } catch (e) {
       debugPrint('TripDebug | Error en updateDriverLocation: $e');
-      return Left(Failure(message: 'No se pudo actualizar la ubicación del conductor.'));
+      return Left(Failure(code: FailureCode.locationUpdateFailed));
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/error/errors.dart';
 import 'package:flutter/material.dart';
 import '../../../driver_profile/domain/entity/driver_entity.dart';
 import '../../../driver_profile/domain/entity/vehicle_entity.dart';
@@ -19,7 +20,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileLoadRequested event,
     Emitter<ProfileState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+    emit(state.copyWith(isLoading: true, errorCode: null));
 
     final driverResult = await driverProfileRepository.getDriver(
       driverId: event.driverId,
@@ -30,7 +31,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(
         state.copyWith(
           isLoading: false,
-          errorMessage: 'No se pudo cargar tu información',
+          errorCode: FailureCode.profileLoadFailed,
         ),
       );
       return;

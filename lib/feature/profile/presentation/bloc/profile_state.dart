@@ -5,26 +5,26 @@ class ProfileState {
   final bool isLoading;
   final DriverEntity? driver;
   final VehicleEntity? vehicle;
-  final String? errorMessage;
+  final FailureCode? errorCode;
 
   const ProfileState({
     this.isLoading = false,
     this.driver,
     this.vehicle,
-    this.errorMessage,
+    this.errorCode,
   });
 
   ProfileState copyWith({
     bool? isLoading,
     DriverEntity? driver,
     VehicleEntity? vehicle,
-    String? errorMessage,
+    FailureCode? errorCode,
   }) {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,
       driver: driver ?? this.driver,
       vehicle: vehicle ?? this.vehicle,
-      errorMessage: errorMessage,
+      errorCode: errorCode,
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:async';
-
 import 'package:bloc/bloc.dart';
+import 'package:driver_app/core/l10n/app_language.dart';
 import 'package:driver_app/feature/driver_profile/domain/entity/driver_entity.dart';
 import 'package:driver_app/feature/driver_profile/domain/repository/driver_profile_repository.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/trip/domain/repository/trip_repository.dart';
+import 'package:driver_app/shared/feature/settings/domain/repository/settings_repository.dart';
 import 'package:flutter/material.dart';
 import '../../../../../domain/entity/user_entity.dart';
 import '../../../../../domain/repository/session_repository.dart';
@@ -19,6 +20,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   final TripRepository tripRepository;
   final DriverProfileRepository driverProfileRepository;
   final PushNotificationsService pushNotificationsService;
+  final SettingsRepository settingsRepository;
 
   StreamSubscription<String>? _tokenRefreshSub;
 
@@ -27,6 +29,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
     required this.tripRepository,
     required this.driverProfileRepository,
     required this.pushNotificationsService,
+    required this.settingsRepository,
   }) : super(SessionUnknown()) {
     on<SessionCheckRequested>(_onCheckRequested);
     on<SessionLogoutRequested>(_onLogoutRequested);
@@ -61,6 +64,24 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       return;
     }
 
+    // Se chequea ANTES de armar SessionAuthenticated: un conductor bloqueado
+    // o no aprobado no debe llegar a ninguna pantalla autenticada (Incoming
+    // Requests, perfil, admin, etc.), no solo a la de "ir online".
+    if (driver.isBlocked) {
+      emit(SessionBlocked(user: user, blockReason: driver.blockReason));
+      return;
+    }
+    if (driver.approvalStatus != 'approved') {
+      emit(
+        SessionPendingApproval(
+          user: user,
+          approvalStatus: driver.approvalStatus,
+          rejectionReason: driver.rejectionReason,
+        ),
+      );
+      return;
+    }
+
     final activeTripResult = await tripRepository.findActiveTripForDriver();
     final activeTrip = activeTripResult.fold((_) => null, (trip) => trip);
 
@@ -79,18 +100,33 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       await driverProfileRepository.updateFcmToken(
         driverId: driverId,
         token: token,
+        language: await _resolvePushLanguage(),
       );
     }
 
     await _tokenRefreshSub?.cancel();
     _tokenRefreshSub = pushNotificationsService.onTokenRefresh.listen((
       newToken,
-    ) {
+    ) async {
       driverProfileRepository.updateFcmToken(
         driverId: driverId,
         token: newToken,
+        // Se resuelve de nuevo (y no se reusa el de arriba) porque el refresh
+        // puede llegar mucho después, con el idioma ya cambiado en Ajustes.
+        language: await _resolvePushLanguage(),
       );
     });
+  }
+
+  // Idioma en el que el backend debe armarle los push a ESTE conductor.
+  // Se guarda ya resuelto ('es'/'en'): el server no puede resolver "seguir al
+  // dispositivo". Si la lectura falla se asume el default, que es justo lo
+  // que el server usa cuando el campo no está.
+  Future<String> _resolvePushLanguage() async {
+    final result = await settingsRepository.getLanguage();
+    final preference = result.fold((_) => AppLanguage.system, (value) => value);
+
+    return resolveSystemAppLocale(preference: preference).languageCode;
   }
 
   @override

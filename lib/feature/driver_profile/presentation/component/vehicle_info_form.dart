@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/presentation/component/custom_button.dart';
 import 'onboarding_step_header.dart';
 import 'onboarding_text_field.dart';
@@ -39,6 +40,7 @@ class VehicleInfoForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final currentYear = DateTime.now().year;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -52,38 +54,38 @@ class VehicleInfoForm extends StatelessWidget {
             OnboardingStepHeader(
               step: 2,
               totalSteps: 2,
-              title: 'Tu vehículo',
-              subtitle: 'Estos datos serán revisados por nuestro equipo.',
+              title: l10n.onboardingVehicleTitle,
+              subtitle: l10n.onboardingVehicleSubtitle,
             ),
             const SizedBox(height: 28),
             OnboardingTextField(
-              label: 'Placa',
+              label: l10n.vehiclePlate,
               controller: plateController,
               textCapitalization: TextCapitalization.characters,
               hintText: 'PBX-1234',
               inputFormatters: [UpperCaseTextFormatter()],
-              validator: (value) => _required(value, 'Ingresa la placa'),
+              validator: (value) => _required(value, l10n.validationPlate),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: OnboardingTextField(
-                    label: 'Marca',
+                    label: l10n.vehicleBrand,
                     controller: brandController,
                     textCapitalization: TextCapitalization.words,
                     hintText: 'Toyota',
-                    validator: (value) => _required(value, 'Requerido'),
+                    validator: (value) => _required(value, l10n.commonRequired),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OnboardingTextField(
-                    label: 'Modelo',
+                    label: l10n.vehicleModel,
                     controller: modelController,
                     textCapitalization: TextCapitalization.words,
                     hintText: 'Corolla',
-                    validator: (value) => _required(value, 'Requerido'),
+                    validator: (value) => _required(value, l10n.commonRequired),
                   ),
                 ),
               ],
@@ -93,7 +95,7 @@ class VehicleInfoForm extends StatelessWidget {
               children: [
                 Expanded(
                   child: OnboardingTextField(
-                    label: 'Año',
+                    label: l10n.vehicleYear,
                     controller: yearController,
                     keyboardType: TextInputType.number,
                     hintText: '$currentYear',
@@ -104,10 +106,10 @@ class VehicleInfoForm extends StatelessWidget {
                     validator: (value) {
                       final year = int.tryParse(value?.trim() ?? '');
                       if (year == null) {
-                        return 'Requerido';
+                        return l10n.commonRequired;
                       }
                       if (year < 1990 || year > currentYear + 1) {
-                        return 'Año inválido';
+                        return l10n.validationYearInvalid;
                       }
                       return null;
                     },
@@ -116,22 +118,23 @@ class VehicleInfoForm extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OnboardingTextField(
-                    label: 'Color',
+                    label: l10n.vehicleColor,
                     controller: colorController,
                     textCapitalization: TextCapitalization.words,
-                    hintText: 'Blanco',
-                    validator: (value) => _required(value, 'Requerido'),
+                    hintText: l10n.vehicleColorHint,
+                    validator: (value) => _required(value, l10n.commonRequired),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             OnboardingTextField(
-              label: 'Número de matrícula',
+              label: l10n.vehicleRegistrationNumber,
               controller: registrationNumberController,
               textCapitalization: TextCapitalization.characters,
               hintText: 'MAT-4567',
-              validator: (value) => _required(value, 'Ingresa el número de matrícula'),
+              validator:
+                  (value) => _required(value, l10n.validationRegistrationNumber),
             ),
             const SizedBox(height: 32),
             Row(
@@ -149,7 +152,7 @@ class VehicleInfoForm extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Atrás',
+                      l10n.commonBack,
                       style: TextStyle(
                         color: colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
@@ -161,7 +164,8 @@ class VehicleInfoForm extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: CustomButton(
-                    textButton: isSubmitting ? 'Guardando...' : 'Registrarme',
+                    textButton:
+                    isSubmitting ? l10n.onboardingSaving : l10n.onboardingSubmit,
                     backgroundColor: colorScheme.primary,
                     onTap: isSubmitting ? null : onSubmit,
                   ),

@@ -23,6 +23,7 @@ IncomingRequestEntity _request(String rideId, {String status = 'pending'}) {
     passenger: PassengerEntity(name: 'Pass $rideId', profileImage: ''),
     pickupLocation: PickupLocationEntity(
       address: 'Calle $rideId',
+      sector: 'Sector $rideId',
       latitude: 0,
       longitude: 0,
     ),
@@ -237,7 +238,7 @@ void main() {
             passengerId: any(named: 'passengerId'),
             driverLocation: any(named: 'driverLocation'),
           ),
-        ).thenAnswer((_) async => Left(Failure(message: 'ya fue tomada')));
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
       },
       build: buildBloc,
       seed: () => IncomingRequestLoaded(requests: [_request('1')]),
@@ -248,7 +249,11 @@ void main() {
         isA<IncomingRequestLoaded>().having((s) => s.acceptStatus, 'status', AcceptRideStatus.loading),
         isA<IncomingRequestLoaded>()
             .having((s) => s.acceptStatus, 'status', AcceptRideStatus.error)
-            .having((s) => s.acceptErrorMessage, 'errorMessage', 'ya fue tomada'),
+            .having(
+              (s) => s.acceptErrorCode,
+              'acceptErrorCode',
+              FailureCode.unexpected,
+            ),
       ],
     );
 

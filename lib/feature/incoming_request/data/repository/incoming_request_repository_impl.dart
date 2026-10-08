@@ -72,21 +72,18 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
       debugPrint('IncomingRequestDebug | Error en acceptRide: $e');
       if (e.response?.statusCode == 409) {
         return Left(
-          Failure(
-            message:
-                'La carrera ya fue tomada por otro conductor o ya no está disponible.',
-          ),
+          Failure(code: FailureCode.rideTaken),
         );
       }
       if (e.response?.statusCode == 404) {
         return Left(
-          Failure(message: 'La solicitud ya no está disponible.'),
+          Failure(code: FailureCode.rideUnavailable),
         );
       }
-      return Left(Failure(message: 'No se pudo aceptar la carrera.'));
+      return Left(Failure(code: FailureCode.rideAcceptFailed));
     } catch (e) {
       debugPrint('IncomingRequestDebug | Error inesperado en acceptRide: $e');
-      return Left(Failure(message: 'No se pudo aceptar la carrera.'));
+      return Left(Failure(code: FailureCode.rideAcceptFailed));
     }
   }
 }

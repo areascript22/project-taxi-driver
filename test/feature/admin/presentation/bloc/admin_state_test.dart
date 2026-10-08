@@ -1,8 +1,15 @@
+import 'package:driver_app/core/error/errors.dart';
 import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart';
 import 'package:driver_app/feature/admin/presentation/bloc/admin_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-AdminDriverEntity _driver(String uid, {String? firstName, String? role}) {
+AdminDriverEntity _driver(
+  String uid, {
+  String? firstName,
+  String? role,
+  String approvalStatus = 'approved',
+  bool isBlocked = false,
+}) {
   return AdminDriverEntity(
     uid: uid,
     firstName: firstName ?? 'First$uid',
@@ -10,29 +17,41 @@ AdminDriverEntity _driver(String uid, {String? firstName, String? role}) {
     email: '$uid@example.com',
     phoneNumber: '555-$uid',
     role: role ?? 'driver',
+    approvalStatus: approvalStatus,
+    isBlocked: isBlocked,
   );
 }
 
 void main() {
   group('AdminState.filteredDrivers', () {
-    test('returns all drivers when the search query is empty', () {
-      final state = AdminState(drivers: [_driver('1'), _driver('2')]);
+    test('without a search query, returns loadedDrivers as-is (browse mode)', () {
+      final state = AdminState(loadedDrivers: [_driver('1'), _driver('2')]);
 
-      expect(state.filteredDrivers, hasLength(2));
+      expect(state.filteredDrivers.map((d) => d.uid), ['1', '2']);
     });
 
-    test('filters by full name case-insensitively', () {
+    test('with a search query, filters over searchResults, not loadedDrivers', () {
       final state = AdminState(
-        drivers: [_driver('1', firstName: 'Ana'), _driver('2', firstName: 'Beto')],
+        loadedDrivers: [_driver('1', firstName: 'Ana')],
+        searchResults: [_driver('1', firstName: 'Ana'), _driver('2', firstName: 'Beto')],
         searchQuery: 'ana',
       );
 
       expect(state.filteredDrivers.map((d) => d.uid), ['1']);
     });
 
+    test('with a search query but no searchResults loaded yet, returns empty', () {
+      final state = AdminState(
+        loadedDrivers: [_driver('1', firstName: 'Ana')],
+        searchQuery: 'ana',
+      );
+
+      expect(state.filteredDrivers, isEmpty);
+    });
+
     test('filters by email', () {
       final state = AdminState(
-        drivers: [_driver('1'), _driver('2')],
+        searchResults: [_driver('1'), _driver('2')],
         searchQuery: '2@example.com',
       );
 
@@ -41,7 +60,7 @@ void main() {
 
     test('filters by phone number', () {
       final state = AdminState(
-        drivers: [_driver('1'), _driver('2')],
+        searchResults: [_driver('1'), _driver('2')],
         searchQuery: '555-1',
       );
 
@@ -50,7 +69,7 @@ void main() {
 
     test('trims whitespace around the query', () {
       final state = AdminState(
-        drivers: [_driver('1', firstName: 'Ana')],
+        searchResults: [_driver('1', firstName: 'Ana')],
         searchQuery: '  ana  ',
       );
 
@@ -59,7 +78,7 @@ void main() {
 
     test('returns an empty list when nothing matches', () {
       final state = AdminState(
-        drivers: [_driver('1')],
+        searchResults: [_driver('1')],
         searchQuery: 'nadie-coincide',
       );
 
@@ -67,17 +86,104 @@ void main() {
     });
   });
 
+  group('AdminState.statusFilter', () {
+    test('isFiltering is true when a non-"all" pill is active, even without search text', () {
+      const state = AdminState(statusFilter: AdminStatusFilter.pending);
+      expect(state.isFiltering, isTrue);
+    });
+
+    test('pending shows only pending drivers', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchResults: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'approved'),
+          _driver('3', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('rejected shows only rejected drivers', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.rejected,
+        searchResults: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['2']);
+    });
+
+    test('active shows only approved drivers that are not blocked', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.active,
+        searchResults: [
+          _driver('1', approvalStatus: 'approved'),
+          _driver('2', approvalStatus: 'approved', isBlocked: true),
+          _driver('3', approvalStatus: 'pending'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('blocked shows only blocked drivers -- pending/rejected never match', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.blocked,
+        searchResults: [
+          _driver('1', approvalStatus: 'approved', isBlocked: true),
+          _driver('2', approvalStatus: 'approved'),
+          _driver('3', approvalStatus: 'pending'),
+          _driver('4', approvalStatus: 'rejected'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+
+    test('all ignores status entirely -- only the search text (if any) applies', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.all,
+        loadedDrivers: [
+          _driver('1', approvalStatus: 'pending'),
+          _driver('2', approvalStatus: 'approved', isBlocked: true),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1', '2']);
+    });
+
+    test('combines search text AND the active status pill', () {
+      final state = AdminState(
+        statusFilter: AdminStatusFilter.pending,
+        searchQuery: 'ana',
+        searchResults: [
+          _driver('1', firstName: 'Ana', approvalStatus: 'pending'),
+          _driver('2', firstName: 'Ana', approvalStatus: 'approved'),
+          _driver('3', firstName: 'Beto', approvalStatus: 'pending'),
+        ],
+      );
+      expect(state.filteredDrivers.map((d) => d.uid), ['1']);
+    });
+  });
+
   group('AdminState.totalPages / pageDrivers', () {
     test('totalPages is 1 even with zero drivers', () {
-      const state = AdminState(drivers: []);
+      const state = AdminState(loadedDrivers: [], hasMore: false);
 
       expect(state.totalPages, 1);
       expect(state.pageDrivers, isEmpty);
     });
 
-    test('totalPages accounts for the page size of 10', () {
+    test('totalPages is null (unknown) in browse mode while hasMore is true', () {
+      final drivers = List.generate(10, (i) => _driver('$i'));
+      final state = AdminState(loadedDrivers: drivers, hasMore: true);
+
+      expect(state.totalPages, isNull);
+      expect(state.pageDrivers, hasLength(10));
+    });
+
+    test('totalPages is known once browse mode has no more pages left', () {
       final drivers = List.generate(25, (i) => _driver('$i'));
-      final state = AdminState(drivers: drivers);
+      final state = AdminState(loadedDrivers: drivers, hasMore: false);
 
       expect(state.totalPages, 3);
       expect(state.pageDrivers, hasLength(10));
@@ -85,7 +191,7 @@ void main() {
 
     test('pageDrivers returns the correct slice for a middle page', () {
       final drivers = List.generate(25, (i) => _driver('$i'));
-      final state = AdminState(drivers: drivers, currentPage: 1);
+      final state = AdminState(loadedDrivers: drivers, hasMore: false, currentPage: 1);
 
       expect(state.pageDrivers.first.uid, '10');
       expect(state.pageDrivers.last.uid, '19');
@@ -93,42 +199,86 @@ void main() {
 
     test('pageDrivers returns the remainder on the last (partial) page', () {
       final drivers = List.generate(25, (i) => _driver('$i'));
-      final state = AdminState(drivers: drivers, currentPage: 2);
+      final state = AdminState(loadedDrivers: drivers, hasMore: false, currentPage: 2);
 
       expect(state.pageDrivers, hasLength(5));
     });
 
     test('pageDrivers is empty when currentPage is beyond available data', () {
       final drivers = List.generate(5, (i) => _driver('$i'));
-      final state = AdminState(drivers: drivers, currentPage: 5);
+      final state = AdminState(loadedDrivers: drivers, hasMore: false, currentPage: 5);
 
       expect(state.pageDrivers, isEmpty);
     });
 
-    test('totalPages reflects the filtered count, not the raw count', () {
-      final drivers = List.generate(15, (i) => _driver('$i', firstName: i == 0 ? 'Unico' : 'Otro'));
-      final state = AdminState(drivers: drivers, searchQuery: 'Unico');
+    test('in search mode, totalPages is always known (everything is already loaded)', () {
+      final drivers = List.generate(
+        15,
+        (i) => _driver('$i', firstName: i == 0 ? 'Unico' : 'Otro'),
+      );
+      final state = AdminState(searchResults: drivers, searchQuery: 'Unico');
 
       expect(state.totalPages, 1);
       expect(state.pageDrivers, hasLength(1));
     });
   });
 
-  group('AdminState.copyWith', () {
-    test('clearError resets errorMessage to null regardless of value passed', () {
-      const state = AdminState(errorMessage: 'boom');
-
-      final result = state.copyWith(clearError: true, errorMessage: 'ignored');
-
-      expect(result.errorMessage, isNull);
+  group('AdminState.canGoNext / canGoPrevious', () {
+    test('canGoPrevious is false on the first page', () {
+      const state = AdminState(currentPage: 0);
+      expect(state.canGoPrevious, isFalse);
     });
 
-    test('without clearError, errorMessage falls back to the previous value', () {
-      const state = AdminState(errorMessage: 'boom');
+    test('canGoPrevious is true past the first page', () {
+      const state = AdminState(currentPage: 1);
+      expect(state.canGoPrevious, isTrue);
+    });
+
+    test('canGoNext is true when the next page is already cached', () {
+      final drivers = List.generate(20, (i) => _driver('$i'));
+      final state = AdminState(loadedDrivers: drivers, hasMore: false, currentPage: 0);
+      expect(state.canGoNext, isTrue);
+    });
+
+    test('canGoNext is true in browse mode when hasMore is true, even without a cached next page', () {
+      final drivers = List.generate(10, (i) => _driver('$i'));
+      final state = AdminState(loadedDrivers: drivers, hasMore: true, currentPage: 0);
+      expect(state.canGoNext, isTrue);
+    });
+
+    test('canGoNext is false in browse mode once hasMore is false and nothing cached ahead', () {
+      final drivers = List.generate(10, (i) => _driver('$i'));
+      final state = AdminState(loadedDrivers: drivers, hasMore: false, currentPage: 0);
+      expect(state.canGoNext, isFalse);
+    });
+
+    test('canGoNext ignores hasMore while searching (everything is already loaded)', () {
+      final drivers = List.generate(10, (i) => _driver('$i'));
+      final state = AdminState(
+        searchResults: drivers,
+        searchQuery: 'x',
+        hasMore: true,
+        currentPage: 0,
+      );
+      expect(state.canGoNext, isFalse);
+    });
+  });
+
+  group('AdminState.copyWith', () {
+    test('clearError resets errorCode to null regardless of value passed', () {
+      const state = AdminState(errorCode: FailureCode.unexpected);
+
+      final result = state.copyWith(clearError: true, errorCode: FailureCode.unexpected);
+
+      expect(result.errorCode, isNull);
+    });
+
+    test('without clearError, errorCode falls back to the previous value', () {
+      const state = AdminState(errorCode: FailureCode.unexpected);
 
       final result = state.copyWith(isLoading: true);
 
-      expect(result.errorMessage, 'boom');
+      expect(result.errorCode, FailureCode.unexpected);
     });
 
     test('clearActionUid resets actionUid to null', () {
@@ -139,13 +289,36 @@ void main() {
       expect(result.actionUid, isNull);
     });
 
+    test('clearNextCursor resets nextCursor to null regardless of value passed', () {
+      const state = AdminState(nextCursor: 'cursor-1');
+
+      final result = state.copyWith(clearNextCursor: true, nextCursor: 'ignored');
+
+      expect(result.nextCursor, isNull);
+    });
+
+    test('clearSearchResults resets searchResults to null', () {
+      final state = AdminState(searchResults: [_driver('1')]);
+
+      final result = state.copyWith(clearSearchResults: true);
+
+      expect(result.searchResults, isNull);
+    });
+
     test('preserves fields that are not overridden', () {
-      final state = AdminState(drivers: [_driver('1')], currentPage: 2);
+      final state = AdminState(
+        loadedDrivers: [_driver('1')],
+        currentPage: 2,
+        nextCursor: 'cursor-1',
+        hasMore: true,
+      );
 
       final result = state.copyWith(isLoading: true);
 
-      expect(result.drivers, state.drivers);
+      expect(result.loadedDrivers, state.loadedDrivers);
       expect(result.currentPage, 2);
+      expect(result.nextCursor, 'cursor-1');
+      expect(result.hasMore, isTrue);
     });
   });
 }

@@ -2,11 +2,11 @@ import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart'
 import 'package:driver_app/feature/admin/presentation/screen/admin_screen.dart';
 import 'package:driver_app/feature/admin/presentation/screen/driver_detail_screen.dart';
 import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
+import 'package:driver_app/feature/driver_profile/domain/entity/vehicle_entity.dart';
 import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen.dart';
 import 'package:driver_app/feature/incoming_request/presentation/screen/incoming_request_screen2.dart';
-import 'package:driver_app/feature/driver_profile/domain/entity/vehicle_entity.dart';
 import 'package:driver_app/feature/profile/presentation/screen/vehicle_info_screen.dart';
 import 'package:driver_app/feature/trip/presentation/screen/trip_screen.dart';
 import 'package:driver_app/shared/domain/entity/user_entity.dart';

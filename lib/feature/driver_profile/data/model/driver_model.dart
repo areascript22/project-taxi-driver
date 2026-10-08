@@ -12,6 +12,10 @@ class DriverModel {
   final String vehicleId;
   final double rating;
   final String role;
+  final String approvalStatus;
+  final bool isBlocked;
+  final String? blockReason;
+  final String? rejectionReason;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -26,6 +30,10 @@ class DriverModel {
     required this.vehicleId,
     required this.rating,
     this.role = 'driver',
+    this.approvalStatus = 'pending',
+    this.isBlocked = false,
+    this.blockReason,
+    this.rejectionReason,
     this.createdAt,
     this.updatedAt,
   });
@@ -42,6 +50,13 @@ class DriverModel {
       vehicleId: json['vehicleId'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
       role: json['role'] as String? ?? 'driver',
+      // Conductores creados antes de introducir este campo no lo tienen en
+      // Firestore -- se tratan como aprobados (ver backfill en el server)
+      // en vez de dejarlos bloqueados por default.
+      approvalStatus: json['approvalStatus'] as String? ?? 'approved',
+      isBlocked: json['isBlocked'] as bool? ?? false,
+      blockReason: json['blockReason'] as String?,
+      rejectionReason: json['rejectionReason'] as String?,
       createdAt: (json['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (json['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -59,11 +74,16 @@ class DriverModel {
       vehicleId: entity.vehicleId,
       rating: entity.rating,
       role: entity.role,
+      approvalStatus: entity.approvalStatus,
+      isBlocked: entity.isBlocked,
     );
   }
 
   // No incluye id/createdAt/updatedAt: el id es el nombre del documento y
   // las marcas de tiempo las agrega el repositorio con FieldValue.serverTimestamp().
+  // approvalStatus/isBlocked sí se incluyen explícitamente al crear (siempre
+  // 'pending'/false para un registro nuevo) -- las reglas de Firestore
+  // exigen que un conductor no pueda nacer ya aprobado o desbloqueado.
   Map<String, dynamic> toJson() {
     return {
       'firstName': firstName,
@@ -75,6 +95,8 @@ class DriverModel {
       'vehicleId': vehicleId,
       'rating': rating,
       'role': role,
+      'approvalStatus': approvalStatus,
+      'isBlocked': isBlocked,
     };
   }
 
@@ -90,6 +112,10 @@ class DriverModel {
       vehicleId: vehicleId,
       rating: rating,
       role: role,
+      approvalStatus: approvalStatus,
+      isBlocked: isBlocked,
+      blockReason: blockReason,
+      rejectionReason: rejectionReason,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
