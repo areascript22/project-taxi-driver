@@ -107,9 +107,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signInGoogle => 'Continuar con Google';
 
   @override
-  String get splashVersionLabel => 'Versión 1.0.0';
-
-  @override
   String get logoutDialogBody => '¿Estás seguro de que deseas cerrar sesión?';
 
   @override

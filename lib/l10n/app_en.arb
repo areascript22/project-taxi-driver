@@ -36,7 +36,6 @@
   "brandRoleLabel": "Driver",
   "signInTagline": "Sign in to start driving",
   "signInGoogle": "Continue with Google",
-  "splashVersionLabel": "Version 1.0.0",
   "logoutDialogBody": "Are you sure you want to sign out?",
   "profileDriverNotFound": "Driver information not found",
   "profileFallbackName": "Driver",

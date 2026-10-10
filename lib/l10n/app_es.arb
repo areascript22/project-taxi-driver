@@ -125,7 +125,7 @@
   },
   "brandRoleLabel": "Conductor",
   "@brandRoleLabel": {
-    "description": "Subtítulo bajo el nombre de la marca en splash y login. 'TaxiGo' NO se traduce (es nombre propio), esto sí"
+    "description": "Subtítulo bajo el nombre de la marca en el login. 'TaxiGo' NO se traduce (es nombre propio), esto sí"
   },
   "signInTagline": "Inicia sesión para comenzar a conducir",
   "@signInTagline": {
@@ -134,10 +134,6 @@
   "signInGoogle": "Continuar con Google",
   "@signInGoogle": {
     "description": "Botón de login con Google"
-  },
-  "splashVersionLabel": "Versión 1.0.0",
-  "@splashVersionLabel": {
-    "description": "Versión al pie del splash. OJO: el número está hardcodeado y quedó desfasado del pubspec (1.0.6+18); se migra tal cual para no cambiar comportamiento"
   },
   "logoutDialogBody": "¿Estás seguro de que deseas cerrar sesión?",
   "@logoutDialogBody": {

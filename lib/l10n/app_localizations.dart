@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// **'Error al obtener la versión'**
   String get appVersionError;
 
-  /// Subtítulo bajo el nombre de la marca en splash y login. 'TaxiGo' NO se traduce (es nombre propio), esto sí
+  /// Subtítulo bajo el nombre de la marca en el login. 'TaxiGo' NO se traduce (es nombre propio), esto sí
   ///
   /// In es, this message translates to:
   /// **'Conductor'**
@@ -286,12 +286,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Continuar con Google'**
   String get signInGoogle;
-
-  /// Versión al pie del splash. OJO: el número está hardcodeado y quedó desfasado del pubspec (1.0.6+18); se migra tal cual para no cambiar comportamiento
-  ///
-  /// In es, this message translates to:
-  /// **'Versión 1.0.0'**
-  String get splashVersionLabel;
 
   /// Cuerpo del diálogo de confirmación de cierre de sesión
   ///
