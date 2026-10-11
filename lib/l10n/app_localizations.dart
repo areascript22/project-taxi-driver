@@ -1223,6 +1223,24 @@ abstract class AppLocalizations {
   /// **'No se pudo actualizar la ubicación del conductor.'**
   String get failureLocationUpdateFailed;
 
+  /// Mensaje de error para FailureCode.onlineNotAllowed: el servidor rechazó ponerse en línea (conductor no aprobado o bloqueado)
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta todavía no está habilitada para recibir carreras.'**
+  String get failureOnlineNotAllowed;
+
+  /// Mensaje de error para FailureCode.onlineFailed: falló el cambio del interruptor en línea / fuera de línea
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cambiar tu estado. Intenta de nuevo.'**
+  String get failureOnlineFailed;
+
+  /// Mensaje de error para FailureCode.driverProfileNotReady: el servidor aún no tiene el perfil del conductor
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil de conductor todavía no está listo. Intenta de nuevo en un momento.'**
+  String get failureDriverProfileNotReady;
+
   /// Mensaje de error para FailureCode.rideTaken
   ///
   /// In es, this message translates to:

@@ -157,29 +157,4 @@ class TripRepositoryImpl implements TripRepository {
       );
     }
   }
-
-  @override
-  Future<Either<Failure, Unit>> updateDriverLocation({
-    required String passengerId,
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      debugPrint(
-        'TripDebug | updateDriverLocation -> escribiendo ($latitude, $longitude) '
-        'en taxi_requests/$passengerId/driver/location',
-      );
-      await FirebaseDatabase.instance
-          .ref('taxi_requests/$passengerId/driver/location')
-          .update({
-            'latitude': latitude,
-            'longitude': longitude,
-            'updatedAt': ServerValue.timestamp,
-          });
-      return const Right(unit);
-    } catch (e) {
-      debugPrint('TripDebug | Error en updateDriverLocation: $e');
-      return Left(Failure(code: FailureCode.locationUpdateFailed));
-    }
-  }
 }

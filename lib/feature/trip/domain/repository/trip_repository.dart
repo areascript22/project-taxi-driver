@@ -23,13 +23,9 @@ abstract class TripRepository {
   Future<Either<Failure, Unit>> markDriverArrived({required String passengerId});
 
   // El viaje llegó a su destino y finalizó.
+  //
+  // La ubicación del conductor durante el viaje ya no se reporta por acá: la
+  // manda el foreground service al servidor (DriverPresenceRepository), que la
+  // publica en el nodo del viaje.
   Future<Either<Failure, Unit>> completeTrip({required String passengerId});
-
-  // Reporta la posición actual del conductor mientras el viaje está activo.
-  // La escribe el foreground service cada 5 segundos.
-  Future<Either<Failure, Unit>> updateDriverLocation({
-    required String passengerId,
-    required double latitude,
-    required double longitude,
-  });
 }

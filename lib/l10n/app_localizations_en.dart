@@ -589,6 +589,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failureLocationUpdateFailed => 'Your location could not be updated.';
 
   @override
+  String get failureOnlineNotAllowed => 'Your account is not yet enabled to receive rides.';
+
+  @override
+  String get failureOnlineFailed => 'Could not change your status. Try again.';
+
+  @override
+  String get failureDriverProfileNotReady => 'Your driver profile is not ready yet. Try again in a moment.';
+
+  @override
   String get failureRideTaken => 'The ride was already taken by another driver or is no longer available.';
 
   @override

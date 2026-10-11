@@ -589,6 +589,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureLocationUpdateFailed => 'No se pudo actualizar la ubicación del conductor.';
 
   @override
+  String get failureOnlineNotAllowed => 'Tu cuenta todavía no está habilitada para recibir carreras.';
+
+  @override
+  String get failureOnlineFailed => 'No se pudo cambiar tu estado. Intenta de nuevo.';
+
+  @override
+  String get failureDriverProfileNotReady => 'Tu perfil de conductor todavía no está listo. Intenta de nuevo en un momento.';
+
+  @override
   String get failureRideTaken => 'La carrera ya fue tomada por otro conductor o ya no está disponible.';
 
   @override

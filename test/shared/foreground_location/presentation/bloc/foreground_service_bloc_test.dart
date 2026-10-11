@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:driver_app/core/error/errors.dart';
 import 'package:driver_app/shared/battery_optimization/service/battery_optimization_service.dart';
+import 'package:driver_app/shared/presence/domain/repository/driver_presence_repository.dart';
 import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
 import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
 import 'package:fake_async/fake_async.dart';
@@ -14,20 +15,30 @@ class MockDriverForegroundService extends Mock
 class MockBatteryOptimizationService extends Mock
     implements BatteryOptimizationService {}
 
+class MockDriverPresenceRepository extends Mock
+    implements DriverPresenceRepository {}
+
 void main() {
   late MockDriverForegroundService foregroundService;
   late MockBatteryOptimizationService batteryService;
+  late MockDriverPresenceRepository presenceRepository;
 
   setUp(() {
     foregroundService = MockDriverForegroundService();
     batteryService = MockBatteryOptimizationService();
+    presenceRepository = MockDriverPresenceRepository();
     when(() => foregroundService.start()).thenAnswer((_) async {});
     when(() => foregroundService.stop()).thenAnswer((_) async {});
+    // Por defecto el servidor acepta el cambio de estado.
+    when(
+      () => presenceRepository.setOnline(online: any(named: 'online')),
+    ).thenAnswer((_) async => const Right(unit));
   });
 
   ForegroundServiceBloc buildBloc() => ForegroundServiceBloc(
     driverForegroundService: foregroundService,
     batteryOptimizationService: batteryService,
+    driverPresenceRepository: presenceRepository,
   );
 
   test('initial state is off, unprocessed and status not yet loaded', () {
@@ -94,6 +105,42 @@ void main() {
         verifyNever(() => batteryService.isIgnoringBatteryOptimizations());
       },
     );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'tells the server the driver is offline before stopping the service',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isRunning: true, hasLoadedStatus: true),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      verify: (_) {
+        verifyInOrder([
+          () => presenceRepository.setOnline(online: false),
+          () => foregroundService.stop(),
+        ]);
+      },
+    );
+
+    // Apagar nunca se bloquea por la red: si el servidor no se entera, la
+    // ubicación deja de llegar y por frescura sale solo del despacho.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'still stops the service when the server cannot be told',
+      setUp: () {
+        when(
+          () => presenceRepository.setOnline(online: false),
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.onlineFailed)));
+      },
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isRunning: true, hasLoadedStatus: true),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.isProcessing),
+        predicate<ForegroundServiceState>(
+          (s) => !s.isRunning && !s.isProcessing && s.errorCode == null,
+        ),
+      ],
+      verify: (_) {
+        verify(() => foregroundService.stop()).called(1);
+      },
+    );
   });
 
   group('ForegroundServiceToggled (turning on)', () {
@@ -114,6 +161,66 @@ void main() {
       verify: (_) {
         verify(() => foregroundService.start()).called(1);
       },
+    );
+
+    // El servidor decide si puede estar en línea: se le pregunta ANTES de
+    // arrancar el servicio.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'asks the server first and only then starts the service',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isBatteryOptimizationIgnored: true),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      verify: (_) {
+        verifyInOrder([
+          () => presenceRepository.setOnline(online: true),
+          () => foregroundService.start(),
+        ]);
+      },
+    );
+
+    for (final code in [
+      FailureCode.onlineNotAllowed,
+      FailureCode.driverProfileNotReady,
+      FailureCode.onlineFailed,
+    ]) {
+      blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+        'does not start the service and reports $code when the server rejects going online',
+        setUp: () {
+          when(
+            () => presenceRepository.setOnline(online: true),
+          ).thenAnswer((_) async => Left(Failure(code: code)));
+        },
+        build: buildBloc,
+        seed: () => const ForegroundServiceState(isBatteryOptimizationIgnored: true),
+        act: (bloc) => bloc.add(ForegroundServiceToggled()),
+        expect: () => [
+          predicate<ForegroundServiceState>((s) => s.isProcessing),
+          predicate<ForegroundServiceState>(
+            (s) =>
+                !s.isRunning &&
+                !s.isProcessing &&
+                s.hasLoadedStatus &&
+                s.errorCode == code,
+          ),
+        ],
+        verify: (_) {
+          verifyNever(() => foregroundService.start());
+        },
+      );
+    }
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'clears a previous error on the next state change',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(
+        isBatteryOptimizationIgnored: true,
+        errorCode: FailureCode.onlineNotAllowed,
+      ),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.isProcessing && s.errorCode == null),
+        predicate<ForegroundServiceState>((s) => s.isRunning && s.errorCode == null),
+      ],
     );
 
     blocTest<ForegroundServiceBloc, ForegroundServiceState>(

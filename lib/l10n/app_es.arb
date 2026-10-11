@@ -800,6 +800,18 @@
   "@failureLocationUpdateFailed": {
     "description": "Mensaje de error para FailureCode.locationUpdateFailed"
   },
+  "failureOnlineNotAllowed": "Tu cuenta todavía no está habilitada para recibir carreras.",
+  "@failureOnlineNotAllowed": {
+    "description": "Mensaje de error para FailureCode.onlineNotAllowed: el servidor rechazó ponerse en línea (conductor no aprobado o bloqueado)"
+  },
+  "failureOnlineFailed": "No se pudo cambiar tu estado. Intenta de nuevo.",
+  "@failureOnlineFailed": {
+    "description": "Mensaje de error para FailureCode.onlineFailed: falló el cambio del interruptor en línea / fuera de línea"
+  },
+  "failureDriverProfileNotReady": "Tu perfil de conductor todavía no está listo. Intenta de nuevo en un momento.",
+  "@failureDriverProfileNotReady": {
+    "description": "Mensaje de error para FailureCode.driverProfileNotReady: el servidor aún no tiene el perfil del conductor"
+  },
   "failureRideTaken": "La carrera ya fue tomada por otro conductor o ya no está disponible.",
   "@failureRideTaken": {
     "description": "Mensaje de error para FailureCode.rideTaken"

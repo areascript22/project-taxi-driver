@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../domain/entity/driver_entity.dart';
 import '../../domain/entity/vehicle_entity.dart';
 import '../../domain/repository/driver_profile_repository.dart';
@@ -11,8 +13,16 @@ import '../model/driver_model.dart';
 import '../model/vehicle_model.dart';
 
 class DriverProfileRepositoryImpl implements DriverProfileRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  /// [dio] es inyectable para poder probar sin red; sin el se usa DioClient.instance.
+  DriverProfileRepositoryImpl({Dio? dio}) : _injectedDio = dio;
+
+  final Dio? _injectedDio;
+
+  // Lazy a proposito: ninguno de los tres se materializa hasta que se usa, asi
+  // el repositorio se puede construir (y probar) sin Firebase inicializado.
+  late final Dio _dio = _injectedDio ?? DioClient.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseStorage _storage = FirebaseStorage.instance;
 
   static const String _driversCollection = 'drivers';
   static const String _vehiclesCollection = 'vehicles';
@@ -119,6 +129,11 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     }
   }
 
+  // El token de notificaciones y el idioma ya no se escriben directo en
+  // Firestore: van al servidor (PUT /api/me/device), que sabe de que persona
+  // y de que app son por el token de sesion. `driverId` se conserva en la
+  // firma por compatibilidad con los llamadores, pero el servidor NO lo usa:
+  // la identidad sale siempre del token.
   @override
   Future<Either<Failure, Unit>> updateFcmToken({
     required String driverId,
@@ -126,10 +141,10 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     required String language,
   }) async {
     try {
-      await _firestore.collection(_driversCollection).doc(driverId).update({
-        'fcmToken': token,
-        'language': language,
-      });
+      await _dio.put(
+        '/api/me/device',
+        data: {'app': 'driver', 'fcmToken': token, 'language': language},
+      );
       return const Right(unit);
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateFcmToken: $e');
@@ -145,9 +160,10 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     required String language,
   }) async {
     try {
-      await _firestore.collection(_driversCollection).doc(driverId).update({
-        'language': language,
-      });
+      await _dio.put(
+        '/api/me/device',
+        data: {'app': 'driver', 'language': language},
+      );
       return const Right(unit);
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateLanguage: $e');

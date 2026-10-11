@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
@@ -8,51 +9,74 @@ import '../../../../shared/domain/entity/user_location.dart';
 import '../../domain/entity/incoming_request_entity.dart';
 import '../../domain/repository/incoming_request_repository.dart';
 
+/// Las carreras que el conductor puede aceptar salen de SU bandeja de ofertas,
+/// `driver_offers/{uid}`, que escribe el servidor.
+///
+/// Antes escuchaba todo `taxi_requests` y veia los pedidos de cualquier
+/// pasajero, estuvieran a 5 m o a 20 km. Ahora el despacho por cercania le
+/// deja en su bandeja solo los que le tocan, y las reglas de la base le
+/// permiten leer unicamente su propia rama.
 class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
-  final Dio _dio = DioClient.instance;
+  /// [offersQuery] y [dio] son inyectables para probar sin Firebase real. Por
+  /// defecto: la bandeja del usuario autenticado y DioClient.instance.
+  IncomingRequestRepositoryImpl({Query? offersQuery, Dio? dio})
+    : _injectedOffers = offersQuery,
+      _injectedDio = dio;
 
-  final Query _pendingRequestsQuery = FirebaseDatabase.instance
-      .ref('taxi_requests')
-      .orderByChild('status')
-      .equalTo('pending');
+  final Query? _injectedOffers;
+  final Dio? _injectedDio;
+
+  late final Dio _dio = _injectedDio ?? DioClient.instance;
+
+  // null si no hay sesion: sin usuario no hay bandeja que escuchar.
+  Query? get _offers {
+    if (_injectedOffers != null) return _injectedOffers;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+    return FirebaseDatabase.instance.ref('driver_offers/$uid');
+  }
 
   @override
   Stream<IncomingRequestEntity> get onRequestAdded {
-    return _pendingRequestsQuery.onChildAdded.map((event) {
-      final data = event.snapshot.value as Map<dynamic, dynamic>;
-      return IncomingRequestEntity.fromMap(data);
-    });
+    final offers = _offers;
+    if (offers == null) return const Stream.empty();
+    return offers.onChildAdded
+        .map((event) => _asMap(event.snapshot.value))
+        .where((data) => data != null && !IncomingRequestEntity.isOfferExpired(data))
+        .map((data) => IncomingRequestEntity.fromOffer(data!));
   }
 
   @override
   Stream<IncomingRequestEntity> get onRequestChanged {
-    return _pendingRequestsQuery.onChildChanged.map((event) {
-      final data = event.snapshot.value as Map<dynamic, dynamic>;
-      return IncomingRequestEntity.fromMap(data);
-    });
+    final offers = _offers;
+    if (offers == null) return const Stream.empty();
+    return offers.onChildChanged
+        .map((event) => _asMap(event.snapshot.value))
+        .where((data) => data != null && !IncomingRequestEntity.isOfferExpired(data))
+        .map((data) => IncomingRequestEntity.fromOffer(data!));
   }
 
   @override
   Stream<String> get onRequestRemoved {
-    return _pendingRequestsQuery.onChildRemoved.map((event) {
-      // En Firebase, onChildRemoved devuelve el snapshot con la data original
-      // antes de que fuera eliminada o dejara de coincidir con el query.
-      final data = event.snapshot.value as Map<dynamic, dynamic>?;
-
-      // Extraemos el rideId exacto directamente del objeto
+    final offers = _offers;
+    if (offers == null) return const Stream.empty();
+    return offers.onChildRemoved.map((event) {
+      // onChildRemoved entrega el snapshot con los datos originales.
+      final data = _asMap(event.snapshot.value);
       if (data != null && data.containsKey('rideId')) {
         return data['rideId'].toString();
       }
-
-      // Fallback por seguridad
       return event.snapshot.key ?? '';
     });
   }
 
-  // La transacción de asignación (evitar que dos conductores se queden con
-  // la misma carrera) ya no vive acá: corre en el backend (RideService),
-  // que además deriva la identidad del conductor del token de Firebase
-  // verificado en vez de confiar en lo que mande el cliente.
+  static Map<dynamic, dynamic>? _asMap(Object? value) {
+    return value is Map ? Map<dynamic, dynamic>.from(value) : null;
+  }
+
+  // La transaccion de asignacion (evitar que dos conductores se queden con
+  // la misma carrera) corre en el backend, que ademas deriva la identidad del
+  // conductor del token verificado y comprueba que la carrera le fue ofrecida.
   @override
   Future<Either<Failure, bool>> acceptRide({
     required String passengerId,
@@ -75,6 +99,8 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
           Failure(code: FailureCode.rideTaken),
         );
       }
+      // 404: la carrera ya no existe. (403 -- no aprobado, bloqueado o no
+      // ofrecida -- cae en el mensaje generico de abajo.)
       if (e.response?.statusCode == 404) {
         return Left(
           Failure(code: FailureCode.rideUnavailable),

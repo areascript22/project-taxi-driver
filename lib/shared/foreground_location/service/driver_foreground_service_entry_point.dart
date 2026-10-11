@@ -1,29 +1,30 @@
-  import 'dart:async';
+import 'dart:async';
 import 'dart:ui';
 import 'package:driver_app/shared/l10n/isolate_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../feature/incoming_request/domain/entity/incoming_request_entity.dart';
-import '../../../feature/trip/data/repository/trip_repository_impl.dart';
-import '../../../feature/trip/domain/repository/trip_repository.dart';
 import '../../domain/entity/user_location.dart';
 import '../../feature/settings/data/repository/settings_repository_impl.dart';
 import '../../feedback/feedback_service.dart';
 import '../../feedback/feedback_service_impl.dart';
 import '../../geolocator/service/geolocator/geolocator_service.dart';
 import '../../geolocator/service/geolocator/geolocator_service_impl.dart';
+import '../../presence/data/repository/driver_presence_repository_impl.dart';
+import '../../presence/domain/repository/driver_presence_repository.dart';
 import '../../utils/pickup_label.dart';
 import '../../vibration/service/vibration_service_impl.dart';
 import '../../voice/service/voice_service_impl.dart';
+import '../domain/location_report_policy.dart';
 
+// Cada cuanto se LEE el GPS. Que ese valor se envie o no al servidor lo decide
+// LocationReportPolicy (movimiento minimo o "latido").
 const _trackingInterval = Duration(seconds: 5);
-// El GPS de celular tiene ruido de varios metros incluso parado -- sin este
-// piso, cada tick de 5s reescribiría Firebase aunque el conductor no se
-// haya movido, generando tráfico/costos innecesarios.
-const _minMovementMeters = 5.0;
+const _reportPolicy = LocationReportPolicy();
 
 // Punto de entrada del isolate en el que corre el foreground service.
 //
@@ -34,6 +35,12 @@ const _minMovementMeters = 5.0;
 // necesita (reporte de ubicación + alerta de nuevas carreras) -- mantiene la
 // dependencia mínima y evita arrastrar aquí DI de features (auth, etc.) que
 // no tienen nada que ver con esto.
+//
+// Mientras el servicio vive el conductor está "online", y el servicio hace dos
+// cosas, ambas hacia/desde el SERVIDOR (la app no escribe en Firebase):
+//   1. Reporta la ubicación. Sin carrera, el servidor la usa para el despacho;
+//      con carrera (passengerId) la publica para el mapa del pasajero.
+//   2. Escucha SU bandeja de ofertas y avisa por voz/vibración.
 @pragma('vm:entry-point')
 void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   debugPrint('ForegroundLocationDebug | Entry point del isolate arrancando...');
@@ -42,7 +49,8 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   debugPrint('ForegroundLocationDebug | Firebase.initializeApp() completado en el isolate');
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
-  final TripRepository tripRepository = TripRepositoryImpl();
+  final DriverPresenceRepository presenceRepository =
+      DriverPresenceRepositoryImpl();
   final settingsRepository = SettingsRepositoryImpl();
   final FeedbackService feedbackService = FeedbackServiceImpl(
     settingsRepository: settingsRepository,
@@ -51,18 +59,21 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   );
 
   Timer? locationTimer;
-  StreamSubscription<DatabaseEvent>? newRequestAddedSub;
-  StreamSubscription<DatabaseEvent>? newRequestRemovedSub;
-  // Última posición efectivamente escrita en Firebase (no la última leída
-  // del GPS) -- se resetea a null cada vez que arranca un tracking nuevo,
-  // así el primer reporte de cada viaje siempre se escribe sin importar el
-  // filtro de movimiento mínimo.
-  UserLocation? lastReportedLocation;
+  StreamSubscription<DatabaseEvent>? newOfferAddedSub;
+  StreamSubscription<DatabaseEvent>? newOfferRemovedSub;
 
-  Future<void> reportCurrentLocation(String passengerId) async {
-    debugPrint(
-      'ForegroundLocationDebug | Checking for location update... (passengerId=$passengerId)',
-    );
+  // La carrera en la que va el conductor, o null si está libre. Lo fija el
+  // evento 'track'; el servidor decide a dónde va la ubicación según esto.
+  String? currentPassengerId;
+
+  // Última posición efectivamente ENVIADA (no la última leída del GPS) y
+  // cuándo. Se resetea cada vez que cambia el modo, así el primer reporte de
+  // cada modo siempre se envía.
+  UserLocation? lastReportedLocation;
+  DateTime? lastReportedAt;
+
+  Future<void> reportCurrentLocation() async {
+    final passengerId = currentPassengerId;
     try {
       final result = await geolocatorService.getCurrentPosition();
       await result.fold(
@@ -72,40 +83,37 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
           );
         },
         (location) async {
-          debugPrint(
-            'ForegroundLocationDebug | Posición leída: '
-            '(${location.latitude}, ${location.longitude})',
-          );
-
           final last = lastReportedLocation;
-          if (last != null) {
-            final movedMeters = Geolocator.distanceBetween(
-              last.latitude,
-              last.longitude,
-              location.latitude,
-              location.longitude,
-            );
-            if (movedMeters < _minMovementMeters) {
-              debugPrint(
-                'ForegroundLocationDebug | Descartado por movimiento mínimo '
-                '(${movedMeters.toStringAsFixed(2)}m < ${_minMovementMeters}m)',
-              );
-              return;
-            }
-          }
+          final lastAt = lastReportedAt;
+          final shouldReport = _reportPolicy.shouldReport(
+            movedMeters:
+                last == null
+                    ? null
+                    : Geolocator.distanceBetween(
+                      last.latitude,
+                      last.longitude,
+                      location.latitude,
+                      location.longitude,
+                    ),
+            sinceLastReport:
+                lastAt == null ? null : DateTime.now().difference(lastAt),
+          );
+          if (!shouldReport) return;
 
           lastReportedLocation = location;
-          final updateResult = await tripRepository.updateDriverLocation(
-            passengerId: passengerId,
+          lastReportedAt = DateTime.now();
+          final reported = await presenceRepository.reportLocation(
             latitude: location.latitude,
             longitude: location.longitude,
+            passengerId: passengerId,
           );
-          updateResult.fold(
+          reported.fold(
             (failure) => debugPrint(
-              'ForegroundLocationDebug | updateDriverLocation() falló: ${failure.code}',
+              'ForegroundLocationDebug | reportLocation() falló: ${failure.code}',
             ),
             (_) => debugPrint(
-              'ForegroundLocationDebug | updateDriverLocation() OK para passengerId=$passengerId',
+              'ForegroundLocationDebug | reportLocation() OK '
+              '(passengerId=$passengerId)',
             ),
           );
         },
@@ -115,48 +123,45 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
     }
   }
 
-  // 'track' llega tanto para arrancar el tracking de un viaje (passengerId
-  // presente) como para pasar a modo de prueba (passengerId nulo): en ambos
-  // casos primero se cancela cualquier timer anterior para no terminar con
-  // dos loops escribiendo ubicación a la vez.
+  // El timer corre siempre que el servicio esté vivo: sin carrera reporta para
+  // el despacho, con carrera para el mapa del pasajero.
+  locationTimer = Timer.periodic(_trackingInterval, (_) => reportCurrentLocation());
+
+  // 'track' llega para pasar a modo carrera (passengerId presente) o volver a
+  // modo libre (passengerId nulo). El timer NO se reinicia: solo cambia a
+  // dónde va el siguiente reporte, y se fuerza que ese primer reporte salga.
   service.on('track').listen((event) {
     try {
       debugPrint('ForegroundLocationDebug | Evento "track" recibido: $event');
-      locationTimer?.cancel();
+      currentPassengerId = event?['passengerId'] as String?;
       lastReportedLocation = null;
-      final passengerId = event?['passengerId'] as String?;
-      if (passengerId == null) {
-        debugPrint(
-          'ForegroundLocationDebug | passengerId nulo -- modo de prueba, sin tracking',
-        );
-        return;
-      }
-
-      locationTimer = Timer.periodic(
-        _trackingInterval,
-        (_) => reportCurrentLocation(passengerId),
-      );
-      debugPrint(
-        'ForegroundLocationDebug | Timer de tracking creado para passengerId=$passengerId',
-      );
+      lastReportedAt = null;
+      reportCurrentLocation();
     } catch (e) {
       debugPrint('ForegroundLocationDebug | Excepción manejando evento "track": $e');
     }
   });
 
   // Alerta de "Nueva carrera" (voz + vibración): corre siempre que el
-  // servicio esté vivo (conductor "online"), sin depender de 'track', para
-  // que suene incluso con la app en background o killed. Es la ÚNICA fuente
-  // de esta alerta -- IncomingRequestBloc (isolate principal) solo actualiza
-  // la lista visualmente, para no duplicar el sonido cuando la app está en
-  // foreground.
-  final pendingQuery = FirebaseDatabase.instance
-      .ref('taxi_requests')
-      .orderByChild('status')
-      .equalTo('pending');
-  final Set<String> knownPendingIds = {};
+  // servicio esté vivo (conductor "online"), para que suene incluso con la app
+  // en background o killed. Es la ÚNICA fuente de esta alerta --
+  // IncomingRequestBloc (isolate principal) solo actualiza la lista
+  // visualmente, para no duplicar el sonido cuando la app está en foreground.
+  //
+  // Escucha SU bandeja de ofertas (driver_offers/{uid}): el despacho solo le
+  // deja ahí los pedidos cercanos que le tocan.
+  final Set<String> knownOfferIds = {};
 
-  Future<void> startNewRequestAlerts() async {
+  Future<void> startNewOfferAlerts() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      debugPrint(
+        'ForegroundLocationDebug | Sin sesión: no se escuchan ofertas',
+      );
+      return;
+    }
+    final inbox = FirebaseDatabase.instance.ref('driver_offers/$uid');
+
     // Este isolate no tiene BuildContext: las traducciones se cargan a mano,
     // una sola vez, antes de suscribirse (el listener de onChildAdded es
     // sincrono y no puede hacer await).
@@ -165,53 +170,35 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
     );
 
     try {
-      // Puebla el set con los ids que YA existen antes de suscribirse --
-      // onChildAdded dispara retroactivamente por cada hijo ya presente, y
-      // no queremos alertar por carreras que no son nuevas.
-      //
-      // Sin orderByChild/equalTo a propósito: esa query puntual (.get())
-      // requiere un ".indexOn": "status" declarado en las reglas de
-      // Firebase para /taxi_requests, y sin él el servidor la rechaza con
-      // una excepción dura (a diferencia de pendingQuery.onChildAdded más
-      // abajo, que es streaming y solo emite un warning si falta el
-      // índice). Traer el nodo completo y filtrar en Dart evita depender
-      // de que ese índice esté configurado.
-      final snapshot = await FirebaseDatabase.instance.ref('taxi_requests').get();
+      // Puebla el set con las ofertas que YA existen antes de suscribirse --
+      // onChildAdded dispara retroactivamente por cada hijo ya presente, y no
+      // queremos alertar por ofertas que no son nuevas.
+      final snapshot = await inbox.get();
       final rawValue = snapshot.value;
-      if (rawValue != null) {
-        final allRequests = Map<dynamic, dynamic>.from(rawValue as Map);
-        allRequests.forEach((id, data) {
-          final status = data is Map ? data['status'] : null;
-          if (status == 'pending') knownPendingIds.add(id.toString());
-        });
+      if (rawValue is Map) {
+        for (final id in rawValue.keys) {
+          knownOfferIds.add(id.toString());
+        }
       }
     } catch (_) {
       // Sin conectividad al arrancar: seguimos igual -- mejor un falso
       // positivo en el primer onChildAdded que quedarse mudo.
     }
 
-    newRequestAddedSub = pendingQuery.onChildAdded.listen((event) {
+    newOfferAddedSub = inbox.onChildAdded.listen((event) {
       final id = event.snapshot.key;
-      if (id == null || knownPendingIds.contains(id)) return;
-      knownPendingIds.add(id);
+      if (id == null || knownOfferIds.contains(id)) return;
+      knownOfferIds.add(id);
 
-      // Mismo parseo que usa IncomingRequestBloc en el isolate principal
-      // (IncomingRequestEntity.fromMap) y la misma función de etiqueta que la
-      // tile -- así el conductor escucha exactamente lo que después ve en la
-      // lista.
       final rawValue = event.snapshot.value;
-      final pickup =
-          rawValue is Map
-              ? IncomingRequestEntity.fromMap(rawValue).pickupLocation
-              : null;
+      if (rawValue is! Map) return;
+      // Una oferta ya vencida no se anuncia.
+      if (IncomingRequestEntity.isOfferExpired(rawValue)) return;
 
-      final label =
-          pickup == null
-              ? null
-              : pickupLabel(
-                sector: pickup.sector,
-                address: pickup.address,
-              );
+      // Mismo parseo y misma función de etiqueta que usa la lista (tile): el
+      // conductor escucha exactamente lo que después ve.
+      final pickup = IncomingRequestEntity.fromOffer(rawValue).pickupLocation;
+      final label = pickupLabel(sector: pickup.sector, address: pickup.address);
 
       feedbackService.announce(
         label != null
@@ -221,22 +208,22 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       );
     });
 
-    // El nodo se indexa por passengerId, no por rideId: un mismo pasajero
-    // puede volver a estar 'pending' en un viaje posterior reutilizando la
-    // misma key. Sin liberar el id acá, esa segunda carrera nunca alertaría.
-    newRequestRemovedSub = pendingQuery.onChildRemoved.listen((event) {
+    // La bandeja se indexa por passengerId: un mismo pasajero puede volver a
+    // pedir y reutilizar la misma key. Sin liberar el id acá, esa segunda
+    // oferta nunca alertaría.
+    newOfferRemovedSub = inbox.onChildRemoved.listen((event) {
       final id = event.snapshot.key;
-      if (id != null) knownPendingIds.remove(id);
+      if (id != null) knownOfferIds.remove(id);
     });
   }
 
-  startNewRequestAlerts();
+  startNewOfferAlerts();
 
   service.on('stopService').listen((event) {
     debugPrint('ForegroundLocationDebug | Evento "stopService" recibido');
     locationTimer?.cancel();
-    newRequestAddedSub?.cancel();
-    newRequestRemovedSub?.cancel();
+    newOfferAddedSub?.cancel();
+    newOfferRemovedSub?.cancel();
     service.stopSelf();
   });
 }
