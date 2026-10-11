@@ -53,6 +53,8 @@ enum FailureCode {
   pushLanguageSaveFailed,
   chatMessagesLoadFailed,
   profileLoadFailed,
+  appUpdateCheckFailed,
+  storeOpenFailed,
   unexpected,
 }
 

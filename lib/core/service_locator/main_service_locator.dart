@@ -1,4 +1,5 @@
 import 'package:driver_app/feature/admin/di/admin_service_locator.dart';
+import 'package:driver_app/feature/app_update/di/app_update_service_locator.dart';
 import 'package:driver_app/feature/auth/di/auth_service_locator.dart';
 import 'package:driver_app/feature/chat/di/chat_service_locator.dart';
 import 'package:driver_app/feature/driver_profile/di/driver_profile_service_locator.dart';
@@ -48,4 +49,5 @@ Future<void> initMainServiceLocator() async {
   initVibrationDI(mainServiceLocator);
   initFeedbackDI(mainServiceLocator);
   initAdminDI(mainServiceLocator);
+  initAppUpdateDI(mainServiceLocator);
 }

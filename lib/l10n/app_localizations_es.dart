@@ -667,6 +667,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureProfileLoadFailed => 'No se pudo cargar tu información';
 
   @override
+  String get failureStoreOpenFailed => 'No se pudo abrir la tienda. Busca TaxiGo Conductor en Google Play.';
+
+  @override
+  String get appUpdateTitle => 'Actualiza la aplicación';
+
+  @override
+  String appUpdateMessage(String minimumVersion) {
+    return 'Esta versión de la app ya no es compatible. Actualiza a la versión $minimumVersion o superior para seguir usándola.';
+  }
+
+  @override
+  String get appUpdateButton => 'Actualizar';
+
+  @override
   String isolateRideTowards(String place) {
     return 'Carrera hacia $place';
   }
