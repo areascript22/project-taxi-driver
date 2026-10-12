@@ -15,6 +15,7 @@ import '../../feedback/feedback_service_impl.dart';
 import '../../geolocator/service/geolocator/geolocator_service.dart';
 import '../../geolocator/service/geolocator/geolocator_service_impl.dart';
 import '../../presence/data/repository/driver_presence_repository_impl.dart';
+import '../../services/dotenv/dotenv_service_impl.dart';
 import '../../presence/domain/repository/driver_presence_repository.dart';
 import '../../utils/pickup_label.dart';
 import '../../vibration/service/vibration_service_impl.dart';
@@ -47,6 +48,17 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp();
   debugPrint('ForegroundLocationDebug | Firebase.initializeApp() completado en el isolate');
+
+  // Este isolate NO comparte memoria con el principal: el dotenv que cargó
+  // main() no existe acá. Sin esto, DioClient no puede leer BASE_URL y TODO
+  // reporte de ubicación falla en silencio (el conductor figura "en línea" en
+  // el servidor, pero nunca llega una ubicación y el despacho no lo ve).
+  try {
+    await DotEnvServiceImpl().initialize();
+    debugPrint('ForegroundLocationDebug | dotenv cargado en el isolate');
+  } catch (e) {
+    debugPrint('ForegroundLocationDebug | No se pudo cargar dotenv en el isolate: $e');
+  }
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
   final DriverPresenceRepository presenceRepository =
@@ -109,7 +121,8 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
           );
           reported.fold(
             (failure) => debugPrint(
-              'ForegroundLocationDebug | reportLocation() falló: ${failure.code}',
+              'ForegroundLocationDebug | reportLocation() falló: '
+              '${failure.code} (${failure.detail})',
             ),
             (_) => debugPrint(
               'ForegroundLocationDebug | reportLocation() OK '

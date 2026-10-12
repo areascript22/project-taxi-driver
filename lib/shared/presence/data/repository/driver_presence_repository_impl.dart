@@ -63,10 +63,17 @@ class DriverPresenceRepositoryImpl implements DriverPresenceRepository {
       return const Right(unit);
     } on DioException catch (e) {
       debugPrint('PresenceDebug | Error en reportLocation: $e');
-      return Left(Failure(code: FailureCode.locationUpdateFailed));
+      return Left(
+        Failure(
+          code: FailureCode.locationUpdateFailed,
+          detail: 'HTTP ${e.response?.statusCode ?? e.type.name}',
+        ),
+      );
     } catch (e) {
       debugPrint('PresenceDebug | Error inesperado en reportLocation: $e');
-      return Left(Failure(code: FailureCode.locationUpdateFailed));
+      return Left(
+        Failure(code: FailureCode.locationUpdateFailed, detail: '$e'),
+      );
     }
   }
 }
