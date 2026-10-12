@@ -6,7 +6,7 @@ import '../entity/vehicle_entity.dart';
 
 abstract class DriverProfileRepository {
   // Devuelve null (dentro de Right) si el conductor autenticado todavía no
-  // tiene datos guardados en Firestore -- señal de que es un usuario nuevo
+  // tiene perfil de conductor en el servidor -- señal de que es un usuario nuevo
   // y debe pasar por el flujo de registro.
   Future<Either<Failure, DriverEntity?>> getDriver({required String driverId});
 
@@ -15,15 +15,15 @@ abstract class DriverProfileRepository {
     required String vehicleId,
   });
 
-  // Sube (si corresponde) la foto de perfil a Storage y guarda, en una sola
-  // escritura atómica, el documento del conductor y el de su vehículo.
+  // Sube (si corresponde) la foto de perfil a Storage y manda al servidor el
+  // perfil del conductor y su vehículo en una sola petición.
   Future<Either<Failure, Unit>> registerDriver({
     required DriverEntity driver,
     required VehicleEntity vehicle,
     File? profileImage,
   });
 
-  // Guarda/actualiza el token FCM del conductor en Firestore -- lo usa el
+  // Guarda/actualiza el token FCM del conductor en el servidor -- lo usa el
   // backend para enviarle push notifications.
   //
   // El idioma va en la MISMA escritura porque el backend necesita los dos
