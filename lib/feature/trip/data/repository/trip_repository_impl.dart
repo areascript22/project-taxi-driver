@@ -9,7 +9,16 @@ import '../../domain/entity/trip_status_entity.dart';
 import '../../domain/repository/trip_repository.dart';
 
 class TripRepositoryImpl implements TripRepository {
-  late final Dio _dio = DioClient.instance;
+  /// [dio] es inyectable para poder mockearlo en tests; sin él se usa
+  /// DioClient.instance.
+  TripRepositoryImpl({Dio? dio}) : _injectedDio = dio;
+
+  final Dio? _injectedDio;
+
+  // Lazy a propósito: crear el Dio de forma anticipada inicializa dotenv, y en
+  // el isolate del foreground service eso tumbaba el arranque (ver
+  // DioClient). Solo se materializa la primera vez que se usa.
+  late final Dio _dio = _injectedDio ?? DioClient.instance;
 
   @override
   Stream<TripStatusEntity> watchTrip({required String passengerId}) {
@@ -89,17 +98,25 @@ class TripRepositoryImpl implements TripRepository {
     }
   }
 
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (POST /api/rides/{id}/arrived) para que verifique con el token que quien
+  // avisa es el conductor realmente asignado y que la carrera está en el
+  // estado correcto. Es idempotente en el servidor, así que el reintento
+  // automático de DioClient ante un timeout es seguro.
   @override
   Future<Either<Failure, Unit>> markDriverArrived({
     required String passengerId,
   }) async {
     try {
-      await FirebaseDatabase.instance.ref('taxi_requests/$passengerId').update({
-        'status': 'driverArrived',
-        'updatedAt': ServerValue.timestamp,
-      });
+      await _dio.post('/api/rides/$passengerId/arrived');
       return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en markDriverArrived: $e');
+      return Left(
+        Failure(code: FailureCode.arrivalNotifyFailed),
+      );
     } catch (e) {
+      debugPrint('TripDebug | Error inesperado en markDriverArrived: $e');
       return Left(
         Failure(code: FailureCode.arrivalNotifyFailed),
       );
@@ -138,31 +155,6 @@ class TripRepositoryImpl implements TripRepository {
       return Left(
         Failure(code: FailureCode.tripFinishFailed),
       );
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> updateDriverLocation({
-    required String passengerId,
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      debugPrint(
-        'TripDebug | updateDriverLocation -> escribiendo ($latitude, $longitude) '
-        'en taxi_requests/$passengerId/driver/location',
-      );
-      await FirebaseDatabase.instance
-          .ref('taxi_requests/$passengerId/driver/location')
-          .update({
-            'latitude': latitude,
-            'longitude': longitude,
-            'updatedAt': ServerValue.timestamp,
-          });
-      return const Right(unit);
-    } catch (e) {
-      debugPrint('TripDebug | Error en updateDriverLocation: $e');
-      return Left(Failure(code: FailureCode.locationUpdateFailed));
     }
   }
 }

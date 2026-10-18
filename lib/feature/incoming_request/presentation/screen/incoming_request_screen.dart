@@ -120,6 +120,21 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
             }
           },
         ),
+        // El servidor rechazó ponerse en línea (cuenta no habilitada, perfil no
+        // listo, sin red): se le dice al conductor por qué el switch no quedó
+        // encendido.
+        BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
+          listenWhen:
+              (previous, current) =>
+                  current.errorCode != null &&
+                  previous.errorCode != current.errorCode,
+          listener: (context, state) {
+            AppToast.error(
+              context,
+              message: context.failureText(state.errorCode!),
+            );
+          },
+        ),
         BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
           listenWhen:
               (previous, current) =>

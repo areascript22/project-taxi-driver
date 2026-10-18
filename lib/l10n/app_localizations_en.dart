@@ -107,9 +107,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogle => 'Continue with Google';
 
   @override
-  String get splashVersionLabel => 'Version 1.0.0';
-
-  @override
   String get logoutDialogBody => 'Are you sure you want to sign out?';
 
   @override
@@ -592,6 +589,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failureLocationUpdateFailed => 'Your location could not be updated.';
 
   @override
+  String get failureOnlineNotAllowed => 'Your account is not yet enabled to receive rides.';
+
+  @override
+  String get failureOnlineFailed => 'Could not change your status. Try again.';
+
+  @override
+  String get failureDriverProfileNotReady => 'Your driver profile is not ready yet. Try again in a moment.';
+
+  @override
   String get failureRideTaken => 'The ride was already taken by another driver or is no longer available.';
 
   @override
@@ -668,6 +674,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failureProfileLoadFailed => 'Your information could not be loaded';
+
+  @override
+  String get failureStoreOpenFailed => 'The store could not be opened. Search for TaxiGo Conductor on Google Play.';
+
+  @override
+  String get appUpdateTitle => 'Update the app';
+
+  @override
+  String appUpdateMessage(String minimumVersion) {
+    return 'This version of the app is no longer supported. Update to version $minimumVersion or later to keep using it.';
+  }
+
+  @override
+  String get appUpdateButton => 'Update';
 
   @override
   String isolateRideTowards(String place) {

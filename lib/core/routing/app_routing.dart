@@ -14,7 +14,6 @@ import 'package:driver_app/shared/feature/settings/presentation/screen/settings_
 import 'package:go_router/go_router.dart';
 import '../../feature/auth/presentation/screen/session_screen.dart';
 import '../../feature/auth/presentation/screen/sign_in_screen.dart';
-import '../../feature/auth/presentation/screen/splash_screen.dart';
 import '../../feature/profile/presentation/screen/profile_screen.dart';
 import '../../feature/profile/presentation/screen/profile_screen_2.dart';
 import '../../shared/presentation/component/scaffold_nav_bar.dart';
@@ -22,13 +21,8 @@ import 'app_routes.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: splashRoute.route,
+    initialLocation: sessionRoute.route,
     routes: [
-      GoRoute(
-        path: splashRoute.route,
-        name: splashRoute.name,
-        builder: (context, state) => const SplashScreen(),
-      ),
       GoRoute(
         path: signInRoute.route,
         name: signInRoute.name,

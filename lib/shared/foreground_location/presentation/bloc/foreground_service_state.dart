@@ -26,6 +26,10 @@ class ForegroundServiceState {
   // puede matar el foreground service si el conductor cierra la app.
   final bool isBatteryOptimizationIgnored;
   final BatteryOptimizationPromptStep batteryPromptStep;
+  // Por que no se pudo ponerse en linea (el servidor lo rechazo: cuenta no
+  // habilitada, perfil no listo, red). Null si no hubo error. La UI lo muestra
+  // una vez y lo traduce con `context.failureText`.
+  final FailureCode? errorCode;
 
   const ForegroundServiceState({
     this.isRunning = false,
@@ -33,14 +37,19 @@ class ForegroundServiceState {
     this.hasLoadedStatus = false,
     this.isBatteryOptimizationIgnored = false,
     this.batteryPromptStep = BatteryOptimizationPromptStep.none,
+    this.errorCode,
   });
 
+  // `errorCode` se pasa SIEMPRE tal cual (no con `??`): copiar sin indicarlo
+  // lo limpia, que es lo que se quiere -- un error se muestra una vez y no
+  // reaparece en el siguiente cambio de estado.
   ForegroundServiceState copyWith({
     bool? isRunning,
     bool? isProcessing,
     bool? hasLoadedStatus,
     bool? isBatteryOptimizationIgnored,
     BatteryOptimizationPromptStep? batteryPromptStep,
+    FailureCode? errorCode,
   }) {
     return ForegroundServiceState(
       isRunning: isRunning ?? this.isRunning,
@@ -49,6 +58,7 @@ class ForegroundServiceState {
       isBatteryOptimizationIgnored:
           isBatteryOptimizationIgnored ?? this.isBatteryOptimizationIgnored,
       batteryPromptStep: batteryPromptStep ?? this.batteryPromptStep,
+      errorCode: errorCode,
     );
   }
 }

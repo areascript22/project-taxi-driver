@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+import '../../../../core/error/errors.dart';
 import '../../../battery_optimization/service/battery_optimization_service.dart';
+import '../../../presence/domain/repository/driver_presence_repository.dart';
 import '../../service/driver_foreground_service.dart';
 
 part 'foreground_service_event.dart';
@@ -9,8 +11,13 @@ part 'foreground_service_state.dart';
 
 // Bloc del toggle "online/offline" de "Peticiones Entrantes": controla si el
 // conductor recibe carreras nuevas (IncomingRequestScreen se suscribe/
-// desuscribe de Firebase según state.isRunning). No pasa passengerId -- ese
-// modo lo maneja TripBloc cuando hay un viaje real.
+// desuscribe de su bandeja de ofertas según state.isRunning). No pasa
+// passengerId -- ese modo lo maneja TripBloc cuando hay un viaje real.
+//
+// "En línea" es una decisión del SERVIDOR, no solo de la app: ponerse en línea
+// exige estar aprobado y no bloqueado, y es lo que hace que el despacho le
+// ofrezca carreras. Por eso encender primero le pregunta al servidor y solo
+// arranca el servicio (que reporta la ubicación) si lo acepta.
 //
 // Encender el toggle además exige el permiso de "ignorar optimización de
 // batería" (ver BatteryOptimizationService): sin él, Android puede matar el
@@ -20,6 +27,7 @@ class ForegroundServiceBloc
     extends Bloc<ForegroundServiceEvent, ForegroundServiceState> {
   final DriverForegroundService driverForegroundService;
   final BatteryOptimizationService batteryOptimizationService;
+  final DriverPresenceRepository driverPresenceRepository;
 
   // Token del poll de batería en curso. Si dos polls quedan corriendo a la
   // vez (p.ej. dos resumes seguidos, o un resume mientras el usuario ya
@@ -39,6 +47,7 @@ class ForegroundServiceBloc
   ForegroundServiceBloc({
     required this.driverForegroundService,
     required this.batteryOptimizationService,
+    required this.driverPresenceRepository,
   }) : super(const ForegroundServiceState()) {
     on<ForegroundServiceStatusRequested>(_onStatusRequested);
     on<ForegroundServiceToggled>(_onToggled);
@@ -89,6 +98,17 @@ class ForegroundServiceBloc
     // Apagar nunca requiere el permiso de batería.
     if (!shouldRun) {
       emit(state.copyWith(isProcessing: true));
+      // Primero se le avisa al servidor, para que deje de ofrecerle carreras
+      // aunque detener el servicio falle. Es best-effort: apagar nunca se
+      // bloquea por un fallo de red (si el servidor no se entera, la
+      // ubicación deja de llegar y por frescura sale solo del despacho).
+      final offline = await driverPresenceRepository.setOnline(online: false);
+      offline.fold(
+        (failure) => debugPrint(
+          'ForegroundLocationDebug | No se pudo avisar "fuera de línea": ${failure.code}',
+        ),
+        (_) {},
+      );
       await driverForegroundService.stop();
       emit(
         state.copyWith(
@@ -279,6 +299,26 @@ class ForegroundServiceBloc
 
   Future<void> _startService(Emitter<ForegroundServiceState> emit) async {
     emit(state.copyWith(isProcessing: true));
+
+    // El servidor decide si puede estar en línea (aprobado, no bloqueado,
+    // perfil listo). Si dice que no, el servicio ni arranca: no tiene sentido
+    // reportar una ubicación que nadie va a usar.
+    final online = await driverPresenceRepository.setOnline(online: true);
+    final rejected = online.fold<FailureCode?>((failure) => failure.code, (_) => null);
+    if (rejected != null) {
+      debugPrint('ForegroundLocationDebug | El servidor rechazó ponerse en línea: $rejected');
+      emit(
+        state.copyWith(
+          isRunning: false,
+          isProcessing: false,
+          hasLoadedStatus: true,
+          batteryPromptStep: BatteryOptimizationPromptStep.none,
+          errorCode: rejected,
+        ),
+      );
+      return;
+    }
+
     await driverForegroundService.start();
 
     // A diferencia de start(), stop() solo manda un mensaje fire-and-forget

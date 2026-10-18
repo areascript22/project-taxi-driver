@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// **'Error al obtener la versión'**
   String get appVersionError;
 
-  /// Subtítulo bajo el nombre de la marca en splash y login. 'TaxiGo' NO se traduce (es nombre propio), esto sí
+  /// Subtítulo bajo el nombre de la marca en el login. 'TaxiGo' NO se traduce (es nombre propio), esto sí
   ///
   /// In es, this message translates to:
   /// **'Conductor'**
@@ -286,12 +286,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Continuar con Google'**
   String get signInGoogle;
-
-  /// Versión al pie del splash. OJO: el número está hardcodeado y quedó desfasado del pubspec (1.0.6+18); se migra tal cual para no cambiar comportamiento
-  ///
-  /// In es, this message translates to:
-  /// **'Versión 1.0.0'**
-  String get splashVersionLabel;
 
   /// Cuerpo del diálogo de confirmación de cierre de sesión
   ///
@@ -1229,6 +1223,24 @@ abstract class AppLocalizations {
   /// **'No se pudo actualizar la ubicación del conductor.'**
   String get failureLocationUpdateFailed;
 
+  /// Mensaje de error para FailureCode.onlineNotAllowed: el servidor rechazó ponerse en línea (conductor no aprobado o bloqueado)
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta todavía no está habilitada para recibir carreras.'**
+  String get failureOnlineNotAllowed;
+
+  /// Mensaje de error para FailureCode.onlineFailed: falló el cambio del interruptor en línea / fuera de línea
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cambiar tu estado. Intenta de nuevo.'**
+  String get failureOnlineFailed;
+
+  /// Mensaje de error para FailureCode.driverProfileNotReady: el servidor aún no tiene el perfil del conductor
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil de conductor todavía no está listo. Intenta de nuevo en un momento.'**
+  String get failureDriverProfileNotReady;
+
   /// Mensaje de error para FailureCode.rideTaken
   ///
   /// In es, this message translates to:
@@ -1384,6 +1396,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo cargar tu información'**
   String get failureProfileLoadFailed;
+
+  /// Mensaje de error para FailureCode.storeOpenFailed: el sistema no pudo abrir la ficha de la app en la tienda. 'TaxiGo Conductor' es el nombre de la app y NO se traduce
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo abrir la tienda. Busca TaxiGo Conductor en Google Play.'**
+  String get failureStoreOpenFailed;
+
+  /// Título de la pantalla que bloquea la app cuando el servidor exige una versión más nueva
+  ///
+  /// In es, this message translates to:
+  /// **'Actualiza la aplicación'**
+  String get appUpdateTitle;
+
+  /// Explicación en la pantalla de actualización obligatoria. {minimumVersion} es la versión mínima que admite el servidor (ej. 1.0.7)
+  ///
+  /// In es, this message translates to:
+  /// **'Esta versión de la app ya no es compatible. Actualiza a la versión {minimumVersion} o superior para seguir usándola.'**
+  String appUpdateMessage(String minimumVersion);
+
+  /// Botón que abre la ficha de la app en la tienda, en la pantalla de actualización obligatoria
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar'**
+  String get appUpdateButton;
 
   /// Alerta hablada de carrera nueva, emitida desde el isolate del foreground service (ver shared/l10n/isolate_localizations.dart). {place} es el SECTOR del punto de recogida (ej. 'La Condamine'), o la direccion completa si la carrera no trae sector -- ver shared/utils/pickup_label.dart. No lleva articulo ('hacia' y no 'a la') porque los nombres de sector tienen generos distintos: 'a la Multiplaza' o 'a la El terminal' quedarian mal
   ///

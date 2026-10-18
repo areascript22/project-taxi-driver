@@ -125,7 +125,7 @@
   },
   "brandRoleLabel": "Conductor",
   "@brandRoleLabel": {
-    "description": "Subtítulo bajo el nombre de la marca en splash y login. 'TaxiGo' NO se traduce (es nombre propio), esto sí"
+    "description": "Subtítulo bajo el nombre de la marca en el login. 'TaxiGo' NO se traduce (es nombre propio), esto sí"
   },
   "signInTagline": "Inicia sesión para comenzar a conducir",
   "@signInTagline": {
@@ -134,10 +134,6 @@
   "signInGoogle": "Continuar con Google",
   "@signInGoogle": {
     "description": "Botón de login con Google"
-  },
-  "splashVersionLabel": "Versión 1.0.0",
-  "@splashVersionLabel": {
-    "description": "Versión al pie del splash. OJO: el número está hardcodeado y quedó desfasado del pubspec (1.0.6+18); se migra tal cual para no cambiar comportamiento"
   },
   "logoutDialogBody": "¿Estás seguro de que deseas cerrar sesión?",
   "@logoutDialogBody": {
@@ -804,6 +800,18 @@
   "@failureLocationUpdateFailed": {
     "description": "Mensaje de error para FailureCode.locationUpdateFailed"
   },
+  "failureOnlineNotAllowed": "Tu cuenta todavía no está habilitada para recibir carreras.",
+  "@failureOnlineNotAllowed": {
+    "description": "Mensaje de error para FailureCode.onlineNotAllowed: el servidor rechazó ponerse en línea (conductor no aprobado o bloqueado)"
+  },
+  "failureOnlineFailed": "No se pudo cambiar tu estado. Intenta de nuevo.",
+  "@failureOnlineFailed": {
+    "description": "Mensaje de error para FailureCode.onlineFailed: falló el cambio del interruptor en línea / fuera de línea"
+  },
+  "failureDriverProfileNotReady": "Tu perfil de conductor todavía no está listo. Intenta de nuevo en un momento.",
+  "@failureDriverProfileNotReady": {
+    "description": "Mensaje de error para FailureCode.driverProfileNotReady: el servidor aún no tiene el perfil del conductor"
+  },
   "failureRideTaken": "La carrera ya fue tomada por otro conductor o ya no está disponible.",
   "@failureRideTaken": {
     "description": "Mensaje de error para FailureCode.rideTaken"
@@ -907,6 +915,25 @@
   "failureProfileLoadFailed": "No se pudo cargar tu información",
   "@failureProfileLoadFailed": {
     "description": "Mensaje de error para FailureCode.profileLoadFailed"
+  },
+  "failureStoreOpenFailed": "No se pudo abrir la tienda. Busca TaxiGo Conductor en Google Play.",
+  "@failureStoreOpenFailed": {
+    "description": "Mensaje de error para FailureCode.storeOpenFailed: el sistema no pudo abrir la ficha de la app en la tienda. 'TaxiGo Conductor' es el nombre de la app y NO se traduce"
+  },
+  "appUpdateTitle": "Actualiza la aplicación",
+  "@appUpdateTitle": {
+    "description": "Título de la pantalla que bloquea la app cuando el servidor exige una versión más nueva"
+  },
+  "appUpdateMessage": "Esta versión de la app ya no es compatible. Actualiza a la versión {minimumVersion} o superior para seguir usándola.",
+  "@appUpdateMessage": {
+    "description": "Explicación en la pantalla de actualización obligatoria. {minimumVersion} es la versión mínima que admite el servidor (ej. 1.0.7)",
+    "placeholders": {
+      "minimumVersion": {"type": "String"}
+    }
+  },
+  "appUpdateButton": "Actualizar",
+  "@appUpdateButton": {
+    "description": "Botón que abre la ficha de la app en la tienda, en la pantalla de actualización obligatoria"
   },
   "isolateRideTowards": "Carrera hacia {place}",
   "@isolateRideTowards": {

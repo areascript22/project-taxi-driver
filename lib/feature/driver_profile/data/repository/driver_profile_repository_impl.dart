@@ -1,36 +1,58 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/error/errors.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../domain/entity/driver_entity.dart';
 import '../../domain/entity/vehicle_entity.dart';
 import '../../domain/repository/driver_profile_repository.dart';
 import '../model/driver_model.dart';
 import '../model/vehicle_model.dart';
 
-class DriverProfileRepositoryImpl implements DriverProfileRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+/// Sube [file] a [path] en Storage y devuelve su URL de descarga.
+typedef ProfilePhotoUploader = Future<String> Function({
+  required String path,
+  required File file,
+});
 
-  static const String _driversCollection = 'drivers';
-  static const String _vehiclesCollection = 'vehicles';
+// Los perfiles viven en Postgres y se leen/escriben por el servidor:
+// GET /api/me devuelve la persona con su perfil de conductor y su vehiculo;
+// PUT /api/me/driver-profile los crea o actualiza. Lo unico que la app sigue
+// haciendo directo es subir la foto a Storage (reglas por uid) y mandarle la
+// URL al servidor.
+class DriverProfileRepositoryImpl implements DriverProfileRepository {
+  /// [dio] y [photoUploader] son inyectables para probar sin red ni Firebase;
+  /// sin ellos se usan DioClient.instance y Firebase Storage.
+  DriverProfileRepositoryImpl({Dio? dio, ProfilePhotoUploader? photoUploader})
+    : _injectedDio = dio,
+      _photoUploader = photoUploader ?? _uploadToStorage;
+
+  final Dio? _injectedDio;
+  final ProfilePhotoUploader _photoUploader;
+
+  // Lazy a proposito: crear el Dio de forma anticipada inicializa dotenv (ver
+  // DioClient) y el repositorio se debe poder construir sin eso.
+  late final Dio _dio = _injectedDio ?? DioClient.instance;
+
+  static Future<String> _uploadToStorage({
+    required String path,
+    required File file,
+  }) async {
+    final ref = FirebaseStorage.instance.ref(path);
+    await ref.putFile(file);
+    return ref.getDownloadURL();
+  }
 
   @override
   Future<Either<Failure, DriverEntity?>> getDriver({
     required String driverId,
   }) async {
     try {
-      final snapshot =
-          await _firestore.collection(_driversCollection).doc(driverId).get();
-
-      if (!snapshot.exists || snapshot.data() == null) {
-        return const Right(null);
-      }
-
-      final driver = DriverModel.fromJson(snapshot.data()!, id: snapshot.id);
-      return Right(driver.toEntity());
+      final me = await _fetchMe();
+      return Right(DriverModel.fromMe(me)?.toEntity());
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en getDriver: $e');
       return Left(
@@ -39,23 +61,15 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     }
   }
 
+  // El vehiculo viaja dentro de /api/me; `vehicleId` se conserva en la firma
+  // por compatibilidad: el servidor siempre devuelve el de la sesion.
   @override
   Future<Either<Failure, VehicleEntity?>> getVehicle({
     required String vehicleId,
   }) async {
     try {
-      final snapshot =
-          await _firestore.collection(_vehiclesCollection).doc(vehicleId).get();
-
-      if (!snapshot.exists || snapshot.data() == null) {
-        return const Right(null);
-      }
-
-      final vehicle = VehicleModel.fromJson(
-        snapshot.data()!,
-        vehicleId: snapshot.id,
-      );
-      return Right(vehicle.toEntity());
+      final me = await _fetchMe();
+      return Right(VehicleModel.fromMe(me)?.toEntity());
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en getVehicle: $e');
       return Left(
@@ -74,41 +88,30 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
       String? photoUrl = driver.photoUrl;
 
       if (profileImage != null) {
-        final storageRef = _storage.ref(
-          'driver_profile_photos/${driver.id}.jpg',
+        photoUrl = await _photoUploader(
+          path: 'driver_profile_photos/${driver.id}.jpg',
+          file: profileImage,
         );
-        await storageRef.putFile(profileImage);
-        photoUrl = await storageRef.getDownloadURL();
       }
 
-      final driverRef = _firestore.collection(_driversCollection).doc(
-        driver.id,
+      await _dio.put(
+        '/api/me/driver-profile',
+        data: {
+          'firstName': driver.firstName,
+          'lastName': driver.lastName,
+          'phoneNumber': driver.phoneNumber,
+          if (photoUrl != null && photoUrl.isNotEmpty) 'photoUrl': photoUrl,
+          'vehicle': {
+            'plate': vehicle.plate,
+            'brand': vehicle.brand,
+            'model': vehicle.model,
+            'year': vehicle.year,
+            'color': vehicle.color,
+            'registrationNumber': vehicle.registrationNumber,
+          },
+        },
+        options: Options()..disableRetry = true,
       );
-      final vehicleRef =
-          _firestore.collection(_vehiclesCollection).doc();
-
-      final driverToSave = driver.copyWith(
-        photoUrl: photoUrl,
-        vehicleId: vehicleRef.id,
-      );
-      final vehicleToSave = vehicle.copyWith(
-        vehicleId: vehicleRef.id,
-        driverId: driver.id,
-      );
-
-      final batch = _firestore.batch();
-      batch.set(driverRef, {
-        ...DriverModel.fromEntity(driverToSave).toJson(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-      batch.set(vehicleRef, {
-        ...VehicleModel.fromEntity(vehicleToSave).toJson(),
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      await batch.commit();
 
       return const Right(unit);
     } catch (e) {
@@ -119,6 +122,16 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     }
   }
 
+  Future<Map<String, dynamic>> _fetchMe() async {
+    final response = await _dio.get('/api/me');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  // El token de notificaciones y el idioma ya no se escriben directo en
+  // Firestore: van al servidor (PUT /api/me/device), que sabe de que persona
+  // y de que app son por el token de sesion. `driverId` se conserva en la
+  // firma por compatibilidad con los llamadores, pero el servidor NO lo usa:
+  // la identidad sale siempre del token.
   @override
   Future<Either<Failure, Unit>> updateFcmToken({
     required String driverId,
@@ -126,10 +139,10 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     required String language,
   }) async {
     try {
-      await _firestore.collection(_driversCollection).doc(driverId).update({
-        'fcmToken': token,
-        'language': language,
-      });
+      await _dio.put(
+        '/api/me/device',
+        data: {'app': 'driver', 'fcmToken': token, 'language': language},
+      );
       return const Right(unit);
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateFcmToken: $e');
@@ -145,9 +158,10 @@ class DriverProfileRepositoryImpl implements DriverProfileRepository {
     required String language,
   }) async {
     try {
-      await _firestore.collection(_driversCollection).doc(driverId).update({
-        'language': language,
-      });
+      await _dio.put(
+        '/api/me/device',
+        data: {'app': 'driver', 'language': language},
+      );
       return const Right(unit);
     } catch (e) {
       debugPrint('DriverProfileDebug | Error en updateLanguage: $e');

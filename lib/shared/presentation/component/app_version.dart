@@ -10,6 +10,14 @@ import 'package:flutter/services.dart';
 // estaba resuelto antes de tener un BuildContext.
 enum _VersionStatus { loading, loaded, unavailable, error }
 
+// Lo que se le muestra al usuario es solo la versión "de marketing" (1.0.7):
+// sin el sufijo de flavor/pre-release (-dev) ni el build number (+19). Es una
+// decisión de presentación, así que vive acá: el valor real sigue intacto en
+// pubspec/gradle y en lo que reporta el plugin.
+String displayAppVersion({required String rawVersion}) {
+  return rawVersion.split('+').first.split('-').first.trim();
+}
+
 class AppVersionWidget extends StatefulWidget {
   final TextStyle? textStyle;
 
@@ -55,7 +63,9 @@ class _AppVersionWidgetState extends State<AppVersionWidget> {
 
     final text = switch (_status) {
       _VersionStatus.loading => l10n.appVersionLoading,
-      _VersionStatus.loaded => l10n.appVersionLabel(_version!),
+      _VersionStatus.loaded => l10n.appVersionLabel(
+        displayAppVersion(rawVersion: _version!),
+      ),
       _VersionStatus.unavailable => l10n.appVersionUnavailable,
       _VersionStatus.error => l10n.appVersionError,
     };

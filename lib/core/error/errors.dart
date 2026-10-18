@@ -20,6 +20,9 @@ enum FailureCode {
   driverNotApproved,
   gpsDisabled,
   locationUpdateFailed,
+  onlineNotAllowed,
+  onlineFailed,
+  driverProfileNotReady,
   rideTaken,
   rideUnavailable,
   rideAcceptFailed,
@@ -53,6 +56,8 @@ enum FailureCode {
   pushLanguageSaveFailed,
   chatMessagesLoadFailed,
   profileLoadFailed,
+  appUpdateCheckFailed,
+  storeOpenFailed,
   unexpected,
 }
 
