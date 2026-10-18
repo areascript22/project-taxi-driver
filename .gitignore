@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firma y credenciales (nunca al repo)
+*.jks
+android/keystore.properties
+android/keystore-prod.properties
+android/keystore-secret.txt
+android/app/src/*/base64-secret.txt
+
+# Config de Firebase y variables de entorno por flavor (claves del proyecto)
+android/app/src/*/google-services.json
+android/app/src/*/google-services*.txt
+assets/env/
+
+# Preferencias locales de Flutter DevTools
+devtools_options.yaml
