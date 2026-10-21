@@ -28,6 +28,8 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
 
   late final Dio _dio = _injectedDio ?? DioClient.instance;
 
+  static const _acceptTimeout = Duration(seconds: 15);
+
   // null si no hay sesion: sin usuario no hay bandeja que escuchar.
   Query? get _offers {
     if (_injectedOffers != null) return _injectedOffers;
@@ -90,6 +92,14 @@ class IncomingRequestRepositoryImpl implements IncomingRequestRepository {
           'latitude': driverLocation.latitude,
           'longitude': driverLocation.longitude,
         },
+        // El servidor autoriza al conductor, asigna, notifica y abre el chat
+        // antes de responder: con el receiveTimeout global (5s) a veces
+        // responde justo despues de que Dio abandono la espera. El
+        // RetryInterceptor reenviaba y el reintento recibia 409 ("otro
+        // conductor la tomo") sobre una carrera que si era de este conductor.
+        // El servidor ya trata ese reintento como exito; este timeout evita
+        // ademas que el conductor espere un error que no es.
+        options: Options(receiveTimeout: _acceptTimeout),
       );
       return const Right(true);
     } on DioException catch (e) {

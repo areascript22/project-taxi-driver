@@ -150,7 +150,7 @@ void main() {
 
     test('posts the driver location and returns Right(true)', () async {
       when(
-        () => dio.post('/api/rides/p1/accept', data: any(named: 'data')),
+        () => dio.post('/api/rides/p1/accept', data: any(named: 'data'), options: any(named: 'options')),
       ).thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: '/api/rides/p1/accept'),
@@ -167,12 +167,18 @@ void main() {
         (failure) => fail('expected Right, got ${failure.code}'),
         (accepted) => expect(accepted, isTrue),
       );
-      verify(
+      final captured = verify(
         () => dio.post(
           '/api/rides/p1/accept',
           data: {'latitude': -1.66, 'longitude': -78.65},
+          options: captureAny(named: 'options'),
         ),
-      ).called(1);
+      ).captured;
+      // Timeout largo: con el global (5s) Dio abandonaba y reenviaba.
+      expect(
+        (captured.single as Options).receiveTimeout,
+        const Duration(seconds: 15),
+      );
     });
 
     final cases = <int, FailureCode>{
@@ -184,7 +190,7 @@ void main() {
     cases.forEach((statusCode, expected) {
       test('maps $statusCode to $expected', () async {
         when(
-          () => dio.post('/api/rides/p1/accept', data: any(named: 'data')),
+          () => dio.post('/api/rides/p1/accept', data: any(named: 'data'), options: any(named: 'options')),
         ).thenThrow(status(statusCode));
 
         final result = await repository.acceptRide(
