@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import '../../../../core/error/errors.dart';
 import '../../../battery_optimization/service/battery_optimization_service.dart';
+import '../../../geolocator/service/geolocator/geolocator_service.dart';
 import '../../../presence/domain/repository/driver_presence_repository.dart';
 import '../../service/driver_foreground_service.dart';
 
@@ -19,6 +21,17 @@ part 'foreground_service_state.dart';
 // ofrezca carreras. Por eso encender primero le pregunta al servidor y solo
 // arranca el servicio (que reporta la ubicación) si lo acepta.
 //
+// Por la misma razón el SERVIDOR es la fuente de verdad del interruptor: al
+// entrar y al volver de segundo plano (ForegroundServiceStatusRequested) se lee
+// `driver.online` de /api/me y se reconcilia con el servicio local. Mirar solo
+// si el servicio de Android sigue vivo dejaba el switch "encendido" mientras la
+// base decía "apagado" (el apagado real del servicio tarda unos segundos, y el
+// bloc se recrea en cada visita a la pantalla).
+//
+// Y no se conecta a quien no tiene ubicación: estar "en línea" sin ella es no
+// recibir pedidos en silencio. Antes de conectar se prueba el GPS, y mientras
+// el servicio corre avisa si lo pierde (ver locationIssue en el estado).
+//
 // Encender el toggle además exige el permiso de "ignorar optimización de
 // batería" (ver BatteryOptimizationService): sin él, Android puede matar el
 // foreground service en cuanto el conductor cierra la app, perdiendo el
@@ -28,6 +41,14 @@ class ForegroundServiceBloc
   final DriverForegroundService driverForegroundService;
   final BatteryOptimizationService batteryOptimizationService;
   final DriverPresenceRepository driverPresenceRepository;
+  final GeolocatorService geolocatorService;
+
+  // Lo que se espera a que el GPS dé una posición antes de conectar. Más largo
+  // que el de las lecturas periódicas: la primera tras un rato apagado puede
+  // tardar en fijar.
+  static const _preflightLocationTimeout = Duration(seconds: 15);
+
+  StreamSubscription<FailureCode?>? _locationIssueSub;
 
   // Token del poll de batería en curso. Si dos polls quedan corriendo a la
   // vez (p.ej. dos resumes seguidos, o un resume mientras el usuario ya
@@ -48,6 +69,7 @@ class ForegroundServiceBloc
     required this.driverForegroundService,
     required this.batteryOptimizationService,
     required this.driverPresenceRepository,
+    required this.geolocatorService,
   }) : super(const ForegroundServiceState()) {
     on<ForegroundServiceStatusRequested>(_onStatusRequested);
     on<ForegroundServiceToggled>(_onToggled);
@@ -55,16 +77,31 @@ class ForegroundServiceBloc
     on<BatteryOptimizationPromptDismissed>(_onBatteryPromptDismissed);
     on<BatteryOptimizationSettingsOpened>(_onBatterySettingsOpened);
     on<BatteryOptimizationStatusRechecked>(_onBatteryStatusRechecked);
+    on<ForegroundServiceLocationIssueChanged>(_onLocationIssueChanged);
+    on<LocationSettingsOpened>(_onLocationSettingsOpened);
+
+    _locationIssueSub = driverForegroundService.locationIssue.listen(
+      (issue) => add(ForegroundServiceLocationIssueChanged(issue)),
+    );
+  }
+
+  @override
+  Future<void> close() async {
+    await _locationIssueSub?.cancel();
+    return super.close();
   }
 
   Future<void> _onStatusRequested(
     ForegroundServiceStatusRequested event,
     Emitter<ForegroundServiceState> emit,
   ) async {
-    // No asumimos "apagado" por defecto: si el servicio ya venía corriendo
-    // (por ejemplo, un viaje activo antes de volver a esta pantalla) el
-    // toggle debe reflejar eso, no forzar un falso "desactivado".
-    final isRunning = await driverForegroundService.isRunning();
+    // Una conexión o desconexión en curso decide ella misma cómo termina:
+    // reconciliar en medio leería al servidor a medio cambiar.
+    if (state.isProcessing) return;
+
+    // Lo que dice el servicio de Android de ESTE teléfono. No alcanza: puede
+    // seguir vivo mientras se apaga, o haber muerto sin avisar.
+    var isRunning = await driverForegroundService.isRunning();
 
     final batteryResult =
         await batteryOptimizationService.isIgnoringBatteryOptimizations();
@@ -74,6 +111,56 @@ class ForegroundServiceBloc
       );
       return false;
     }, (granted) => granted);
+
+    // Lo que dice el SERVIDOR (drivers.is_online), que es lo que usa el
+    // despacho. Si no se le puede consultar, no se adivina: se queda con lo
+    // local, y la siguiente vez que se abra o se vuelva de segundo plano se
+    // reconcilia.
+    var disconnectedByServer = false;
+    final serverResult = await driverPresenceRepository.fetchOnline();
+    await serverResult.fold<Future<void>>(
+      (failure) async {
+        debugPrint(
+          'ForegroundLocationDebug | No se pudo consultar el estado al servidor '
+          '(${failure.code}): se usa el estado local',
+        );
+      },
+      (serverOnline) async {
+        if (isRunning && !serverOnline) {
+          // El servidor manda: lo tiene fuera de línea (apagó él mismo, lo
+          // bloquearon, se recreó la base...). Seguir "encendido" aquí solo
+          // reportaría ubicación a quien no la va a usar, con un switch
+          // mintiendo.
+          debugPrint(
+            'ForegroundLocationDebug | El servidor lo tiene FUERA de línea pero el servicio corre: se detiene',
+          );
+          await driverForegroundService.stop();
+          isRunning = false;
+          disconnectedByServer = true;
+        } else if (!isRunning && serverOnline) {
+          // El servidor lo tiene EN línea pero el servicio no corre (Android lo
+          // mató, el teléfono se reinició). La intención del conductor era
+          // estar conectado: se retoma si se puede. Sin el permiso de batería
+          // no se podría sostener, y entonces se deja todo apagado.
+          if (isBatteryOptimizationIgnored) {
+            debugPrint(
+              'ForegroundLocationDebug | El servidor lo tiene EN línea pero el servicio no corre: se reanuda',
+            );
+            await driverForegroundService.start();
+            isRunning = true;
+          } else {
+            debugPrint(
+              'ForegroundLocationDebug | El servidor lo tiene EN línea pero no se puede reanudar el servicio: se le avisa "fuera de línea"',
+            );
+            await driverPresenceRepository.setOnline(online: false);
+          }
+        }
+      },
+    );
+
+    // Mientras se reconciliaba pudo empezar una conexión o desconexión: ella
+    // tiene la última palabra.
+    if (state.isProcessing) return;
 
     debugPrint(
       'ForegroundLocationDebug | Status inicial -> isRunning=$isRunning, '
@@ -85,8 +172,16 @@ class ForegroundServiceBloc
         isRunning: isRunning,
         hasLoadedStatus: true,
         isBatteryOptimizationIgnored: isBatteryOptimizationIgnored,
+        disconnectedByServer: disconnectedByServer,
+        // Un problema de ubicación de una conexión anterior ya no aplica si no
+        // está conectado: se vuelve a comprobar al intentar conectarse.
+        clearLocationIssue: !isRunning,
       ),
     );
+
+    // La pantalla se recrea al entrar y no vería un problema de ubicación que ya
+    // empezó: se le pide al servicio que lo repita.
+    if (isRunning) await driverForegroundService.requestLocationStatus();
   }
 
   Future<void> _onToggled(
@@ -115,6 +210,7 @@ class ForegroundServiceBloc
           isRunning: false,
           isProcessing: false,
           hasLoadedStatus: true,
+          clearLocationIssue: true,
         ),
       );
       return;
@@ -202,9 +298,7 @@ class ForegroundServiceBloc
     // El conductor eligió "Ahora no" -- ya no hay que conectarlo solo si el
     // permiso termina apareciendo concedido más tarde por otra vía.
     _pendingGoOnline = false;
-    emit(
-      state.copyWith(batteryPromptStep: BatteryOptimizationPromptStep.none),
-    );
+    emit(state.copyWith(batteryPromptStep: BatteryOptimizationPromptStep.none));
   }
 
   Future<void> _onBatterySettingsOpened(
@@ -300,13 +394,48 @@ class ForegroundServiceBloc
   Future<void> _startService(Emitter<ForegroundServiceState> emit) async {
     emit(state.copyWith(isProcessing: true));
 
+    // Sin ubicación utilizable no tiene sentido ponerse en línea: el servidor
+    // descarta posiciones de más de 45 s y el conductor no recibiría pedidos
+    // sin que nada se lo dijera. Se prueba el GPS ANTES de avisar al servidor.
+    final located = await geolocatorService.getCurrentPosition(
+      timeLimit: _preflightLocationTimeout,
+    );
+    final locationFailure = located.fold<FailureCode?>(
+      (failure) =>
+          failure.code == FailureCode.unexpected
+              ? FailureCode.locationUnavailable
+              : failure.code,
+      (_) => null,
+    );
+    if (locationFailure != null) {
+      debugPrint(
+        'ForegroundLocationDebug | Sin ubicación utilizable, no se conecta: $locationFailure',
+      );
+      emit(
+        state.copyWith(
+          isRunning: false,
+          isProcessing: false,
+          hasLoadedStatus: true,
+          batteryPromptStep: BatteryOptimizationPromptStep.none,
+          errorCode: locationFailure,
+          locationIssue: locationFailure,
+        ),
+      );
+      return;
+    }
+
     // El servidor decide si puede estar en línea (aprobado, no bloqueado,
     // perfil listo). Si dice que no, el servicio ni arranca: no tiene sentido
     // reportar una ubicación que nadie va a usar.
     final online = await driverPresenceRepository.setOnline(online: true);
-    final rejected = online.fold<FailureCode?>((failure) => failure.code, (_) => null);
+    final rejected = online.fold<FailureCode?>(
+      (failure) => failure.code,
+      (_) => null,
+    );
     if (rejected != null) {
-      debugPrint('ForegroundLocationDebug | El servidor rechazó ponerse en línea: $rejected');
+      debugPrint(
+        'ForegroundLocationDebug | El servidor rechazó ponerse en línea: $rejected',
+      );
       emit(
         state.copyWith(
           isRunning: false,
@@ -314,6 +443,7 @@ class ForegroundServiceBloc
           hasLoadedStatus: true,
           batteryPromptStep: BatteryOptimizationPromptStep.none,
           errorCode: rejected,
+          clearLocationIssue: true,
         ),
       );
       return;
@@ -333,7 +463,38 @@ class ForegroundServiceBloc
         isProcessing: false,
         hasLoadedStatus: true,
         batteryPromptStep: BatteryOptimizationPromptStep.none,
+        clearLocationIssue: true,
       ),
     );
+  }
+
+  Future<void> _onLocationIssueChanged(
+    ForegroundServiceLocationIssueChanged event,
+    Emitter<ForegroundServiceState> emit,
+  ) async {
+    // Avisos tardíos de un servicio que ya se está apagando no cuentan: el
+    // conductor ya no está en línea.
+    if (!state.isRunning) return;
+    if (state.locationIssue == event.issue) return;
+
+    emit(
+      state.copyWith(
+        locationIssue: event.issue,
+        clearLocationIssue: event.issue == null,
+      ),
+    );
+  }
+
+  Future<void> _onLocationSettingsOpened(
+    LocationSettingsOpened event,
+    Emitter<ForegroundServiceState> emit,
+  ) async {
+    // Con el permiso denegado no sirve abrir los ajustes de ubicación del
+    // dispositivo: el cambio hay que hacerlo en los permisos de la app.
+    if (state.locationIssue == FailureCode.locationPermissionDenied) {
+      await geolocatorService.openAppSettings();
+      return;
+    }
+    await geolocatorService.openLocationSettings();
   }
 }

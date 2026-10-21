@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:driver_app/core/error/errors.dart';
 import 'package:driver_app/shared/battery_optimization/service/battery_optimization_service.dart';
+import 'package:driver_app/shared/domain/entity/user_location.dart';
+import 'package:driver_app/shared/geolocator/service/geolocator/geolocator_service.dart';
 import 'package:driver_app/shared/presence/domain/repository/driver_presence_repository.dart';
 import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
 import 'package:driver_app/shared/foreground_location/service/driver_foreground_service.dart';
@@ -18,15 +22,44 @@ class MockBatteryOptimizationService extends Mock
 class MockDriverPresenceRepository extends Mock
     implements DriverPresenceRepository {}
 
+class MockGeolocatorService extends Mock implements GeolocatorService {}
+
 void main() {
   late MockDriverForegroundService foregroundService;
   late MockBatteryOptimizationService batteryService;
   late MockDriverPresenceRepository presenceRepository;
+  late MockGeolocatorService geolocatorService;
+  late StreamController<FailureCode?> locationIssues;
+
+  setUpAll(() {
+    registerFallbackValue(Duration.zero);
+  });
+
+  tearDown(() async {
+    await locationIssues.close();
+  });
 
   setUp(() {
     foregroundService = MockDriverForegroundService();
     batteryService = MockBatteryOptimizationService();
     presenceRepository = MockDriverPresenceRepository();
+    geolocatorService = MockGeolocatorService();
+    locationIssues = StreamController<FailureCode?>.broadcast();
+    when(() => foregroundService.locationIssue).thenAnswer((_) => locationIssues.stream);
+    when(() => foregroundService.requestLocationStatus()).thenAnswer((_) async {});
+    // Por defecto hay ubicacion: las pruebas de otros temas no se ven afectadas.
+    when(
+      () => geolocatorService.getCurrentPosition(timeLimit: any(named: 'timeLimit')),
+    ).thenAnswer(
+      (_) async => Right(UserLocation(latitude: -1.67, longitude: -78.65)),
+    );
+    when(() => geolocatorService.openLocationSettings()).thenAnswer((_) async => const Right(true));
+    when(() => geolocatorService.openAppSettings()).thenAnswer((_) async => const Right(true));
+    // Por defecto el servidor no responde: el bloc cae al estado local, que es
+    // lo que probaban las pruebas anteriores a la sincronizacion.
+    when(() => presenceRepository.fetchOnline()).thenAnswer(
+      (_) async => Left(Failure(code: FailureCode.onlineFailed)),
+    );
     when(() => foregroundService.start()).thenAnswer((_) async {});
     when(() => foregroundService.stop()).thenAnswer((_) async {});
     // Por defecto el servidor acepta el cambio de estado.
@@ -39,6 +72,7 @@ void main() {
     driverForegroundService: foregroundService,
     batteryOptimizationService: batteryService,
     driverPresenceRepository: presenceRepository,
+    geolocatorService: geolocatorService,
   );
 
   test('initial state is off, unprocessed and status not yet loaded', () {
@@ -476,6 +510,347 @@ void main() {
 
           bloc.close();
         });
+      },
+    );
+  });
+
+  // ===== El servidor es la fuente de verdad del interruptor =====
+  group('ForegroundServiceStatusRequested (reconcile with the server)', () {
+    void stubLocal({required bool running, required bool batteryIgnored}) {
+      when(() => foregroundService.isRunning()).thenAnswer((_) async => running);
+      when(
+        () => batteryService.isIgnoringBatteryOptimizations(),
+      ).thenAnswer((_) async => Right(batteryIgnored));
+    }
+
+    void stubServer({required bool online}) {
+      when(() => presenceRepository.fetchOnline()).thenAnswer((_) async => Right(online));
+    }
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server online + service running: stays on, nothing is stopped or started, and asks the service for its location status',
+      setUp: () {
+        stubLocal(running: true, batteryIgnored: true);
+        stubServer(online: true);
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => s.isRunning && s.hasLoadedStatus && !s.disconnectedByServer,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => foregroundService.stop());
+        verifyNever(() => foregroundService.start());
+        verify(() => foregroundService.requestLocationStatus()).called(1);
+      },
+    );
+
+    // El caso que se reportaba: el interruptor aparecia ENCENDIDO (el servicio
+    // de Android seguia vivo, apagandose) mientras la base decia is_online=false.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server OFFLINE + service still running: the server wins -> stops the service, shows off and flags it',
+      setUp: () {
+        stubLocal(running: true, batteryIgnored: true);
+        stubServer(online: false);
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => !s.isRunning && s.hasLoadedStatus && s.disconnectedByServer,
+        ),
+      ],
+      verify: (_) {
+        verify(() => foregroundService.stop()).called(1);
+        verifyNever(() => foregroundService.requestLocationStatus());
+      },
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server online + service dead + battery permission ok: resumes the service without asking the server again',
+      setUp: () {
+        stubLocal(running: false, batteryIgnored: true);
+        stubServer(online: true);
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => s.isRunning && s.hasLoadedStatus && !s.disconnectedByServer,
+        ),
+      ],
+      verify: (_) {
+        verify(() => foregroundService.start()).called(1);
+        verifyNever(() => presenceRepository.setOnline(online: any(named: 'online')));
+      },
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server online + service dead + NO battery permission: cannot keep it alive -> tells the server offline and stays off',
+      setUp: () {
+        stubLocal(running: false, batteryIgnored: false);
+        stubServer(online: true);
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => !s.isRunning && s.hasLoadedStatus),
+      ],
+      verify: (_) {
+        verify(() => presenceRepository.setOnline(online: false)).called(1);
+        verifyNever(() => foregroundService.start());
+      },
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server offline + service not running: both agree, nothing to do',
+      setUp: () {
+        stubLocal(running: false, batteryIgnored: true);
+        stubServer(online: false);
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => !s.isRunning && s.hasLoadedStatus && !s.disconnectedByServer,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => foregroundService.stop());
+        verifyNever(() => foregroundService.start());
+      },
+    );
+
+    // Sin red no se adivina: se queda con lo local y se reconcilia en el
+    // siguiente resume.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'server unreachable: keeps the local status and does not touch the service',
+      setUp: () {
+        stubLocal(running: true, batteryIgnored: true);
+        // fetchOnline ya falla por defecto en setUp.
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => s.isRunning && s.hasLoadedStatus && !s.disconnectedByServer,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => foregroundService.stop());
+        verifyNever(() => foregroundService.start());
+      },
+    );
+
+    // Una conexion o desconexion en curso decide ella como termina.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'is ignored while a connect/disconnect is in flight (no reading of a half-changed server state)',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isProcessing: true, hasLoadedStatus: true),
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => <ForegroundServiceState>[],
+      verify: (_) {
+        verifyNever(() => presenceRepository.fetchOnline());
+        verifyNever(() => foregroundService.isRunning());
+      },
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'drops a stale location issue when the driver is not connected',
+      setUp: () {
+        stubLocal(running: false, batteryIgnored: true);
+        stubServer(online: false);
+      },
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(locationIssue: FailureCode.gpsDisabled),
+      act: (bloc) => bloc.add(ForegroundServiceStatusRequested()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => !s.isRunning && s.locationIssue == null),
+      ],
+    );
+  });
+
+  // ===== No se conecta a quien no tiene ubicacion =====
+  group('ForegroundServiceToggled (turning on) requires a usable location', () {
+    for (final code in [
+      FailureCode.gpsDisabled,
+      FailureCode.locationPermissionDenied,
+      FailureCode.locationUnavailable,
+    ]) {
+      blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+        'does not go online and explains $code when the GPS cannot give a position',
+        setUp: () {
+          when(
+            () => geolocatorService.getCurrentPosition(timeLimit: any(named: 'timeLimit')),
+          ).thenAnswer((_) async => Left(Failure(code: code)));
+        },
+        build: buildBloc,
+        seed: () => const ForegroundServiceState(isBatteryOptimizationIgnored: true),
+        act: (bloc) => bloc.add(ForegroundServiceToggled()),
+        expect: () => [
+          predicate<ForegroundServiceState>((s) => s.isProcessing),
+          predicate<ForegroundServiceState>(
+            (s) =>
+                !s.isRunning &&
+                !s.isProcessing &&
+                s.errorCode == code &&
+                s.locationIssue == code,
+          ),
+        ],
+        verify: (_) {
+          verifyNever(() => presenceRepository.setOnline(online: any(named: 'online')));
+          verifyNever(() => foregroundService.start());
+        },
+      );
+    }
+
+    // Un error de GPS desconocido igual significa "sin ubicacion": se le dice
+    // asi al conductor, no un mensaje generico que no le sirve.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'maps an unknown GPS error to locationUnavailable',
+      setUp: () {
+        when(
+          () => geolocatorService.getCurrentPosition(timeLimit: any(named: 'timeLimit')),
+        ).thenAnswer((_) async => Left(Failure(code: FailureCode.unexpected)));
+      },
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isBatteryOptimizationIgnored: true),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.isProcessing),
+        predicate<ForegroundServiceState>(
+          (s) =>
+              s.errorCode == FailureCode.locationUnavailable &&
+              s.locationIssue == FailureCode.locationUnavailable,
+        ),
+      ],
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'checks the GPS BEFORE asking the server, with a 15 s limit',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isBatteryOptimizationIgnored: true),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      verify: (_) {
+        verifyInOrder([
+          () => geolocatorService.getCurrentPosition(timeLimit: const Duration(seconds: 15)),
+          () => presenceRepository.setOnline(online: true),
+          () => foregroundService.start(),
+        ]);
+      },
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'a successful connection clears an old location issue',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(
+        isBatteryOptimizationIgnored: true,
+        locationIssue: FailureCode.gpsDisabled,
+      ),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.isProcessing),
+        predicate<ForegroundServiceState>((s) => s.isRunning && s.locationIssue == null),
+      ],
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'turning off clears the location issue',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(
+        isRunning: true,
+        hasLoadedStatus: true,
+        locationIssue: FailureCode.locationUnavailable,
+      ),
+      act: (bloc) => bloc.add(ForegroundServiceToggled()),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.isProcessing),
+        predicate<ForegroundServiceState>((s) => !s.isRunning && s.locationIssue == null),
+      ],
+    );
+  });
+
+  // ===== El servicio avisa si pierde la ubicacion estando en linea =====
+  group('location issue reported by the background service', () {
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'while online: surfaces the issue and clears it when the location comes back',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isRunning: true, hasLoadedStatus: true),
+      act: (bloc) async {
+        locationIssues.add(FailureCode.gpsDisabled);
+        await Future<void>.delayed(Duration.zero);
+        locationIssues.add(null);
+      },
+      wait: const Duration(milliseconds: 20),
+      expect: () => [
+        predicate<ForegroundServiceState>((s) => s.locationIssue == FailureCode.gpsDisabled),
+        predicate<ForegroundServiceState>((s) => s.locationIssue == null),
+      ],
+    );
+
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'the same issue twice is shown once',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(isRunning: true, hasLoadedStatus: true),
+      act: (bloc) async {
+        locationIssues.add(FailureCode.locationUnavailable);
+        await Future<void>.delayed(Duration.zero);
+        locationIssues.add(FailureCode.locationUnavailable);
+      },
+      wait: const Duration(milliseconds: 20),
+      expect: () => [
+        predicate<ForegroundServiceState>(
+          (s) => s.locationIssue == FailureCode.locationUnavailable,
+        ),
+      ],
+    );
+
+    // Un aviso tardio de un servicio que ya se esta apagando no cuenta.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'is ignored when the driver is not online',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(hasLoadedStatus: true),
+      act: (bloc) async => locationIssues.add(FailureCode.gpsDisabled),
+      wait: const Duration(milliseconds: 20),
+      expect: () => <ForegroundServiceState>[],
+    );
+
+    test('closing the bloc cancels the subscription to the service', () async {
+      final bloc = buildBloc();
+      expect(locationIssues.hasListener, isTrue);
+
+      await bloc.close();
+
+      expect(locationIssues.hasListener, isFalse);
+    });
+  });
+
+  group('LocationSettingsOpened', () {
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'opens the device location settings for a GPS/accuracy problem',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(locationIssue: FailureCode.gpsDisabled),
+      act: (bloc) => bloc.add(LocationSettingsOpened()),
+      verify: (_) {
+        verify(() => geolocatorService.openLocationSettings()).called(1);
+        verifyNever(() => geolocatorService.openAppSettings());
+      },
+    );
+
+    // Con el permiso denegado los ajustes del dispositivo no sirven: el cambio
+    // se hace en los permisos de la app.
+    blocTest<ForegroundServiceBloc, ForegroundServiceState>(
+      'opens the APP settings when the problem is the location permission',
+      build: buildBloc,
+      seed: () => const ForegroundServiceState(
+        locationIssue: FailureCode.locationPermissionDenied,
+      ),
+      act: (bloc) => bloc.add(LocationSettingsOpened()),
+      verify: (_) {
+        verify(() => geolocatorService.openAppSettings()).called(1);
+        verifyNever(() => geolocatorService.openLocationSettings());
       },
     );
   });

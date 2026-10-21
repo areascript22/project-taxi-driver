@@ -23,6 +23,9 @@ extension FailureTextX on BuildContext {
       FailureCode.rejectReasonMissing => l10n.failureRejectReasonMissing,
       FailureCode.driverNotApproved => l10n.failureDriverNotApproved,
       FailureCode.gpsDisabled => l10n.failureGpsDisabled,
+      FailureCode.locationPermissionDenied =>
+        l10n.failureLocationPermissionDenied,
+      FailureCode.locationUnavailable => l10n.failureLocationUnavailable,
       FailureCode.locationUpdateFailed => l10n.failureLocationUpdateFailed,
       FailureCode.onlineNotAllowed => l10n.failureOnlineNotAllowed,
       FailureCode.onlineFailed => l10n.failureOnlineFailed,

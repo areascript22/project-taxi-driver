@@ -792,9 +792,17 @@
   "@failureDriverNotApproved": {
     "description": "Mensaje de error para FailureCode.driverNotApproved"
   },
-  "failureGpsDisabled": "El servicio de GPS del dispositivo está desactivado.",
+  "failureGpsDisabled": "No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.",
   "@failureGpsDisabled": {
-    "description": "Mensaje de error para FailureCode.gpsDisabled"
+    "description": "Mensaje de error para FailureCode.gpsDisabled: el GPS está apagado o en un modo de ubicación que no alcanza (por ejemplo sin alta precisión). Dice qué hacer"
+  },
+  "failureLocationPermissionDenied": "TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.",
+  "@failureLocationPermissionDenied": {
+    "description": "Mensaje de error para FailureCode.locationPermissionDenied: el conductor no dio (o quitó) el permiso de ubicación"
+  },
+  "failureLocationUnavailable": "No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.",
+  "@failureLocationUnavailable": {
+    "description": "Mensaje de error para FailureCode.locationUnavailable: el GPS no dio una posición a tiempo (interior, mala señal) o falló por una causa desconocida"
   },
   "failureLocationUpdateFailed": "No se pudo actualizar la ubicación del conductor.",
   "@failureLocationUpdateFailed": {
@@ -967,5 +975,25 @@
   "settingsLanguageEnglish": "English",
   "@settingsLanguageEnglish": {
     "description": "Nombre del idioma ingles. NO se traduce, mismo criterio que settingsLanguageSpanish"
+  },
+  "locationIssueTitle": "No estás recibiendo pedidos",
+  "@locationIssueTitle": {
+    "description": "Título del aviso persistente en la pantalla de peticiones cuando el conductor está en línea (o intentó conectarse) pero no hay ubicación utilizable. Va seguido del motivo (failureGpsDisabled, etc.)"
+  },
+  "locationIssueOpenSettings": "Abrir ajustes",
+  "@locationIssueOpenSettings": {
+    "description": "Botón del aviso de falta de ubicación: abre los ajustes de ubicación del dispositivo, o los permisos de la app si el problema es el permiso"
+  },
+  "foregroundNotificationReporting": "Reportando tu ubicación...",
+  "@foregroundNotificationReporting": {
+    "description": "Texto de la notificación persistente del servicio en segundo plano cuando la ubicación funciona. Lo arma el isolate del servicio, sin BuildContext"
+  },
+  "foregroundNotificationNoLocation": "Sin ubicación: no recibirás pedidos",
+  "@foregroundNotificationNoLocation": {
+    "description": "Texto de la notificación persistente del servicio en segundo plano cuando no se consigue la ubicación del conductor. Lo arma el isolate del servicio, sin BuildContext"
+  },
+  "presenceDisconnectedByServer": "Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.",
+  "@presenceDisconnectedByServer": {
+    "description": "Aviso (toast informativo) cuando la app reconcilia su interruptor con el servidor y lo apaga porque el servidor figuraba al conductor fuera de línea"
   }
 }

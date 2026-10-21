@@ -27,9 +27,19 @@ class ForegroundServiceState {
   final bool isBatteryOptimizationIgnored;
   final BatteryOptimizationPromptStep batteryPromptStep;
   // Por que no se pudo ponerse en linea (el servidor lo rechazo: cuenta no
-  // habilitada, perfil no listo, red). Null si no hubo error. La UI lo muestra
-  // una vez y lo traduce con `context.failureText`.
+  // habilitada, perfil no listo, red; o no hay ubicacion utilizable). Null si
+  // no hubo error. La UI lo muestra una vez y lo traduce con
+  // `context.failureText`.
   final FailureCode? errorCode;
+  // Por que NO hay ubicacion utilizable (GPS o ajustes apagados, permiso, sin
+  // senal): al intentar conectarse, o mientras el servicio corre. A diferencia
+  // de `errorCode`, PERSISTE hasta que se resuelve: es lo que mantiene visible
+  // el aviso "no estas recibiendo pedidos". Null si la ubicacion funciona.
+  final FailureCode? locationIssue;
+  // true UNA vez cuando, al reconciliar con el servidor, el interruptor se
+  // apago porque el servidor tenia al conductor fuera de linea. La UI lo explica
+  // con un aviso en vez de apagarlo en silencio.
+  final bool disconnectedByServer;
 
   const ForegroundServiceState({
     this.isRunning = false,
@@ -38,11 +48,16 @@ class ForegroundServiceState {
     this.isBatteryOptimizationIgnored = false,
     this.batteryPromptStep = BatteryOptimizationPromptStep.none,
     this.errorCode,
+    this.locationIssue,
+    this.disconnectedByServer = false,
   });
 
-  // `errorCode` se pasa SIEMPRE tal cual (no con `??`): copiar sin indicarlo
-  // lo limpia, que es lo que se quiere -- un error se muestra una vez y no
-  // reaparece en el siguiente cambio de estado.
+  // `errorCode` y `disconnectedByServer` se pasan SIEMPRE tal cual (no con
+  // `??`): copiar sin indicarlos los limpia, que es lo que se quiere -- se
+  // muestran una vez y no reaparecen en el siguiente cambio de estado.
+  //
+  // `locationIssue` es al reves: se CONSERVA salvo que se pase uno nuevo o se
+  // pida `clearLocationIssue`.
   ForegroundServiceState copyWith({
     bool? isRunning,
     bool? isProcessing,
@@ -50,6 +65,9 @@ class ForegroundServiceState {
     bool? isBatteryOptimizationIgnored,
     BatteryOptimizationPromptStep? batteryPromptStep,
     FailureCode? errorCode,
+    FailureCode? locationIssue,
+    bool clearLocationIssue = false,
+    bool disconnectedByServer = false,
   }) {
     return ForegroundServiceState(
       isRunning: isRunning ?? this.isRunning,
@@ -59,6 +77,9 @@ class ForegroundServiceState {
           isBatteryOptimizationIgnored ?? this.isBatteryOptimizationIgnored,
       batteryPromptStep: batteryPromptStep ?? this.batteryPromptStep,
       errorCode: errorCode,
+      locationIssue:
+          clearLocationIssue ? null : (locationIssue ?? this.locationIssue),
+      disconnectedByServer: disconnectedByServer,
     );
   }
 }

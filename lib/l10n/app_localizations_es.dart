@@ -583,7 +583,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureDriverNotApproved => 'No se puede bloquear a un conductor que no está aprobado';
 
   @override
-  String get failureGpsDisabled => 'El servicio de GPS del dispositivo está desactivado.';
+  String get failureGpsDisabled => 'No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.';
+
+  @override
+  String get failureLocationPermissionDenied => 'TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.';
+
+  @override
+  String get failureLocationUnavailable => 'No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.';
 
   @override
   String get failureLocationUpdateFailed => 'No se pudo actualizar la ubicación del conductor.';
@@ -711,4 +717,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get locationIssueTitle => 'No estás recibiendo pedidos';
+
+  @override
+  String get locationIssueOpenSettings => 'Abrir ajustes';
+
+  @override
+  String get foregroundNotificationReporting => 'Reportando tu ubicación...';
+
+  @override
+  String get foregroundNotificationNoLocation => 'Sin ubicación: no recibirás pedidos';
+
+  @override
+  String get presenceDisconnectedByServer => 'Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.';
 }

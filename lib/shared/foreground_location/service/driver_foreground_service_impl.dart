@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/error/errors.dart';
+import '../domain/location_issue_tracker.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'driver_foreground_service.dart';
@@ -78,7 +80,9 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
       );
 
       final wasRunning = await _service.isRunning();
-      debugPrint('ForegroundLocationDebug | isRunning antes de start -> $wasRunning');
+      debugPrint(
+        'ForegroundLocationDebug | isRunning antes de start -> $wasRunning',
+      );
 
       if (!wasRunning) {
         await _service.startService();
@@ -90,7 +94,9 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
         'ForegroundLocationDebug | invoke(track, passengerId=$passengerId) enviado',
       );
     } catch (e) {
-      debugPrint('ForegroundLocationDebug | No se pudo iniciar el foreground service: $e');
+      debugPrint(
+        'ForegroundLocationDebug | No se pudo iniciar el foreground service: $e',
+      );
     }
   }
 
@@ -101,10 +107,14 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
         _service.invoke('stopService');
         debugPrint('ForegroundLocationDebug | invoke(stopService) enviado');
       } else {
-        debugPrint('ForegroundLocationDebug | stop() llamado pero el servicio ya no corría');
+        debugPrint(
+          'ForegroundLocationDebug | stop() llamado pero el servicio ya no corría',
+        );
       }
     } catch (e) {
-      debugPrint('ForegroundLocationDebug | No se pudo detener el foreground service: $e');
+      debugPrint(
+        'ForegroundLocationDebug | No se pudo detener el foreground service: $e',
+      );
     }
   }
 
@@ -113,7 +123,9 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
     try {
       if (await _service.isRunning()) {
         _service.invoke('track', {'passengerId': null});
-        debugPrint('ForegroundLocationDebug | invoke(track, passengerId=null) enviado');
+        debugPrint(
+          'ForegroundLocationDebug | invoke(track, passengerId=null) enviado',
+        );
       } else {
         debugPrint(
           'ForegroundLocationDebug | stopTracking() llamado pero el servicio ya no corría',
@@ -128,4 +140,21 @@ class DriverForegroundServiceImpl implements DriverForegroundService {
 
   @override
   Future<bool> isRunning() => _service.isRunning();
+
+  @override
+  Stream<FailureCode?> get locationIssue =>
+      _service.on(locationStatusEvent).map(decodeLocationIssue);
+
+  @override
+  Future<void> requestLocationStatus() async {
+    try {
+      if (await _service.isRunning()) {
+        _service.invoke(queryLocationStatusEvent);
+      }
+    } catch (e) {
+      debugPrint(
+        'ForegroundLocationDebug | No se pudo pedir el estado de ubicación al servicio: $e',
+      );
+    }
+  }
 }

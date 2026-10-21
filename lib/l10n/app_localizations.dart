@@ -1211,11 +1211,23 @@ abstract class AppLocalizations {
   /// **'No se puede bloquear a un conductor que no está aprobado'**
   String get failureDriverNotApproved;
 
-  /// Mensaje de error para FailureCode.gpsDisabled
+  /// Mensaje de error para FailureCode.gpsDisabled: el GPS está apagado o en un modo de ubicación que no alcanza (por ejemplo sin alta precisión). Dice qué hacer
   ///
   /// In es, this message translates to:
-  /// **'El servicio de GPS del dispositivo está desactivado.'**
+  /// **'No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.'**
   String get failureGpsDisabled;
+
+  /// Mensaje de error para FailureCode.locationPermissionDenied: el conductor no dio (o quitó) el permiso de ubicación
+  ///
+  /// In es, this message translates to:
+  /// **'TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.'**
+  String get failureLocationPermissionDenied;
+
+  /// Mensaje de error para FailureCode.locationUnavailable: el GPS no dio una posición a tiempo (interior, mala señal) o falló por una causa desconocida
+  ///
+  /// In es, this message translates to:
+  /// **'No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.'**
+  String get failureLocationUnavailable;
 
   /// Mensaje de error para FailureCode.locationUpdateFailed
   ///
@@ -1462,6 +1474,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'English'**
   String get settingsLanguageEnglish;
+
+  /// Título del aviso persistente en la pantalla de peticiones cuando el conductor está en línea (o intentó conectarse) pero no hay ubicación utilizable. Va seguido del motivo (failureGpsDisabled, etc.)
+  ///
+  /// In es, this message translates to:
+  /// **'No estás recibiendo pedidos'**
+  String get locationIssueTitle;
+
+  /// Botón del aviso de falta de ubicación: abre los ajustes de ubicación del dispositivo, o los permisos de la app si el problema es el permiso
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir ajustes'**
+  String get locationIssueOpenSettings;
+
+  /// Texto de la notificación persistente del servicio en segundo plano cuando la ubicación funciona. Lo arma el isolate del servicio, sin BuildContext
+  ///
+  /// In es, this message translates to:
+  /// **'Reportando tu ubicación...'**
+  String get foregroundNotificationReporting;
+
+  /// Texto de la notificación persistente del servicio en segundo plano cuando no se consigue la ubicación del conductor. Lo arma el isolate del servicio, sin BuildContext
+  ///
+  /// In es, this message translates to:
+  /// **'Sin ubicación: no recibirás pedidos'**
+  String get foregroundNotificationNoLocation;
+
+  /// Aviso (toast informativo) cuando la app reconcilia su interruptor con el servidor y lo apaga porque el servidor figuraba al conductor fuera de línea
+  ///
+  /// In es, this message translates to:
+  /// **'Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.'**
+  String get presenceDisconnectedByServer;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

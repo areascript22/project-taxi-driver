@@ -30,3 +30,13 @@ class BatteryOptimizationSettingsOpened extends ForegroundServiceEvent {}
 // esa pantalla y regresa. Sin este recheck, el toggle quedaría bloqueado
 // aunque el usuario sí haya activado "Sin restricciones".
 class BatteryOptimizationStatusRechecked extends ForegroundServiceEvent {}
+
+// El servicio en segundo plano avisa de que dejo de conseguir la ubicacion
+// (issue != null) o de que volvio a conseguirla (issue == null).
+class ForegroundServiceLocationIssueChanged extends ForegroundServiceEvent {
+  final FailureCode? issue;
+  ForegroundServiceLocationIssueChanged(this.issue);
+}
+
+// El conductor toco "Abrir ajustes de ubicacion" en el aviso.
+class LocationSettingsOpened extends ForegroundServiceEvent {}

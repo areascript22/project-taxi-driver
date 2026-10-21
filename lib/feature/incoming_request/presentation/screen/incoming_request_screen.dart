@@ -1,6 +1,7 @@
 import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_denied_banner.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/battery_optimization_required_dialog.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/incoming_request_tile.dart';
+import 'package:driver_app/feature/incoming_request/presentation/component/location_issue_banner.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/location_permission_denied.dart';
 import 'package:driver_app/feature/incoming_request/presentation/component/offline_notice.dart';
 import 'package:driver_app/shared/foreground_location/presentation/bloc/foreground_service_bloc.dart';
@@ -100,6 +101,13 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
       context.read<ForegroundServiceBloc>().add(
         BatteryOptimizationStatusRechecked(),
       );
+
+      // El servidor es la fuente de verdad del interruptor: mientras la app
+      // estuvo en segundo plano pudo apagarse el servicio, o el servidor pudo
+      // cambiar el estado. Se vuelve a leer y se reconcilia.
+      context.read<ForegroundServiceBloc>().add(
+        ForegroundServiceStatusRequested(),
+      );
     }
   }
 
@@ -118,6 +126,20 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
             } else {
               context.read<IncomingRequestBloc>().add(StopListeningRequests());
             }
+          },
+        ),
+        // Al reconciliar con el servidor, el interruptor se apagó porque el
+        // servidor tenía al conductor fuera de línea: se le explica, no se apaga en
+        // silencio.
+        BlocListener<ForegroundServiceBloc, ForegroundServiceState>(
+          listenWhen:
+              (previous, current) =>
+                  current.disconnectedByServer && !previous.disconnectedByServer,
+          listener: (context, state) {
+            AppToast.success(
+              context,
+              message: AppLocalizations.of(context).presenceDisconnectedByServer,
+            );
           },
         ),
         // El servidor rechazó ponerse en línea (cuenta no habilitada, perfil no
@@ -189,7 +211,28 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
             ),
           ],
         ),
-        body: BlocConsumer<LocationBloc, LocationState>(
+        body: Column(
+          children: [
+            // Sin ubicación utilizable el conductor no recibe pedidos: se lo dice
+            // este aviso, que persiste hasta que la ubicación vuelve.
+            BlocBuilder<ForegroundServiceBloc, ForegroundServiceState>(
+              buildWhen:
+                  (previous, current) =>
+                      previous.locationIssue != current.locationIssue,
+              builder: (context, fgState) {
+                final issue = fgState.locationIssue;
+                if (issue == null) return const SizedBox.shrink();
+                return LocationIssueBanner(
+                  issue: issue,
+                  onOpenSettingsTapped:
+                      () => context.read<ForegroundServiceBloc>().add(
+                        LocationSettingsOpened(),
+                      ),
+                );
+              },
+            ),
+            Expanded(
+              child: BlocConsumer<LocationBloc, LocationState>(
           listenWhen:
               (previous, current) =>
                   previous.permissionStatus != current.permissionStatus,
@@ -343,6 +386,9 @@ class _IncomingRequestContentState extends State<IncomingRequestContent>
               },
             );
           },
+        ),
+            ),
+          ],
         ),
       ),
     ),

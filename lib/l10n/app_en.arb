@@ -190,7 +190,9 @@
   "failureBlockReasonMissing": "The block reason is missing",
   "failureRejectReasonMissing": "The rejection reason is missing",
   "failureDriverNotApproved": "A driver who is not approved cannot be blocked",
-  "failureGpsDisabled": "Your device's GPS service is turned off.",
+  "failureGpsDisabled": "We can't read your location. Turn on device location and high accuracy in settings.",
+  "failureLocationPermissionDenied": "TaxiGo needs location permission to offer you rides. Enable it in the app settings.",
+  "failureLocationUnavailable": "We couldn't get your location. Try somewhere open or check your location settings.",
   "failureLocationUpdateFailed": "Your location could not be updated.",
   "failureOnlineNotAllowed": "Your account is not yet enabled to receive rides.",
   "failureOnlineFailed": "Could not change your status. Try again.",
@@ -231,5 +233,10 @@
   "settingsSectionLanguage": "LANGUAGE",
   "settingsLanguageSystem": "System",
   "settingsLanguageSpanish": "Español",
-  "settingsLanguageEnglish": "English"
+  "settingsLanguageEnglish": "English",
+  "locationIssueTitle": "You're not receiving rides",
+  "locationIssueOpenSettings": "Open settings",
+  "foregroundNotificationReporting": "Reporting your location...",
+  "foregroundNotificationNoLocation": "No location: you won't receive rides",
+  "presenceDisconnectedByServer": "You were disconnected because the server had you offline. Reconnect whenever you like."
 }

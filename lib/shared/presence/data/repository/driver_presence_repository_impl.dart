@@ -21,10 +21,7 @@ class DriverPresenceRepositoryImpl implements DriverPresenceRepository {
   @override
   Future<Either<Failure, Unit>> setOnline({required bool online}) async {
     try {
-      await _dio.put(
-        '/api/me/driver/availability',
-        data: {'online': online},
-      );
+      await _dio.put('/api/me/driver/availability', data: {'online': online});
       return const Right(unit);
     } on DioException catch (e) {
       debugPrint('PresenceDebug | Error en setOnline($online): $e');
@@ -39,6 +36,34 @@ class DriverPresenceRepositoryImpl implements DriverPresenceRepository {
     } catch (e) {
       debugPrint('PresenceDebug | Error inesperado en setOnline($online): $e');
       return Left(Failure(code: FailureCode.onlineFailed));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> fetchOnline() async {
+    try {
+      final response = await _dio.get(
+        '/api/me',
+        // Sin reintentos: se consulta al abrir o volver de segundo plano y no
+        // debe dejar el interruptor esperando; si falla, se reintenta al
+        // siguiente resume.
+        options: Options()..disableRetry = true,
+      );
+      final data = response.data;
+      final driver = data is Map ? data['driver'] : null;
+      // Sin perfil de conductor (driver == null) no puede estar en linea.
+      return Right(driver is Map && driver['online'] == true);
+    } on DioException catch (e) {
+      debugPrint('PresenceDebug | Error en fetchOnline: $e');
+      return Left(
+        Failure(
+          code: FailureCode.onlineFailed,
+          detail: 'HTTP ${e.response?.statusCode ?? e.type.name}',
+        ),
+      );
+    } catch (e) {
+      debugPrint('PresenceDebug | Error inesperado en fetchOnline: $e');
+      return Left(Failure(code: FailureCode.onlineFailed, detail: '$e'));
     }
   }
 

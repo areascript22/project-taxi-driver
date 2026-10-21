@@ -20,6 +20,7 @@ import '../../presence/domain/repository/driver_presence_repository.dart';
 import '../../utils/pickup_label.dart';
 import '../../vibration/service/vibration_service_impl.dart';
 import '../../voice/service/voice_service_impl.dart';
+import '../domain/location_issue_tracker.dart';
 import '../domain/location_report_policy.dart';
 
 // Cada cuanto se LEE el GPS. Que ese valor se envie o no al servidor lo decide
@@ -47,7 +48,9 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   debugPrint('ForegroundLocationDebug | Entry point del isolate arrancando...');
   DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp();
-  debugPrint('ForegroundLocationDebug | Firebase.initializeApp() completado en el isolate');
+  debugPrint(
+    'ForegroundLocationDebug | Firebase.initializeApp() completado en el isolate',
+  );
 
   // Este isolate NO comparte memoria con el principal: el dotenv que cargó
   // main() no existe acá. Sin esto, DioClient no puede leer BASE_URL y TODO
@@ -57,7 +60,9 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
     await DotEnvServiceImpl().initialize();
     debugPrint('ForegroundLocationDebug | dotenv cargado en el isolate');
   } catch (e) {
-    debugPrint('ForegroundLocationDebug | No se pudo cargar dotenv en el isolate: $e');
+    debugPrint(
+      'ForegroundLocationDebug | No se pudo cargar dotenv en el isolate: $e',
+    );
   }
 
   final GeolocatorService geolocatorService = GeolocatorServiceServiceImpl();
@@ -84,6 +89,41 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
   UserLocation? lastReportedLocation;
   DateTime? lastReportedAt;
 
+  // Las traducciones se cargan UNA vez y se reusan (alerta de carreras nuevas y
+  // texto de la notificación). Este isolate no tiene BuildContext.
+  final isolateL10nFuture = loadIsolateLocalizations(
+    settingsRepository: settingsRepository,
+  );
+
+  // Si el GPS no da posición varias veces seguidas, el conductor tiene que
+  // saberlo: estar "en línea" sin ubicación = no recibir pedidos, en silencio.
+  final locationIssueTracker = LocationIssueTracker();
+
+  Future<void> announceLocationIssue(LocationIssueUpdate update) async {
+    if (!update.changed) return;
+    debugPrint(
+      'ForegroundLocationDebug | Estado de ubicación -> '
+      '${update.issue?.name ?? "ok"}',
+    );
+    service.invoke(locationStatusEvent, encodeLocationIssue(update.issue));
+    try {
+      final l10n = await isolateL10nFuture;
+      if (service is AndroidServiceInstance) {
+        await service.setForegroundNotificationInfo(
+          title: 'TaxiGo Conductor',
+          content:
+              update.issue == null
+                  ? l10n.foregroundNotificationReporting
+                  : l10n.foregroundNotificationNoLocation,
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        'ForegroundLocationDebug | No se pudo actualizar la notificación: $e',
+      );
+    }
+  }
+
   Future<void> reportCurrentLocation() async {
     final passengerId = currentPassengerId;
     try {
@@ -91,10 +131,15 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       await result.fold(
         (failure) async {
           debugPrint(
-            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.code}',
+            'ForegroundLocationDebug | getCurrentPosition() falló: ${failure.code} (${failure.detail})',
+          );
+          await announceLocationIssue(
+            locationIssueTracker.onFailure(code: failure.code),
           );
         },
         (location) async {
+          // Una lectura buena resuelve cualquier problema anunciado.
+          await announceLocationIssue(locationIssueTracker.onSuccess());
           final last = lastReportedLocation;
           final lastAt = lastReportedAt;
           final shouldReport = _reportPolicy.shouldReport(
@@ -132,13 +177,27 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
         },
       );
     } catch (e) {
-      debugPrint('ForegroundLocationDebug | Excepción inesperada en reportCurrentLocation: $e');
+      debugPrint(
+        'ForegroundLocationDebug | Excepción inesperada en reportCurrentLocation: $e',
+      );
     }
   }
 
   // El timer corre siempre que el servicio esté vivo: sin carrera reporta para
   // el despacho, con carrera para el mapa del pasajero.
-  locationTimer = Timer.periodic(_trackingInterval, (_) => reportCurrentLocation());
+  locationTimer = Timer.periodic(
+    _trackingInterval,
+    (_) => reportCurrentLocation(),
+  );
+
+  // La pantalla se recrea al entrar y no sabe de un problema que ya empezó: lo
+  // pide, y se le repite el estado actual.
+  service.on(queryLocationStatusEvent).listen((_) {
+    service.invoke(
+      locationStatusEvent,
+      encodeLocationIssue(locationIssueTracker.announced),
+    );
+  });
 
   // 'track' llega para pasar a modo carrera (passengerId presente) o volver a
   // modo libre (passengerId nulo). El timer NO se reinicia: solo cambia a
@@ -151,7 +210,9 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
       lastReportedAt = null;
       reportCurrentLocation();
     } catch (e) {
-      debugPrint('ForegroundLocationDebug | Excepción manejando evento "track": $e');
+      debugPrint(
+        'ForegroundLocationDebug | Excepción manejando evento "track": $e',
+      );
     }
   });
 
@@ -178,9 +239,7 @@ void driverForegroundServiceEntryPoint(ServiceInstance service) async {
     // Este isolate no tiene BuildContext: las traducciones se cargan a mano,
     // una sola vez, antes de suscribirse (el listener de onChildAdded es
     // sincrono y no puede hacer await).
-    final isolateL10n = await loadIsolateLocalizations(
-      settingsRepository: settingsRepository,
-    );
+    final isolateL10n = await isolateL10nFuture;
 
     try {
       // Puebla el set con las ofertas que YA existen antes de suscribirse --

@@ -12,6 +12,13 @@ abstract class DriverPresenceRepository {
   /// bloqueado; desconectarse siempre se acepta.
   Future<Either<Failure, Unit>> setOnline({required bool online});
 
+  /// Lo que el SERVIDOR cree: true si figura "en linea" (drivers.is_online).
+  ///
+  /// Es la fuente de verdad del interruptor: el servicio de Android local puede
+  /// seguir vivo (o haberse caido) sin que el servidor lo sepa, y la base es lo
+  /// que usa el despacho para decidir a quien ofrecerle un pedido.
+  Future<Either<Failure, bool>> fetchOnline();
+
   /// Reporta la posicion actual.
   ///
   /// [passengerId] solo se manda cuando el conductor va en una carrera: el
