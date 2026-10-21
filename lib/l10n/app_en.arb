@@ -213,6 +213,7 @@
   "failureAccountDeleteFailed": "Your account could not be deleted. Try again.",
   "failureDriverProfileCheckFailed": "We could not verify your driver information",
   "failureVehicleFetchFailed": "The vehicle information could not be loaded",
+  "failureProfilePhotoRequired": "Choose a profile photo to continue",
   "failureProfileSaveFailed": "Your information could not be saved. Try again.",
   "failureImagePickFailed": "The selected image could not be loaded",
   "failureSessionVerifyFailed": "We could not verify your session. Try again.",

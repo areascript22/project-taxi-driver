@@ -652,6 +652,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureVehicleFetchFailed => 'No se pudo obtener la información del vehículo';
 
   @override
+  String get failureProfilePhotoRequired => 'Elige una foto de perfil para continuar';
+
+  @override
   String get failureProfileSaveFailed => 'No se pudo guardar tu información. Intenta nuevamente.';
 
   @override

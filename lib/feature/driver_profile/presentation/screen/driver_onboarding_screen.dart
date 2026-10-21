@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/domain/entity/user_entity.dart';
 import '../../../../shared/feature/session/presentation/bloc/session/session_bloc.dart';
 import '../../../../shared/presentation/component/app_toast.dart';
+import '../../../../shared/utils/ecuador_mobile_formatter.dart';
 import '../bloc/driver_onboarding_bloc.dart';
 import '../component/driver_personal_form.dart';
 import '../component/image_source_sheet.dart';
@@ -44,6 +45,9 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
   final _pageController = PageController();
   final _personalFormKey = GlobalKey<FormState>();
   final _vehicleFormKey = GlobalKey<FormState>();
+
+  // Se activa al intentar avanzar sin foto; se apaga solo al elegir una.
+  bool _photoMissingAttempted = false;
 
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
@@ -93,7 +97,16 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
   }
 
   void _goToVehicleStep() {
-    if (_personalFormKey.currentState?.validate() != true) return;
+    final hasPhoto = context.read<DriverOnboardingBloc>().state.profileImage != null;
+    final formValid = _personalFormKey.currentState?.validate() == true;
+    if (!hasPhoto) {
+      setState(() => _photoMissingAttempted = true);
+      AppToast.error(
+        context,
+        message: AppLocalizations.of(context).failureProfilePhotoRequired,
+      );
+    }
+    if (!formValid || !hasPhoto) return;
     _pageController.animateToPage(
       1,
       duration: const Duration(milliseconds: 300),
@@ -116,7 +129,8 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
       DriverOnboardingSubmitted(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
-        phoneNumber: '+593${_phoneController.text.trim()}',
+        phoneNumber:
+            '+593${EcuadorMobileFormatter.digitsOf(text: _phoneController.text)}',
         plate: _plateController.text.trim(),
         brand: _brandController.text.trim(),
         model: _modelController.text.trim(),
@@ -171,7 +185,9 @@ class _DriverOnboardingViewState extends State<DriverOnboardingView> {
                             emailController: _emailController,
                             phoneController: _phoneController,
                             localImage: state.profileImage,
-                            networkImageUrl: widget.user.photoUrl,
+                            showPhotoError:
+                                _photoMissingAttempted &&
+                                state.profileImage == null,
                             isPickingImage: state.isPickingImage,
                             onPickImage: _pickImage,
                             onNext: _goToVehicleStep,

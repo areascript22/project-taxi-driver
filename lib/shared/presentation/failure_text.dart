@@ -46,6 +46,7 @@ extension FailureTextX on BuildContext {
       FailureCode.driverProfileCheckFailed => l10n.failureDriverProfileCheckFailed,
       FailureCode.vehicleFetchFailed => l10n.failureVehicleFetchFailed,
       FailureCode.profileSaveFailed => l10n.failureProfileSaveFailed,
+      FailureCode.profilePhotoRequired => l10n.failureProfilePhotoRequired,
       FailureCode.imagePickFailed => l10n.failureImagePickFailed,
       FailureCode.sessionVerifyFailed => l10n.failureSessionVerifyFailed,
       FailureCode.signInFailed => l10n.failureSignInFailed,

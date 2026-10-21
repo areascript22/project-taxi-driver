@@ -884,6 +884,10 @@
   "@failureVehicleFetchFailed": {
     "description": "Mensaje de error para FailureCode.vehicleFetchFailed"
   },
+  "failureProfilePhotoRequired": "Elige una foto de perfil para continuar",
+  "@failureProfilePhotoRequired": {
+    "description": "Mensaje de error para FailureCode.profilePhotoRequired: en el registro la foto de perfil es obligatoria y no se toma de la cuenta de Google"
+  },
   "failureProfileSaveFailed": "No se pudo guardar tu información. Intenta nuevamente.",
   "@failureProfileSaveFailed": {
     "description": "Mensaje de error para FailureCode.profileSaveFailed"

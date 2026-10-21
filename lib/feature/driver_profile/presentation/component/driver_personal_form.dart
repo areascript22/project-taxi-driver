@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/presentation/component/custom_button.dart';
+import '../../../../shared/utils/ecuador_mobile_formatter.dart';
 import 'onboarding_step_header.dart';
 import 'onboarding_text_field.dart';
 import 'profile_avatar_picker.dart';
@@ -18,7 +18,7 @@ class DriverPersonalForm extends StatelessWidget {
   final TextEditingController phoneController;
   final TextEditingController emailController;
   final File? localImage;
-  final String? networkImageUrl;
+  final bool showPhotoError;
   final bool isPickingImage;
   final VoidCallback onPickImage;
   final VoidCallback onNext;
@@ -31,7 +31,7 @@ class DriverPersonalForm extends StatelessWidget {
     required this.phoneController,
     required this.emailController,
     required this.localImage,
-    required this.networkImageUrl,
+    required this.showPhotoError,
     required this.isPickingImage,
     required this.onPickImage,
     required this.onNext,
@@ -59,11 +59,21 @@ class DriverPersonalForm extends StatelessWidget {
             Center(
               child: ProfileAvatarPicker(
                 localImage: localImage,
-                networkImageUrl: networkImageUrl,
+                networkImageUrl: null,
                 isLoading: isPickingImage,
                 onTap: onPickImage,
               ),
             ),
+            if (showPhotoError)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Center(
+                  child: Text(
+                    l10n.failureProfilePhotoRequired,
+                    style: TextStyle(color: colorScheme.error, fontSize: 13),
+                  ),
+                ),
+              ),
             const SizedBox(height: 32),
             OnboardingTextField(
               label: l10n.fieldFirstName,
@@ -99,11 +109,9 @@ class DriverPersonalForm extends StatelessWidget {
               label: l10n.fieldMobile,
               controller: phoneController,
               keyboardType: TextInputType.phone,
-              maxLength: 9,
-              hintText: '9XXXXXXXX',
+              hintText: '9XX XXX XXX',
               inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(9),
+                const EcuadorMobileFormatter(),
               ],
               prefix: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 8),
@@ -116,7 +124,7 @@ class DriverPersonalForm extends StatelessWidget {
                 ),
               ),
               validator: (value) {
-                final digits = value?.trim() ?? '';
+                final digits = EcuadorMobileFormatter.digitsOf(text: value ?? '');
                 if (digits.isEmpty) {
                   return l10n.validationMobileRequired;
                 }

@@ -42,6 +42,7 @@ enum FailureCode {
   driverProfileCheckFailed,
   vehicleFetchFailed,
   profileSaveFailed,
+  profilePhotoRequired,
   imagePickFailed,
   sessionVerifyFailed,
   signInFailed,
