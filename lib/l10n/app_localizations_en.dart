@@ -107,6 +107,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogle => 'Continue with Google';
 
   @override
+  String get signInOr => 'or';
+
+  @override
+  String get signInEmailLabel => 'Email';
+
+  @override
+  String get signInPasswordLabel => 'Password';
+
+  @override
+  String get signInEmailButton => 'Sign in';
+
+  @override
+  String get signInEmailRequired => 'Enter your email';
+
+  @override
+  String get signInEmailInvalid => 'Enter a valid email';
+
+  @override
+  String get signInPasswordRequired => 'Enter your password';
+
+  @override
+  String get signInShowPassword => 'Show password';
+
+  @override
+  String get signInHidePassword => 'Hide password';
+
+  @override
   String get logoutDialogBody => 'Are you sure you want to sign out?';
 
   @override
@@ -671,6 +698,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failureSignInFailed => 'Sign-in failed. Try again.';
+
+  @override
+  String get failureInvalidCredentials => 'Incorrect email or password.';
 
   @override
   String get failureSignOutFailed => 'Sign-out failed. Try again.';

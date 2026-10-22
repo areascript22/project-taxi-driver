@@ -53,6 +53,7 @@ extension FailureTextX on BuildContext {
       FailureCode.imagePickFailed => l10n.failureImagePickFailed,
       FailureCode.sessionVerifyFailed => l10n.failureSessionVerifyFailed,
       FailureCode.signInFailed => l10n.failureSignInFailed,
+      FailureCode.invalidCredentials => l10n.failureInvalidCredentials,
       FailureCode.signOutFailed => l10n.failureSignOutFailed,
       // solo para logs; si llega a la UI, mensaje genarico
       FailureCode.notSignedIn => l10n.failureUnexpected,

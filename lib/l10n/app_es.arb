@@ -135,6 +135,42 @@
   "@signInGoogle": {
     "description": "Botón de login con Google"
   },
+  "signInOr": "o",
+  "@signInOr": {
+    "description": "Separador entre el login con Google y el login con correo y contraseña"
+  },
+  "signInEmailLabel": "Correo electrónico",
+  "@signInEmailLabel": {
+    "description": "Etiqueta del campo de correo en el login con correo y contraseña"
+  },
+  "signInPasswordLabel": "Contraseña",
+  "@signInPasswordLabel": {
+    "description": "Etiqueta del campo de contraseña en el login con correo y contraseña"
+  },
+  "signInEmailButton": "Iniciar sesión",
+  "@signInEmailButton": {
+    "description": "Botón de login con correo y contraseña"
+  },
+  "signInEmailRequired": "Ingresa tu correo electrónico",
+  "@signInEmailRequired": {
+    "description": "Error de validación: el campo de correo está vacío"
+  },
+  "signInEmailInvalid": "Ingresa un correo válido",
+  "@signInEmailInvalid": {
+    "description": "Error de validación: el correo no tiene formato válido"
+  },
+  "signInPasswordRequired": "Ingresa tu contraseña",
+  "@signInPasswordRequired": {
+    "description": "Error de validación: el campo de contraseña está vacío"
+  },
+  "signInShowPassword": "Mostrar contraseña",
+  "@signInShowPassword": {
+    "description": "Tooltip del botón que muestra la contraseña escrita"
+  },
+  "signInHidePassword": "Ocultar contraseña",
+  "@signInHidePassword": {
+    "description": "Tooltip del botón que oculta la contraseña escrita"
+  },
   "logoutDialogBody": "¿Estás seguro de que deseas cerrar sesión?",
   "@logoutDialogBody": {
     "description": "Cuerpo del diálogo de confirmación de cierre de sesión"
@@ -911,6 +947,10 @@
   "failureSignInFailed": "No se pudo iniciar sesión. Intenta de nuevo.",
   "@failureSignInFailed": {
     "description": "Mensaje de error para FailureCode.signInFailed"
+  },
+  "failureInvalidCredentials": "Correo o contraseña incorrectos.",
+  "@failureInvalidCredentials": {
+    "description": "Mensaje de error para FailureCode.invalidCredentials"
   },
   "failureSignOutFailed": "No se pudo cerrar sesión. Intenta de nuevo.",
   "@failureSignOutFailed": {

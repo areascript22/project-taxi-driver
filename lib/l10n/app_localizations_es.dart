@@ -107,6 +107,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signInGoogle => 'Continuar con Google';
 
   @override
+  String get signInOr => 'o';
+
+  @override
+  String get signInEmailLabel => 'Correo electrónico';
+
+  @override
+  String get signInPasswordLabel => 'Contraseña';
+
+  @override
+  String get signInEmailButton => 'Iniciar sesión';
+
+  @override
+  String get signInEmailRequired => 'Ingresa tu correo electrónico';
+
+  @override
+  String get signInEmailInvalid => 'Ingresa un correo válido';
+
+  @override
+  String get signInPasswordRequired => 'Ingresa tu contraseña';
+
+  @override
+  String get signInShowPassword => 'Mostrar contraseña';
+
+  @override
+  String get signInHidePassword => 'Ocultar contraseña';
+
+  @override
   String get logoutDialogBody => '¿Estás seguro de que deseas cerrar sesión?';
 
   @override
@@ -671,6 +698,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get failureSignInFailed => 'No se pudo iniciar sesión. Intenta de nuevo.';
+
+  @override
+  String get failureInvalidCredentials => 'Correo o contraseña incorrectos.';
 
   @override
   String get failureSignOutFailed => 'No se pudo cerrar sesión. Intenta de nuevo.';

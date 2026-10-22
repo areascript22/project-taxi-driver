@@ -287,6 +287,60 @@ abstract class AppLocalizations {
   /// **'Continuar con Google'**
   String get signInGoogle;
 
+  /// Separador entre el login con Google y el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'o'**
+  String get signInOr;
+
+  /// Etiqueta del campo de correo en el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get signInEmailLabel;
+
+  /// Etiqueta del campo de contraseña en el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get signInPasswordLabel;
+
+  /// Botón de login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get signInEmailButton;
+
+  /// Error de validación: el campo de correo está vacío
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu correo electrónico'**
+  String get signInEmailRequired;
+
+  /// Error de validación: el correo no tiene formato válido
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un correo válido'**
+  String get signInEmailInvalid;
+
+  /// Error de validación: el campo de contraseña está vacío
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu contraseña'**
+  String get signInPasswordRequired;
+
+  /// Tooltip del botón que muestra la contraseña escrita
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar contraseña'**
+  String get signInShowPassword;
+
+  /// Tooltip del botón que oculta la contraseña escrita
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar contraseña'**
+  String get signInHidePassword;
+
   /// Cuerpo del diálogo de confirmación de cierre de sesión
   ///
   /// In es, this message translates to:
@@ -1390,6 +1444,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo iniciar sesión. Intenta de nuevo.'**
   String get failureSignInFailed;
+
+  /// Mensaje de error para FailureCode.invalidCredentials
+  ///
+  /// In es, this message translates to:
+  /// **'Correo o contraseña incorrectos.'**
+  String get failureInvalidCredentials;
 
   /// Mensaje de error para FailureCode.signOutFailed
   ///

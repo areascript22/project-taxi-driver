@@ -4,4 +4,9 @@ import '../../../../shared/domain/entity/user_entity.dart';
 
 abstract class AuthRepository{
   Future<Either<Failure, UserEntity >> signInWithGoogle();
+
+  Future<Either<Failure, UserEntity>> signInWithEmail({
+    required String email,
+    required String password,
+  });
 }

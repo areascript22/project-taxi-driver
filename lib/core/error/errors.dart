@@ -48,6 +48,7 @@ enum FailureCode {
   imagePickFailed,
   sessionVerifyFailed,
   signInFailed,
+  invalidCredentials,
   signOutFailed,
   notSignedIn,
   batteryStatusFailed,
