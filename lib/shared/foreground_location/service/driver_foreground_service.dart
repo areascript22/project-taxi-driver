@@ -1,3 +1,5 @@
+import '../../../core/error/errors.dart';
+
 // Controla el foreground service que mantiene viva la app en background y
 // reporta la ubicación del conductor. Es el único punto de entrada que el
 // resto de la app debe usar para arrancar/detener ese servicio -- ningún
@@ -25,4 +27,14 @@ abstract class DriverForegroundService {
   Future<void> stopTracking();
 
   Future<bool> isRunning();
+
+  // El motivo por el que el servicio NO consigue la ubicación del conductor (GPS
+  // o ajustes apagados, permiso, sin señal), o null cuando vuelve a conseguirla.
+  // Solo emite CAMBIOS: ver requestLocationStatus para conocer el estado actual.
+  Stream<FailureCode?> get locationIssue;
+
+  // Le pide al servicio que repita su estado de ubicación por [locationIssue].
+  // Hace falta porque la pantalla se recrea al entrar y no vería un problema que
+  // ya empezó. Fire-and-forget: si el servicio no corre, no pasa nada.
+  Future<void> requestLocationStatus();
 }

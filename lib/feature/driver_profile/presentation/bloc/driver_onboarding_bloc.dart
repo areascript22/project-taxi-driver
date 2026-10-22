@@ -63,6 +63,12 @@ class DriverOnboardingBloc
       return;
     }
 
+    // La foto no se toma de la cuenta de Google: el conductor debe elegir una.
+    if (state.profileImage == null) {
+      emit(state.copyWith(errorCode: FailureCode.profilePhotoRequired));
+      return;
+    }
+
     emit(state.copyWith(isSubmitting: true, errorCode: null));
 
     final driver = DriverEntity(
@@ -71,7 +77,6 @@ class DriverOnboardingBloc
       lastName: event.lastName,
       email: user.email ?? '',
       phoneNumber: event.phoneNumber,
-      photoUrl: user.photoUrl,
     );
 
     final vehicle = VehicleEntity(

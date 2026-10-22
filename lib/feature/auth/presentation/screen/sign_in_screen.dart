@@ -155,6 +155,36 @@ class SignInView extends StatelessWidget {
                                   ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed:
+                              isLoading
+                                  ? null
+                                  : () => context.pushNamed(
+                                    emailSignInRoute.name,
+                                  ),
+                          icon: const Icon(Icons.email_outlined),
+                          label: Text(
+                            AppLocalizations.of(context).signInWithEmailOption,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: onSurface,
+                            side: BorderSide(
+                              color: onSurface.withValues(alpha: 0.4),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 40),
                       AppVersionWidget(),
                     ],

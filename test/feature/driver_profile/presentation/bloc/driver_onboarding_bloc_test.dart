@@ -150,6 +150,40 @@ void main() {
     );
 
     blocTest<DriverOnboardingBloc, DriverOnboardingState>(
+      'asks for a profile photo and does not register without one',
+      build: buildBloc,
+      seed: () => DriverOnboardingState(user: user),
+      act: (bloc) => bloc.add(
+        DriverOnboardingSubmitted(
+          firstName: 'A',
+          lastName: 'B',
+          phoneNumber: '123',
+          plate: 'ABC123',
+          brand: 'Toyota',
+          model: 'Corolla',
+          year: 2020,
+          color: 'red',
+          registrationNumber: 'REG1',
+        ),
+      ),
+      expect: () => [
+        predicate<DriverOnboardingState>(
+          (s) =>
+              s.errorCode == FailureCode.profilePhotoRequired && !s.isSubmitting,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(
+          () => repository.registerDriver(
+            driver: any(named: 'driver'),
+            vehicle: any(named: 'vehicle'),
+            profileImage: any(named: 'profileImage'),
+          ),
+        );
+      },
+    );
+
+    blocTest<DriverOnboardingBloc, DriverOnboardingState>(
       'registers the driver and reports success',
       setUp: () {
         when(
@@ -161,7 +195,7 @@ void main() {
         ).thenAnswer((_) async => Right(unit));
       },
       build: buildBloc,
-      seed: () => DriverOnboardingState(user: user),
+      seed: () => DriverOnboardingState(user: user, profileImage: File('photo.jpg')),
       act: (bloc) => bloc.add(
         DriverOnboardingSubmitted(
           firstName: 'A',
@@ -197,7 +231,7 @@ void main() {
         );
       },
       build: buildBloc,
-      seed: () => DriverOnboardingState(user: user),
+      seed: () => DriverOnboardingState(user: user, profileImage: File('photo.jpg')),
       act: (bloc) => bloc.add(
         DriverOnboardingSubmitted(
           firstName: 'A',

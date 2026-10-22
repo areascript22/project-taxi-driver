@@ -107,6 +107,100 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signInGoogle => 'Continuar con Google';
 
   @override
+  String get signInOr => 'o';
+
+  @override
+  String get signInWithEmailOption => 'Continuar con correo y contraseña';
+
+  @override
+  String get emailSignInTitle => 'Iniciar sesión';
+
+  @override
+  String get emailSignInSubtitle => 'Ingresa con tu correo y contraseña';
+
+  @override
+  String get signInForgotPassword => '¿Olvidaste tu contraseña?';
+
+  @override
+  String get signInNoAccount => '¿No tienes una cuenta?';
+
+  @override
+  String get signInCreateOne => 'Crea una';
+
+  @override
+  String get signUpTitle => 'Crear cuenta';
+
+  @override
+  String get signUpSubtitle => 'Define tu correo y una contraseña. Te enviaremos un enlace para confirmar tu correo.';
+
+  @override
+  String get signUpConfirmPasswordLabel => 'Confirmar contraseña';
+
+  @override
+  String get signUpPasswordTooShort => 'La contraseña debe tener al menos 6 caracteres';
+
+  @override
+  String get signUpPasswordMismatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get signUpButton => 'Crear cuenta';
+
+  @override
+  String get signUpHaveAccount => '¿Ya tienes una cuenta?';
+
+  @override
+  String get signUpGoToSignIn => 'Inicia sesión';
+
+  @override
+  String get emailVerificationTitle => 'Confirma tu correo';
+
+  @override
+  String emailVerificationBody(String email) {
+    return 'Enviamos un enlace de confirmación a $email. Revisa tu bandeja de entrada (y la carpeta de spam) y confírmalo para poder iniciar sesión.';
+  }
+
+  @override
+  String get emailVerificationAccept => 'Entendido';
+
+  @override
+  String get resetPasswordTitle => 'Recuperar contraseña';
+
+  @override
+  String get resetPasswordSubtitle => 'Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.';
+
+  @override
+  String get resetPasswordButton => 'Enviar enlace';
+
+  @override
+  String resetPasswordSent(String email) {
+    return 'Si existe una cuenta con $email, te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.';
+  }
+
+  @override
+  String get signInEmailLabel => 'Correo electrónico';
+
+  @override
+  String get signInPasswordLabel => 'Contraseña';
+
+  @override
+  String get signInEmailButton => 'Iniciar sesión';
+
+  @override
+  String get signInEmailRequired => 'Ingresa tu correo electrónico';
+
+  @override
+  String get signInEmailInvalid => 'Ingresa un correo válido';
+
+  @override
+  String get signInPasswordRequired => 'Ingresa tu contraseña';
+
+  @override
+  String get signInShowPassword => 'Mostrar contraseña';
+
+  @override
+  String get signInHidePassword => 'Ocultar contraseña';
+
+  @override
   String get logoutDialogBody => '¿Estás seguro de que deseas cerrar sesión?';
 
   @override
@@ -583,7 +677,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureDriverNotApproved => 'No se puede bloquear a un conductor que no está aprobado';
 
   @override
-  String get failureGpsDisabled => 'El servicio de GPS del dispositivo está desactivado.';
+  String get failureGpsDisabled => 'No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.';
+
+  @override
+  String get failureLocationPermissionDenied => 'TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.';
+
+  @override
+  String get failureLocationUnavailable => 'No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.';
 
   @override
   String get failureLocationUpdateFailed => 'No se pudo actualizar la ubicación del conductor.';
@@ -652,6 +752,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get failureVehicleFetchFailed => 'No se pudo obtener la información del vehículo';
 
   @override
+  String get failureProfilePhotoRequired => 'Elige una foto de perfil para continuar';
+
+  @override
   String get failureProfileSaveFailed => 'No se pudo guardar tu información. Intenta nuevamente.';
 
   @override
@@ -662,6 +765,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get failureSignInFailed => 'No se pudo iniciar sesión. Intenta de nuevo.';
+
+  @override
+  String get failureInvalidCredentials => 'Correo o contraseña incorrectos.';
+
+  @override
+  String get failureEmailNotVerified => 'Confirma tu correo para poder iniciar sesión.';
+
+  @override
+  String get failureEmailAlreadyInUse => 'Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.';
+
+  @override
+  String get failureWeakPassword => 'La contraseña es muy débil. Usa al menos 6 caracteres.';
+
+  @override
+  String get failureInvalidEmail => 'El correo no es válido.';
+
+  @override
+  String get failureVerificationEmailFailed => 'Tu cuenta se creó, pero no pudimos enviar el correo de confirmación. Intenta iniciar sesión para reenviarlo.';
+
+  @override
+  String get failurePasswordResetFailed => 'No se pudo enviar el correo de recuperación. Intenta de nuevo.';
 
   @override
   String get failureSignOutFailed => 'No se pudo cerrar sesión. Intenta de nuevo.';
@@ -708,4 +832,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get locationIssueTitle => 'No estás recibiendo pedidos';
+
+  @override
+  String get locationIssueOpenSettings => 'Abrir ajustes';
+
+  @override
+  String get foregroundNotificationReporting => 'Reportando tu ubicación...';
+
+  @override
+  String get foregroundNotificationNoLocation => 'Sin ubicación: no recibirás pedidos';
+
+  @override
+  String get presenceDisconnectedByServer => 'Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.';
 }

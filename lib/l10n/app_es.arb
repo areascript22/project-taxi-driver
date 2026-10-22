@@ -135,6 +135,136 @@
   "@signInGoogle": {
     "description": "Botón de login con Google"
   },
+  "signInOr": "o",
+  "@signInOr": {
+    "description": "Separador entre el login con Google y el login con correo y contraseña"
+  },
+  "signInWithEmailOption": "Continuar con correo y contraseña",
+  "@signInWithEmailOption": {
+    "description": "Botón de la pantalla de login que lleva al formulario de correo y contraseña"
+  },
+  "emailSignInTitle": "Iniciar sesión",
+  "@emailSignInTitle": {
+    "description": "Título de la pantalla de login con correo y contraseña"
+  },
+  "emailSignInSubtitle": "Ingresa con tu correo y contraseña",
+  "@emailSignInSubtitle": {
+    "description": "Subtítulo de la pantalla de login con correo y contraseña"
+  },
+  "signInForgotPassword": "¿Olvidaste tu contraseña?",
+  "@signInForgotPassword": {
+    "description": "Enlace que lleva a la recuperación de contraseña"
+  },
+  "signInNoAccount": "¿No tienes una cuenta?",
+  "@signInNoAccount": {
+    "description": "Texto previo al enlace que lleva a crear una cuenta con correo"
+  },
+  "signInCreateOne": "Crea una",
+  "@signInCreateOne": {
+    "description": "Enlace que lleva a la pantalla de crear cuenta (sigue a 'signInNoAccount')"
+  },
+  "signUpTitle": "Crear cuenta",
+  "@signUpTitle": {
+    "description": "Título de la pantalla de registro con correo y contraseña"
+  },
+  "signUpSubtitle": "Define tu correo y una contraseña. Te enviaremos un enlace para confirmar tu correo.",
+  "@signUpSubtitle": {
+    "description": "Subtítulo de la pantalla de registro con correo y contraseña"
+  },
+  "signUpConfirmPasswordLabel": "Confirmar contraseña",
+  "@signUpConfirmPasswordLabel": {
+    "description": "Etiqueta del campo que repite la contraseña en el registro"
+  },
+  "signUpPasswordTooShort": "La contraseña debe tener al menos 6 caracteres",
+  "@signUpPasswordTooShort": {
+    "description": "Error de validación: contraseña demasiado corta (el mínimo lo impone Firebase Auth)"
+  },
+  "signUpPasswordMismatch": "Las contraseñas no coinciden",
+  "@signUpPasswordMismatch": {
+    "description": "Error de validación: la confirmación no coincide con la contraseña"
+  },
+  "signUpButton": "Crear cuenta",
+  "@signUpButton": {
+    "description": "Botón que envía el registro con correo y contraseña"
+  },
+  "signUpHaveAccount": "¿Ya tienes una cuenta?",
+  "@signUpHaveAccount": {
+    "description": "Texto previo al enlace que vuelve al login desde el registro"
+  },
+  "signUpGoToSignIn": "Inicia sesión",
+  "@signUpGoToSignIn": {
+    "description": "Enlace que vuelve al login desde el registro (sigue a 'signUpHaveAccount')"
+  },
+  "emailVerificationTitle": "Confirma tu correo",
+  "@emailVerificationTitle": {
+    "description": "Título del diálogo que pide verificar el correo antes de entrar"
+  },
+  "emailVerificationBody": "Enviamos un enlace de confirmación a {email}. Revisa tu bandeja de entrada (y la carpeta de spam) y confírmalo para poder iniciar sesión.",
+  "@emailVerificationBody": {
+    "description": "Cuerpo del diálogo de verificación de correo, mostrado tras registrarse o al intentar entrar sin haber verificado",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailVerificationAccept": "Entendido",
+  "@emailVerificationAccept": {
+    "description": "Botón que cierra el diálogo de verificación de correo"
+  },
+  "resetPasswordTitle": "Recuperar contraseña",
+  "@resetPasswordTitle": {
+    "description": "Título de la pantalla de recuperación de contraseña"
+  },
+  "resetPasswordSubtitle": "Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.",
+  "@resetPasswordSubtitle": {
+    "description": "Subtítulo de la pantalla de recuperación de contraseña"
+  },
+  "resetPasswordButton": "Enviar enlace",
+  "@resetPasswordButton": {
+    "description": "Botón que envía el correo de recuperación de contraseña"
+  },
+  "resetPasswordSent": "Si existe una cuenta con {email}, te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.",
+  "@resetPasswordSent": {
+    "description": "Toast tras pedir la recuperación de contraseña. Es deliberadamente neutro: no confirma si la cuenta existe",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "signInEmailLabel": "Correo electrónico",
+  "@signInEmailLabel": {
+    "description": "Etiqueta del campo de correo en el login con correo y contraseña"
+  },
+  "signInPasswordLabel": "Contraseña",
+  "@signInPasswordLabel": {
+    "description": "Etiqueta del campo de contraseña en el login con correo y contraseña"
+  },
+  "signInEmailButton": "Iniciar sesión",
+  "@signInEmailButton": {
+    "description": "Botón de login con correo y contraseña"
+  },
+  "signInEmailRequired": "Ingresa tu correo electrónico",
+  "@signInEmailRequired": {
+    "description": "Error de validación: el campo de correo está vacío"
+  },
+  "signInEmailInvalid": "Ingresa un correo válido",
+  "@signInEmailInvalid": {
+    "description": "Error de validación: el correo no tiene formato válido"
+  },
+  "signInPasswordRequired": "Ingresa tu contraseña",
+  "@signInPasswordRequired": {
+    "description": "Error de validación: el campo de contraseña está vacío"
+  },
+  "signInShowPassword": "Mostrar contraseña",
+  "@signInShowPassword": {
+    "description": "Tooltip del botón que muestra la contraseña escrita"
+  },
+  "signInHidePassword": "Ocultar contraseña",
+  "@signInHidePassword": {
+    "description": "Tooltip del botón que oculta la contraseña escrita"
+  },
   "logoutDialogBody": "¿Estás seguro de que deseas cerrar sesión?",
   "@logoutDialogBody": {
     "description": "Cuerpo del diálogo de confirmación de cierre de sesión"
@@ -792,9 +922,17 @@
   "@failureDriverNotApproved": {
     "description": "Mensaje de error para FailureCode.driverNotApproved"
   },
-  "failureGpsDisabled": "El servicio de GPS del dispositivo está desactivado.",
+  "failureGpsDisabled": "No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.",
   "@failureGpsDisabled": {
-    "description": "Mensaje de error para FailureCode.gpsDisabled"
+    "description": "Mensaje de error para FailureCode.gpsDisabled: el GPS está apagado o en un modo de ubicación que no alcanza (por ejemplo sin alta precisión). Dice qué hacer"
+  },
+  "failureLocationPermissionDenied": "TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.",
+  "@failureLocationPermissionDenied": {
+    "description": "Mensaje de error para FailureCode.locationPermissionDenied: el conductor no dio (o quitó) el permiso de ubicación"
+  },
+  "failureLocationUnavailable": "No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.",
+  "@failureLocationUnavailable": {
+    "description": "Mensaje de error para FailureCode.locationUnavailable: el GPS no dio una posición a tiempo (interior, mala señal) o falló por una causa desconocida"
   },
   "failureLocationUpdateFailed": "No se pudo actualizar la ubicación del conductor.",
   "@failureLocationUpdateFailed": {
@@ -884,6 +1022,10 @@
   "@failureVehicleFetchFailed": {
     "description": "Mensaje de error para FailureCode.vehicleFetchFailed"
   },
+  "failureProfilePhotoRequired": "Elige una foto de perfil para continuar",
+  "@failureProfilePhotoRequired": {
+    "description": "Mensaje de error para FailureCode.profilePhotoRequired: en el registro la foto de perfil es obligatoria y no se toma de la cuenta de Google"
+  },
   "failureProfileSaveFailed": "No se pudo guardar tu información. Intenta nuevamente.",
   "@failureProfileSaveFailed": {
     "description": "Mensaje de error para FailureCode.profileSaveFailed"
@@ -899,6 +1041,34 @@
   "failureSignInFailed": "No se pudo iniciar sesión. Intenta de nuevo.",
   "@failureSignInFailed": {
     "description": "Mensaje de error para FailureCode.signInFailed"
+  },
+  "failureInvalidCredentials": "Correo o contraseña incorrectos.",
+  "@failureInvalidCredentials": {
+    "description": "Mensaje de error para FailureCode.invalidCredentials"
+  },
+  "failureEmailNotVerified": "Confirma tu correo para poder iniciar sesión.",
+  "@failureEmailNotVerified": {
+    "description": "Mensaje de error para FailureCode.emailNotVerified (normalmente la UI muestra el diálogo de verificación en su lugar)"
+  },
+  "failureEmailAlreadyInUse": "Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.",
+  "@failureEmailAlreadyInUse": {
+    "description": "Mensaje de error para FailureCode.emailAlreadyInUse"
+  },
+  "failureWeakPassword": "La contraseña es muy débil. Usa al menos 6 caracteres.",
+  "@failureWeakPassword": {
+    "description": "Mensaje de error para FailureCode.weakPassword"
+  },
+  "failureInvalidEmail": "El correo no es válido.",
+  "@failureInvalidEmail": {
+    "description": "Mensaje de error para FailureCode.invalidEmail"
+  },
+  "failureVerificationEmailFailed": "Tu cuenta se creó, pero no pudimos enviar el correo de confirmación. Intenta iniciar sesión para reenviarlo.",
+  "@failureVerificationEmailFailed": {
+    "description": "Mensaje de error para FailureCode.verificationEmailFailed"
+  },
+  "failurePasswordResetFailed": "No se pudo enviar el correo de recuperación. Intenta de nuevo.",
+  "@failurePasswordResetFailed": {
+    "description": "Mensaje de error para FailureCode.passwordResetFailed"
   },
   "failureSignOutFailed": "No se pudo cerrar sesión. Intenta de nuevo.",
   "@failureSignOutFailed": {
@@ -963,5 +1133,25 @@
   "settingsLanguageEnglish": "English",
   "@settingsLanguageEnglish": {
     "description": "Nombre del idioma ingles. NO se traduce, mismo criterio que settingsLanguageSpanish"
+  },
+  "locationIssueTitle": "No estás recibiendo pedidos",
+  "@locationIssueTitle": {
+    "description": "Título del aviso persistente en la pantalla de peticiones cuando el conductor está en línea (o intentó conectarse) pero no hay ubicación utilizable. Va seguido del motivo (failureGpsDisabled, etc.)"
+  },
+  "locationIssueOpenSettings": "Abrir ajustes",
+  "@locationIssueOpenSettings": {
+    "description": "Botón del aviso de falta de ubicación: abre los ajustes de ubicación del dispositivo, o los permisos de la app si el problema es el permiso"
+  },
+  "foregroundNotificationReporting": "Reportando tu ubicación...",
+  "@foregroundNotificationReporting": {
+    "description": "Texto de la notificación persistente del servicio en segundo plano cuando la ubicación funciona. Lo arma el isolate del servicio, sin BuildContext"
+  },
+  "foregroundNotificationNoLocation": "Sin ubicación: no recibirás pedidos",
+  "@foregroundNotificationNoLocation": {
+    "description": "Texto de la notificación persistente del servicio en segundo plano cuando no se consigue la ubicación del conductor. Lo arma el isolate del servicio, sin BuildContext"
+  },
+  "presenceDisconnectedByServer": "Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.",
+  "@presenceDisconnectedByServer": {
+    "description": "Aviso (toast informativo) cuando la app reconcilia su interruptor con el servidor y lo apaga porque el servidor figuraba al conductor fuera de línea"
   }
 }

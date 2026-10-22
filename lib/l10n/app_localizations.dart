@@ -287,6 +287,186 @@ abstract class AppLocalizations {
   /// **'Continuar con Google'**
   String get signInGoogle;
 
+  /// Separador entre el login con Google y el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'o'**
+  String get signInOr;
+
+  /// Botón de la pantalla de login que lleva al formulario de correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con correo y contraseña'**
+  String get signInWithEmailOption;
+
+  /// Título de la pantalla de login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get emailSignInTitle;
+
+  /// Subtítulo de la pantalla de login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa con tu correo y contraseña'**
+  String get emailSignInSubtitle;
+
+  /// Enlace que lleva a la recuperación de contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'¿Olvidaste tu contraseña?'**
+  String get signInForgotPassword;
+
+  /// Texto previo al enlace que lleva a crear una cuenta con correo
+  ///
+  /// In es, this message translates to:
+  /// **'¿No tienes una cuenta?'**
+  String get signInNoAccount;
+
+  /// Enlace que lleva a la pantalla de crear cuenta (sigue a 'signInNoAccount')
+  ///
+  /// In es, this message translates to:
+  /// **'Crea una'**
+  String get signInCreateOne;
+
+  /// Título de la pantalla de registro con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get signUpTitle;
+
+  /// Subtítulo de la pantalla de registro con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Define tu correo y una contraseña. Te enviaremos un enlace para confirmar tu correo.'**
+  String get signUpSubtitle;
+
+  /// Etiqueta del campo que repite la contraseña en el registro
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar contraseña'**
+  String get signUpConfirmPasswordLabel;
+
+  /// Error de validación: contraseña demasiado corta (el mínimo lo impone Firebase Auth)
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña debe tener al menos 6 caracteres'**
+  String get signUpPasswordTooShort;
+
+  /// Error de validación: la confirmación no coincide con la contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden'**
+  String get signUpPasswordMismatch;
+
+  /// Botón que envía el registro con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get signUpButton;
+
+  /// Texto previo al enlace que vuelve al login desde el registro
+  ///
+  /// In es, this message translates to:
+  /// **'¿Ya tienes una cuenta?'**
+  String get signUpHaveAccount;
+
+  /// Enlace que vuelve al login desde el registro (sigue a 'signUpHaveAccount')
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión'**
+  String get signUpGoToSignIn;
+
+  /// Título del diálogo que pide verificar el correo antes de entrar
+  ///
+  /// In es, this message translates to:
+  /// **'Confirma tu correo'**
+  String get emailVerificationTitle;
+
+  /// Cuerpo del diálogo de verificación de correo, mostrado tras registrarse o al intentar entrar sin haber verificado
+  ///
+  /// In es, this message translates to:
+  /// **'Enviamos un enlace de confirmación a {email}. Revisa tu bandeja de entrada (y la carpeta de spam) y confírmalo para poder iniciar sesión.'**
+  String emailVerificationBody(String email);
+
+  /// Botón que cierra el diálogo de verificación de correo
+  ///
+  /// In es, this message translates to:
+  /// **'Entendido'**
+  String get emailVerificationAccept;
+
+  /// Título de la pantalla de recuperación de contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Recuperar contraseña'**
+  String get resetPasswordTitle;
+
+  /// Subtítulo de la pantalla de recuperación de contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.'**
+  String get resetPasswordSubtitle;
+
+  /// Botón que envía el correo de recuperación de contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar enlace'**
+  String get resetPasswordButton;
+
+  /// Toast tras pedir la recuperación de contraseña. Es deliberadamente neutro: no confirma si la cuenta existe
+  ///
+  /// In es, this message translates to:
+  /// **'Si existe una cuenta con {email}, te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.'**
+  String resetPasswordSent(String email);
+
+  /// Etiqueta del campo de correo en el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get signInEmailLabel;
+
+  /// Etiqueta del campo de contraseña en el login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get signInPasswordLabel;
+
+  /// Botón de login con correo y contraseña
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar sesión'**
+  String get signInEmailButton;
+
+  /// Error de validación: el campo de correo está vacío
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu correo electrónico'**
+  String get signInEmailRequired;
+
+  /// Error de validación: el correo no tiene formato válido
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un correo válido'**
+  String get signInEmailInvalid;
+
+  /// Error de validación: el campo de contraseña está vacío
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu contraseña'**
+  String get signInPasswordRequired;
+
+  /// Tooltip del botón que muestra la contraseña escrita
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar contraseña'**
+  String get signInShowPassword;
+
+  /// Tooltip del botón que oculta la contraseña escrita
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar contraseña'**
+  String get signInHidePassword;
+
   /// Cuerpo del diálogo de confirmación de cierre de sesión
   ///
   /// In es, this message translates to:
@@ -1211,11 +1391,23 @@ abstract class AppLocalizations {
   /// **'No se puede bloquear a un conductor que no está aprobado'**
   String get failureDriverNotApproved;
 
-  /// Mensaje de error para FailureCode.gpsDisabled
+  /// Mensaje de error para FailureCode.gpsDisabled: el GPS está apagado o en un modo de ubicación que no alcanza (por ejemplo sin alta precisión). Dice qué hacer
   ///
   /// In es, this message translates to:
-  /// **'El servicio de GPS del dispositivo está desactivado.'**
+  /// **'No podemos leer tu ubicación. Activa la ubicación del dispositivo y la alta precisión en los ajustes.'**
   String get failureGpsDisabled;
+
+  /// Mensaje de error para FailureCode.locationPermissionDenied: el conductor no dio (o quitó) el permiso de ubicación
+  ///
+  /// In es, this message translates to:
+  /// **'TaxiGo necesita el permiso de ubicación para ofrecerte pedidos. Actívalo en los ajustes de la app.'**
+  String get failureLocationPermissionDenied;
+
+  /// Mensaje de error para FailureCode.locationUnavailable: el GPS no dio una posición a tiempo (interior, mala señal) o falló por una causa desconocida
+  ///
+  /// In es, this message translates to:
+  /// **'No logramos obtener tu ubicación. Prueba en un lugar abierto o revisa los ajustes de ubicación.'**
+  String get failureLocationUnavailable;
 
   /// Mensaje de error para FailureCode.locationUpdateFailed
   ///
@@ -1349,6 +1541,12 @@ abstract class AppLocalizations {
   /// **'No se pudo obtener la información del vehículo'**
   String get failureVehicleFetchFailed;
 
+  /// Mensaje de error para FailureCode.profilePhotoRequired: en el registro la foto de perfil es obligatoria y no se toma de la cuenta de Google
+  ///
+  /// In es, this message translates to:
+  /// **'Elige una foto de perfil para continuar'**
+  String get failureProfilePhotoRequired;
+
   /// Mensaje de error para FailureCode.profileSaveFailed
   ///
   /// In es, this message translates to:
@@ -1372,6 +1570,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo iniciar sesión. Intenta de nuevo.'**
   String get failureSignInFailed;
+
+  /// Mensaje de error para FailureCode.invalidCredentials
+  ///
+  /// In es, this message translates to:
+  /// **'Correo o contraseña incorrectos.'**
+  String get failureInvalidCredentials;
+
+  /// Mensaje de error para FailureCode.emailNotVerified (normalmente la UI muestra el diálogo de verificación en su lugar)
+  ///
+  /// In es, this message translates to:
+  /// **'Confirma tu correo para poder iniciar sesión.'**
+  String get failureEmailNotVerified;
+
+  /// Mensaje de error para FailureCode.emailAlreadyInUse
+  ///
+  /// In es, this message translates to:
+  /// **'Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.'**
+  String get failureEmailAlreadyInUse;
+
+  /// Mensaje de error para FailureCode.weakPassword
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña es muy débil. Usa al menos 6 caracteres.'**
+  String get failureWeakPassword;
+
+  /// Mensaje de error para FailureCode.invalidEmail
+  ///
+  /// In es, this message translates to:
+  /// **'El correo no es válido.'**
+  String get failureInvalidEmail;
+
+  /// Mensaje de error para FailureCode.verificationEmailFailed
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta se creó, pero no pudimos enviar el correo de confirmación. Intenta iniciar sesión para reenviarlo.'**
+  String get failureVerificationEmailFailed;
+
+  /// Mensaje de error para FailureCode.passwordResetFailed
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo enviar el correo de recuperación. Intenta de nuevo.'**
+  String get failurePasswordResetFailed;
 
   /// Mensaje de error para FailureCode.signOutFailed
   ///
@@ -1456,6 +1696,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'English'**
   String get settingsLanguageEnglish;
+
+  /// Título del aviso persistente en la pantalla de peticiones cuando el conductor está en línea (o intentó conectarse) pero no hay ubicación utilizable. Va seguido del motivo (failureGpsDisabled, etc.)
+  ///
+  /// In es, this message translates to:
+  /// **'No estás recibiendo pedidos'**
+  String get locationIssueTitle;
+
+  /// Botón del aviso de falta de ubicación: abre los ajustes de ubicación del dispositivo, o los permisos de la app si el problema es el permiso
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir ajustes'**
+  String get locationIssueOpenSettings;
+
+  /// Texto de la notificación persistente del servicio en segundo plano cuando la ubicación funciona. Lo arma el isolate del servicio, sin BuildContext
+  ///
+  /// In es, this message translates to:
+  /// **'Reportando tu ubicación...'**
+  String get foregroundNotificationReporting;
+
+  /// Texto de la notificación persistente del servicio en segundo plano cuando no se consigue la ubicación del conductor. Lo arma el isolate del servicio, sin BuildContext
+  ///
+  /// In es, this message translates to:
+  /// **'Sin ubicación: no recibirás pedidos'**
+  String get foregroundNotificationNoLocation;
+
+  /// Aviso (toast informativo) cuando la app reconcilia su interruptor con el servidor y lo apaga porque el servidor figuraba al conductor fuera de línea
+  ///
+  /// In es, this message translates to:
+  /// **'Te desconectamos porque el servidor te tenía fuera de línea. Conéctate de nuevo cuando quieras.'**
+  String get presenceDisconnectedByServer;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

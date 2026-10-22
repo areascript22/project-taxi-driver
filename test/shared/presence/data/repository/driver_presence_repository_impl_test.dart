@@ -214,4 +214,113 @@ void main() {
       );
     });
   });
+
+  group('fetchOnline', () {
+    Response<dynamic> meResponse(dynamic data) => Response(
+      requestOptions: requestOptions('/api/me'),
+      statusCode: 200,
+      data: data,
+    );
+
+    void stubGet(dynamic data) {
+      when(
+        () => dio.get('/api/me', options: any(named: 'options')),
+      ).thenAnswer((_) async => meResponse(data));
+    }
+
+    // Lo que el SERVIDOR cree (drivers.is_online): es la fuente de verdad del
+    // interruptor, no el servicio de Android de este telefono.
+    test('returns true when the server has the driver online', () async {
+      stubGet({'driver': {'online': true, 'onRide': false}});
+
+      final result = await repository.fetchOnline();
+
+      expect(result.isRight(), isTrue);
+      expect(result.getOrElse(() => false), isTrue);
+    });
+
+    test('returns false when the server has the driver offline', () async {
+      stubGet({'driver': {'online': false}});
+
+      final result = await repository.fetchOnline();
+
+      expect(result.isRight(), isTrue);
+      expect(result.getOrElse(() => true), isFalse);
+    });
+
+    test('returns false when there is no driver profile yet', () async {
+      stubGet({'driver': null, 'passenger': null});
+
+      final result = await repository.fetchOnline();
+
+      expect(result.isRight(), isTrue);
+      expect(result.getOrElse(() => true), isFalse);
+    });
+
+    test('treats a malformed body as offline instead of throwing', () async {
+      stubGet('not json');
+
+      final result = await repository.fetchOnline();
+
+      expect(result.isRight(), isTrue);
+      expect(result.getOrElse(() => true), isFalse);
+    });
+
+    test('disables retries so a resume never hangs the switch', () async {
+      stubGet({'driver': {'online': true}});
+
+      await repository.fetchOnline();
+
+      final captured = verify(
+        () => dio.get('/api/me', options: captureAny(named: 'options')),
+      ).captured;
+      final options = captured.single as Options;
+      expect(options.extra, isNotNull);
+      expect(options.extra!.values, contains(true), reason: 'disableRetry marca el request en extra');
+    });
+
+    test('maps an HTTP error to onlineFailed with the status in the detail', () async {
+      when(
+        () => dio.get('/api/me', options: any(named: 'options')),
+      ).thenThrow(serverError('/api/me', 500));
+
+      final result = await repository.fetchOnline();
+
+      result.fold((failure) {
+        expect(failure.code, FailureCode.onlineFailed);
+        expect(failure.detail, 'HTTP 500');
+      }, (_) => fail('expected Left'));
+    });
+
+    test('maps a network failure (no response) to onlineFailed', () async {
+      when(
+        () => dio.get('/api/me', options: any(named: 'options')),
+      ).thenThrow(
+        DioException(
+          requestOptions: requestOptions('/api/me'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+
+      final result = await repository.fetchOnline();
+
+      result.fold(
+        (failure) => expect(failure.code, FailureCode.onlineFailed),
+        (_) => fail('expected Left'),
+      );
+    });
+
+    test('maps an unexpected exception to onlineFailed', () async {
+      when(
+        () => dio.get('/api/me', options: any(named: 'options')),
+      ).thenThrow(StateError('boom'));
+
+      final result = await repository.fetchOnline();
+
+      result.fold(
+        (failure) => expect(failure.code, FailureCode.onlineFailed),
+        (_) => fail('expected Left'),
+      );
+    });
+  });
 }
