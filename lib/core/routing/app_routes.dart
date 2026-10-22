@@ -96,6 +96,18 @@ const adminRoute = NavigationEntity(
   route: '/admin',
 );
 
+const dispatchConfigRoute = NavigationEntity(
+  key: 'dispatch_config_route_key',
+  name: 'dispatch_config',
+  route: '/admin/dispatch-config',
+);
+
+const dispatchHistoryRoute = NavigationEntity(
+  key: 'dispatch_history_route_key',
+  name: 'dispatch_history',
+  route: '/admin/dispatch-config/history',
+);
+
 const driverDetailRoute = NavigationEntity(
   key: 'driver_detail_route_key',
   name: 'driver_detail',

@@ -83,6 +83,14 @@ extension FailureTextX on BuildContext {
       // muestra; si llega a la UI, mensaje genérico
       FailureCode.appUpdateCheckFailed => l10n.failureUnexpected,
       FailureCode.storeOpenFailed => l10n.failureStoreOpenFailed,
+      FailureCode.dispatchConfigFetchFailed =>
+        l10n.failureDispatchConfigFetchFailed,
+      FailureCode.dispatchConfigSaveFailed =>
+        l10n.failureDispatchConfigSaveFailed,
+      FailureCode.dispatchConfigInvalid => l10n.failureDispatchConfigInvalid,
+      FailureCode.dispatchConfigConflict => l10n.failureDispatchConfigConflict,
+      FailureCode.dispatchHistoryFetchFailed =>
+        l10n.failureDispatchHistoryFetchFailed,
       FailureCode.unexpected => l10n.failureUnexpected,
     };
   }

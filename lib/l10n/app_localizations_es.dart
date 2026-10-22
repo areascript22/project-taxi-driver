@@ -507,6 +507,211 @@ class AppLocalizationsEs extends AppLocalizations {
   String get vehicleStatusInReview => 'En revisión';
 
   @override
+  String get dispatchOpenTooltip => 'Configuración del despacho';
+
+  @override
+  String get dispatchTitle => 'Despacho';
+
+  @override
+  String get dispatchHistoryOpenTooltip => 'Historial de cambios';
+
+  @override
+  String get dispatchSummaryTitle => 'Resumen';
+
+  @override
+  String dispatchSummaryRings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count anillos',
+      one: '1 anillo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dispatchSummarySearch(int seconds) {
+    return 'Búsqueda total: $seconds s';
+  }
+
+  @override
+  String dispatchSummaryExpiry(int seconds) {
+    return 'La solicitud vence a los $seconds s';
+  }
+
+  @override
+  String dispatchSummaryLastEdit(String name, String date) {
+    return 'Última edición: $name, $date';
+  }
+
+  @override
+  String get dispatchSummaryNeverEdited => 'Valores iniciales, sin ediciones';
+
+  @override
+  String get dispatchReadOnlyBanner => 'Solo lectura: el superuser no ha habilitado la edición para administradores.';
+
+  @override
+  String get dispatchAdminEditingTitle => 'Los administradores pueden editar';
+
+  @override
+  String get dispatchAdminEditingSubtitle => 'Apagado: los administradores solo pueden ver esta configuración.';
+
+  @override
+  String get dispatchAdminEditingOnTitle => '¿Permitir que los administradores editen?';
+
+  @override
+  String get dispatchAdminEditingOnBody => 'Los administradores podrán cambiar los anillos y la frescura de la ubicación. Puedes quitarles el permiso cuando quieras.';
+
+  @override
+  String get dispatchAdminEditingOffTitle => '¿Quitar la edición a los administradores?';
+
+  @override
+  String get dispatchAdminEditingOffBody => 'Los administradores seguirán viendo la configuración, pero ya no podrán cambiarla.';
+
+  @override
+  String get dispatchAdminEditingEnabledToast => 'Los administradores ahora pueden editar';
+
+  @override
+  String get dispatchAdminEditingDisabledToast => 'Los administradores ya no pueden editar';
+
+  @override
+  String get dispatchRingsTitle => 'Anillos de búsqueda';
+
+  @override
+  String get dispatchRingsHint => 'La carrera se ofrece primero a los conductores del anillo 1. Si nadie acepta en el tiempo indicado, se amplía al siguiente anillo.';
+
+  @override
+  String dispatchRingTitle(int number) {
+    return 'Anillo $number';
+  }
+
+  @override
+  String get dispatchRingRadiusLabel => 'Radio (km)';
+
+  @override
+  String get dispatchRingWaitLabel => 'Espera (s)';
+
+  @override
+  String get dispatchRingMaxDriversLabel => 'Máx. conductores';
+
+  @override
+  String get dispatchRingRemoveTooltip => 'Quitar anillo';
+
+  @override
+  String get dispatchAddRing => 'Agregar anillo';
+
+  @override
+  String get dispatchLocationTitle => 'Frescura de la ubicación';
+
+  @override
+  String get dispatchLocationMaxAgeLabel => 'Antigüedad máxima (s)';
+
+  @override
+  String get dispatchLocationHint => 'Debe ser mayor que cada cuánto reporta su ubicación la app del conductor (unos 20 s), o los conductores quietos dejarían de recibir ofertas.';
+
+  @override
+  String get dispatchSave => 'Guardar cambios';
+
+  @override
+  String get dispatchDiscard => 'Descartar';
+
+  @override
+  String get dispatchSaveConfirmTitle => '¿Aplicar los cambios?';
+
+  @override
+  String get dispatchSaveConfirmBody => 'Se usarán desde la próxima solicitud. Las búsquedas que ya están en curso no cambian.';
+
+  @override
+  String get dispatchSaveConfirmAction => 'Aplicar';
+
+  @override
+  String get dispatchSavedToast => 'Configuración guardada';
+
+  @override
+  String dispatchIssueRadiusRange(String min, String max) {
+    return 'Entre $min y $max km';
+  }
+
+  @override
+  String get dispatchIssueRadiusIncreasing => 'Debe ser mayor que el anillo anterior';
+
+  @override
+  String dispatchIssueWaitRange(int min, int max) {
+    return 'Entre $min y $max s';
+  }
+
+  @override
+  String dispatchIssueMaxDriversRange(int min, int max) {
+    return 'Entre $min y $max';
+  }
+
+  @override
+  String get dispatchIssueNoRings => 'Tiene que haber al menos un anillo';
+
+  @override
+  String dispatchIssueTooManyRings(int max) {
+    return 'No puede haber más de $max anillos';
+  }
+
+  @override
+  String dispatchIssueTotalWait(int max) {
+    return 'La búsqueda completa no puede durar más de $max s (suma de las esperas)';
+  }
+
+  @override
+  String dispatchIssueLocationAge(int min, int max) {
+    return 'Entre $min y $max s';
+  }
+
+  @override
+  String get dispatchHistoryTitle => 'Historial de cambios';
+
+  @override
+  String get dispatchHistoryEmpty => 'Todavía no hay cambios';
+
+  @override
+  String get dispatchHistoryLoadMore => 'Ver más';
+
+  @override
+  String get dispatchHistoryConfigChange => 'Cambió los anillos o la frescura';
+
+  @override
+  String get dispatchHistoryAdminEditingOn => 'Permitió que los administradores editen';
+
+  @override
+  String get dispatchHistoryAdminEditingOff => 'Quitó la edición a los administradores';
+
+  @override
+  String get dispatchHistoryUnknownAuthor => 'Cuenta eliminada';
+
+  @override
+  String get dispatchHistoryBefore => 'Antes';
+
+  @override
+  String get dispatchHistoryAfter => 'Después';
+
+  @override
+  String dispatchHistoryRingLine(int number, String radius, int wait, int max) {
+    return 'Anillo $number: $radius km · $wait s · $max cond.';
+  }
+
+  @override
+  String dispatchHistoryFreshnessLine(int seconds) {
+    return 'Frescura de la ubicación: $seconds s';
+  }
+
+  @override
+  String dispatchHistoryAdminEditingLine(String value) {
+    return 'Administradores pueden editar: $value';
+  }
+
+  @override
+  String get commonYes => 'Sí';
+
+  @override
+  String get commonNo => 'No';
+
+  @override
   String get adminTitle => 'Administración';
 
   @override
@@ -786,6 +991,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get failurePasswordResetFailed => 'No se pudo enviar el correo de recuperación. Intenta de nuevo.';
+
+  @override
+  String get failureDispatchConfigFetchFailed => 'No se pudo cargar la configuración del despacho.';
+
+  @override
+  String get failureDispatchConfigSaveFailed => 'No se pudo guardar. Intenta de nuevo.';
+
+  @override
+  String get failureDispatchConfigInvalid => 'El servidor rechazó los valores. Revísalos e intenta de nuevo.';
+
+  @override
+  String get failureDispatchConfigConflict => 'Otro administrador cambió la configuración. Se cargó la versión nueva: vuelve a aplicar tus cambios.';
+
+  @override
+  String get failureDispatchHistoryFetchFailed => 'No se pudo cargar el historial de cambios.';
 
   @override
   String get failureSignOutFailed => 'No se pudo cerrar sesión. Intenta de nuevo.';

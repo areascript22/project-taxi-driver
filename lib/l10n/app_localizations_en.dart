@@ -507,6 +507,211 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleStatusInReview => 'Under review';
 
   @override
+  String get dispatchOpenTooltip => 'Dispatch settings';
+
+  @override
+  String get dispatchTitle => 'Dispatch';
+
+  @override
+  String get dispatchHistoryOpenTooltip => 'Change history';
+
+  @override
+  String get dispatchSummaryTitle => 'Summary';
+
+  @override
+  String dispatchSummaryRings(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rings',
+      one: '1 ring',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dispatchSummarySearch(int seconds) {
+    return 'Total search: $seconds s';
+  }
+
+  @override
+  String dispatchSummaryExpiry(int seconds) {
+    return 'The request expires after $seconds s';
+  }
+
+  @override
+  String dispatchSummaryLastEdit(String name, String date) {
+    return 'Last edit: $name, $date';
+  }
+
+  @override
+  String get dispatchSummaryNeverEdited => 'Initial values, never edited';
+
+  @override
+  String get dispatchReadOnlyBanner => 'Read only: the superuser has not enabled editing for administrators.';
+
+  @override
+  String get dispatchAdminEditingTitle => 'Administrators can edit';
+
+  @override
+  String get dispatchAdminEditingSubtitle => 'Off: administrators can only view this configuration.';
+
+  @override
+  String get dispatchAdminEditingOnTitle => 'Let administrators edit?';
+
+  @override
+  String get dispatchAdminEditingOnBody => 'Administrators will be able to change the rings and the location freshness. You can take the permission away at any time.';
+
+  @override
+  String get dispatchAdminEditingOffTitle => 'Remove editing from administrators?';
+
+  @override
+  String get dispatchAdminEditingOffBody => 'Administrators will still see the configuration but won\'t be able to change it.';
+
+  @override
+  String get dispatchAdminEditingEnabledToast => 'Administrators can now edit';
+
+  @override
+  String get dispatchAdminEditingDisabledToast => 'Administrators can no longer edit';
+
+  @override
+  String get dispatchRingsTitle => 'Search rings';
+
+  @override
+  String get dispatchRingsHint => 'The ride is offered first to the drivers in ring 1. If nobody accepts within the time shown, it widens to the next ring.';
+
+  @override
+  String dispatchRingTitle(int number) {
+    return 'Ring $number';
+  }
+
+  @override
+  String get dispatchRingRadiusLabel => 'Radius (km)';
+
+  @override
+  String get dispatchRingWaitLabel => 'Wait (s)';
+
+  @override
+  String get dispatchRingMaxDriversLabel => 'Max. drivers';
+
+  @override
+  String get dispatchRingRemoveTooltip => 'Remove ring';
+
+  @override
+  String get dispatchAddRing => 'Add ring';
+
+  @override
+  String get dispatchLocationTitle => 'Location freshness';
+
+  @override
+  String get dispatchLocationMaxAgeLabel => 'Maximum age (s)';
+
+  @override
+  String get dispatchLocationHint => 'It must be longer than how often the driver app reports its location (about 20 s), or idle drivers would stop getting offers.';
+
+  @override
+  String get dispatchSave => 'Save changes';
+
+  @override
+  String get dispatchDiscard => 'Discard';
+
+  @override
+  String get dispatchSaveConfirmTitle => 'Apply the changes?';
+
+  @override
+  String get dispatchSaveConfirmBody => 'They will be used from the next request. Searches already in progress don\'t change.';
+
+  @override
+  String get dispatchSaveConfirmAction => 'Apply';
+
+  @override
+  String get dispatchSavedToast => 'Configuration saved';
+
+  @override
+  String dispatchIssueRadiusRange(String min, String max) {
+    return 'Between $min and $max km';
+  }
+
+  @override
+  String get dispatchIssueRadiusIncreasing => 'Must be larger than the previous ring';
+
+  @override
+  String dispatchIssueWaitRange(int min, int max) {
+    return 'Between $min and $max s';
+  }
+
+  @override
+  String dispatchIssueMaxDriversRange(int min, int max) {
+    return 'Between $min and $max';
+  }
+
+  @override
+  String get dispatchIssueNoRings => 'There must be at least one ring';
+
+  @override
+  String dispatchIssueTooManyRings(int max) {
+    return 'There can\'t be more than $max rings';
+  }
+
+  @override
+  String dispatchIssueTotalWait(int max) {
+    return 'The whole search can\'t last more than $max s (sum of the waits)';
+  }
+
+  @override
+  String dispatchIssueLocationAge(int min, int max) {
+    return 'Between $min and $max s';
+  }
+
+  @override
+  String get dispatchHistoryTitle => 'Change history';
+
+  @override
+  String get dispatchHistoryEmpty => 'No changes yet';
+
+  @override
+  String get dispatchHistoryLoadMore => 'Load more';
+
+  @override
+  String get dispatchHistoryConfigChange => 'Changed the rings or the freshness';
+
+  @override
+  String get dispatchHistoryAdminEditingOn => 'Let administrators edit';
+
+  @override
+  String get dispatchHistoryAdminEditingOff => 'Removed editing from administrators';
+
+  @override
+  String get dispatchHistoryUnknownAuthor => 'Deleted account';
+
+  @override
+  String get dispatchHistoryBefore => 'Before';
+
+  @override
+  String get dispatchHistoryAfter => 'After';
+
+  @override
+  String dispatchHistoryRingLine(int number, String radius, int wait, int max) {
+    return 'Ring $number: $radius km · $wait s · $max drv.';
+  }
+
+  @override
+  String dispatchHistoryFreshnessLine(int seconds) {
+    return 'Location freshness: $seconds s';
+  }
+
+  @override
+  String dispatchHistoryAdminEditingLine(String value) {
+    return 'Administrators can edit: $value';
+  }
+
+  @override
+  String get commonYes => 'Yes';
+
+  @override
+  String get commonNo => 'No';
+
+  @override
   String get adminTitle => 'Administration';
 
   @override
@@ -786,6 +991,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failurePasswordResetFailed => 'We couldn\'t send the recovery email. Try again.';
+
+  @override
+  String get failureDispatchConfigFetchFailed => 'The dispatch settings could not be loaded.';
+
+  @override
+  String get failureDispatchConfigSaveFailed => 'Couldn\'t save. Try again.';
+
+  @override
+  String get failureDispatchConfigInvalid => 'The server rejected the values. Check them and try again.';
+
+  @override
+  String get failureDispatchConfigConflict => 'Another administrator changed the configuration. The new version was loaded: apply your changes again.';
+
+  @override
+  String get failureDispatchHistoryFetchFailed => 'The change history could not be loaded.';
 
   @override
   String get failureSignOutFailed => 'Sign-out failed. Try again.';

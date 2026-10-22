@@ -1067,6 +1067,348 @@ abstract class AppLocalizations {
   /// **'En revisión'**
   String get vehicleStatusInReview;
 
+  /// Tooltip del botón de la pantalla de administración que abre la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración del despacho'**
+  String get dispatchOpenTooltip;
+
+  /// Título de la pantalla de configuración del despacho (cómo se busca un conductor para una carrera)
+  ///
+  /// In es, this message translates to:
+  /// **'Despacho'**
+  String get dispatchTitle;
+
+  /// Tooltip del botón que abre el historial de cambios de la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Historial de cambios'**
+  String get dispatchHistoryOpenTooltip;
+
+  /// Encabezado de la tarjeta de resumen de la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen'**
+  String get dispatchSummaryTitle;
+
+  /// Cuántos anillos de búsqueda hay
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 anillo} other{{count} anillos}}'**
+  String dispatchSummaryRings(int count);
+
+  /// Lo que dura la búsqueda completa (suma de las esperas de todos los anillos)
+  ///
+  /// In es, this message translates to:
+  /// **'Búsqueda total: {seconds} s'**
+  String dispatchSummarySearch(int seconds);
+
+  /// Cuánto espera el sistema antes de vencer una solicitud sin conductor (con la configuración guardada)
+  ///
+  /// In es, this message translates to:
+  /// **'La solicitud vence a los {seconds} s'**
+  String dispatchSummaryExpiry(int seconds);
+
+  /// Quién y cuándo editó por última vez la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Última edición: {name}, {date}'**
+  String dispatchSummaryLastEdit(String name, String date);
+
+  /// Se muestra cuando nadie ha editado todavía la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Valores iniciales, sin ediciones'**
+  String get dispatchSummaryNeverEdited;
+
+  /// Aviso que ve un administrador cuando el interruptor 'los administradores pueden editar' está apagado
+  ///
+  /// In es, this message translates to:
+  /// **'Solo lectura: el superuser no ha habilitado la edición para administradores.'**
+  String get dispatchReadOnlyBanner;
+
+  /// Título del interruptor que solo ve el superuser: permite que los administradores editen la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Los administradores pueden editar'**
+  String get dispatchAdminEditingTitle;
+
+  /// Explicación bajo el interruptor de edición para administradores
+  ///
+  /// In es, this message translates to:
+  /// **'Apagado: los administradores solo pueden ver esta configuración.'**
+  String get dispatchAdminEditingSubtitle;
+
+  /// Título del diálogo de confirmación al encender el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'¿Permitir que los administradores editen?'**
+  String get dispatchAdminEditingOnTitle;
+
+  /// Cuerpo del diálogo de confirmación al encender el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Los administradores podrán cambiar los anillos y la frescura de la ubicación. Puedes quitarles el permiso cuando quieras.'**
+  String get dispatchAdminEditingOnBody;
+
+  /// Título del diálogo de confirmación al apagar el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'¿Quitar la edición a los administradores?'**
+  String get dispatchAdminEditingOffTitle;
+
+  /// Cuerpo del diálogo de confirmación al apagar el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Los administradores seguirán viendo la configuración, pero ya no podrán cambiarla.'**
+  String get dispatchAdminEditingOffBody;
+
+  /// Aviso tras encender el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Los administradores ahora pueden editar'**
+  String get dispatchAdminEditingEnabledToast;
+
+  /// Aviso tras apagar el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Los administradores ya no pueden editar'**
+  String get dispatchAdminEditingDisabledToast;
+
+  /// Encabezado de la lista de anillos
+  ///
+  /// In es, this message translates to:
+  /// **'Anillos de búsqueda'**
+  String get dispatchRingsTitle;
+
+  /// Explica cómo funcionan los anillos de búsqueda
+  ///
+  /// In es, this message translates to:
+  /// **'La carrera se ofrece primero a los conductores del anillo 1. Si nadie acepta en el tiempo indicado, se amplía al siguiente anillo.'**
+  String get dispatchRingsHint;
+
+  /// Título de cada tarjeta de anillo
+  ///
+  /// In es, this message translates to:
+  /// **'Anillo {number}'**
+  String dispatchRingTitle(int number);
+
+  /// Campo: hasta qué distancia del punto de recogida se busca en este anillo
+  ///
+  /// In es, this message translates to:
+  /// **'Radio (km)'**
+  String get dispatchRingRadiusLabel;
+
+  /// Campo: cuántos segundos se espera a que alguien de este anillo acepte antes de ampliar
+  ///
+  /// In es, this message translates to:
+  /// **'Espera (s)'**
+  String get dispatchRingWaitLabel;
+
+  /// Campo: a cuántos conductores como máximo se les ofrece la carrera en este anillo
+  ///
+  /// In es, this message translates to:
+  /// **'Máx. conductores'**
+  String get dispatchRingMaxDriversLabel;
+
+  /// Tooltip del botón que quita un anillo
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar anillo'**
+  String get dispatchRingRemoveTooltip;
+
+  /// Botón que agrega un anillo al final de la lista
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar anillo'**
+  String get dispatchAddRing;
+
+  /// Encabezado de la sección de antigüedad máxima de la ubicación del conductor
+  ///
+  /// In es, this message translates to:
+  /// **'Frescura de la ubicación'**
+  String get dispatchLocationTitle;
+
+  /// Campo: un conductor con una ubicación más vieja que esto no recibe ofertas
+  ///
+  /// In es, this message translates to:
+  /// **'Antigüedad máxima (s)'**
+  String get dispatchLocationMaxAgeLabel;
+
+  /// Explica el campo de antigüedad máxima de la ubicación
+  ///
+  /// In es, this message translates to:
+  /// **'Debe ser mayor que cada cuánto reporta su ubicación la app del conductor (unos 20 s), o los conductores quietos dejarían de recibir ofertas.'**
+  String get dispatchLocationHint;
+
+  /// Botón que guarda la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar cambios'**
+  String get dispatchSave;
+
+  /// Botón que descarta los cambios sin guardar de la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar'**
+  String get dispatchDiscard;
+
+  /// Título del diálogo de confirmación al guardar la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'¿Aplicar los cambios?'**
+  String get dispatchSaveConfirmTitle;
+
+  /// Cuerpo del diálogo de confirmación al guardar la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Se usarán desde la próxima solicitud. Las búsquedas que ya están en curso no cambian.'**
+  String get dispatchSaveConfirmBody;
+
+  /// Botón de confirmar en el diálogo de guardar la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar'**
+  String get dispatchSaveConfirmAction;
+
+  /// Aviso tras guardar la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración guardada'**
+  String get dispatchSavedToast;
+
+  /// Error: el radio está fuera del rango permitido (en km)
+  ///
+  /// In es, this message translates to:
+  /// **'Entre {min} y {max} km'**
+  String dispatchIssueRadiusRange(String min, String max);
+
+  /// Error: el radio de un anillo no es mayor que el del anillo anterior
+  ///
+  /// In es, this message translates to:
+  /// **'Debe ser mayor que el anillo anterior'**
+  String get dispatchIssueRadiusIncreasing;
+
+  /// Error: la espera está fuera del rango permitido (en segundos)
+  ///
+  /// In es, this message translates to:
+  /// **'Entre {min} y {max} s'**
+  String dispatchIssueWaitRange(int min, int max);
+
+  /// Error: el máximo de conductores está fuera del rango permitido
+  ///
+  /// In es, this message translates to:
+  /// **'Entre {min} y {max}'**
+  String dispatchIssueMaxDriversRange(int min, int max);
+
+  /// Error: la lista de anillos está vacía
+  ///
+  /// In es, this message translates to:
+  /// **'Tiene que haber al menos un anillo'**
+  String get dispatchIssueNoRings;
+
+  /// Error: hay más anillos que el máximo permitido
+  ///
+  /// In es, this message translates to:
+  /// **'No puede haber más de {max} anillos'**
+  String dispatchIssueTooManyRings(int max);
+
+  /// Error: la suma de las esperas pasa del máximo permitido
+  ///
+  /// In es, this message translates to:
+  /// **'La búsqueda completa no puede durar más de {max} s (suma de las esperas)'**
+  String dispatchIssueTotalWait(int max);
+
+  /// Error: la antigüedad máxima de la ubicación está fuera del rango permitido (en segundos)
+  ///
+  /// In es, this message translates to:
+  /// **'Entre {min} y {max} s'**
+  String dispatchIssueLocationAge(int min, int max);
+
+  /// Título de la pantalla con el historial de cambios de la configuración del despacho
+  ///
+  /// In es, this message translates to:
+  /// **'Historial de cambios'**
+  String get dispatchHistoryTitle;
+
+  /// Se muestra cuando el historial está vacío
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no hay cambios'**
+  String get dispatchHistoryEmpty;
+
+  /// Botón que carga la siguiente página del historial
+  ///
+  /// In es, this message translates to:
+  /// **'Ver más'**
+  String get dispatchHistoryLoadMore;
+
+  /// Tipo de cambio del historial: se editaron los anillos o la frescura de la ubicación
+  ///
+  /// In es, this message translates to:
+  /// **'Cambió los anillos o la frescura'**
+  String get dispatchHistoryConfigChange;
+
+  /// Tipo de cambio del historial: el superuser encendió el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Permitió que los administradores editen'**
+  String get dispatchHistoryAdminEditingOn;
+
+  /// Tipo de cambio del historial: el superuser apagó el interruptor
+  ///
+  /// In es, this message translates to:
+  /// **'Quitó la edición a los administradores'**
+  String get dispatchHistoryAdminEditingOff;
+
+  /// Autor de un cambio cuando esa persona ya no existe
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta eliminada'**
+  String get dispatchHistoryUnknownAuthor;
+
+  /// Encabezado de cómo estaba la configuración antes de un cambio
+  ///
+  /// In es, this message translates to:
+  /// **'Antes'**
+  String get dispatchHistoryBefore;
+
+  /// Encabezado de cómo quedó la configuración después de un cambio
+  ///
+  /// In es, this message translates to:
+  /// **'Después'**
+  String get dispatchHistoryAfter;
+
+  /// Una línea de anillo en el historial: radio, espera y máximo de conductores
+  ///
+  /// In es, this message translates to:
+  /// **'Anillo {number}: {radius} km · {wait} s · {max} cond.'**
+  String dispatchHistoryRingLine(int number, String radius, int wait, int max);
+
+  /// Línea de frescura de la ubicación en el historial
+  ///
+  /// In es, this message translates to:
+  /// **'Frescura de la ubicación: {seconds} s'**
+  String dispatchHistoryFreshnessLine(int seconds);
+
+  /// Línea del interruptor en el historial; value es Sí o No
+  ///
+  /// In es, this message translates to:
+  /// **'Administradores pueden editar: {value}'**
+  String dispatchHistoryAdminEditingLine(String value);
+
+  /// Respuesta afirmativa corta
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get commonYes;
+
+  /// Respuesta negativa corta
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get commonNo;
+
   /// Titulo de la pantalla de administracion
   ///
   /// In es, this message translates to:
@@ -1612,6 +1954,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo enviar el correo de recuperación. Intenta de nuevo.'**
   String get failurePasswordResetFailed;
+
+  /// Mensaje de error para FailureCode.dispatchConfigFetchFailed
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar la configuración del despacho.'**
+  String get failureDispatchConfigFetchFailed;
+
+  /// Mensaje de error para FailureCode.dispatchConfigSaveFailed
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar. Intenta de nuevo.'**
+  String get failureDispatchConfigSaveFailed;
+
+  /// Mensaje de error para FailureCode.dispatchConfigInvalid
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor rechazó los valores. Revísalos e intenta de nuevo.'**
+  String get failureDispatchConfigInvalid;
+
+  /// Mensaje de error para FailureCode.dispatchConfigConflict
+  ///
+  /// In es, this message translates to:
+  /// **'Otro administrador cambió la configuración. Se cargó la versión nueva: vuelve a aplicar tus cambios.'**
+  String get failureDispatchConfigConflict;
+
+  /// Mensaje de error para FailureCode.dispatchHistoryFetchFailed
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el historial de cambios.'**
+  String get failureDispatchHistoryFetchFailed;
 
   /// Mensaje de error para FailureCode.signOutFailed
   ///
