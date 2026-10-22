@@ -68,6 +68,11 @@ enum FailureCode {
   profileLoadFailed,
   appUpdateCheckFailed,
   storeOpenFailed,
+  dispatchConfigFetchFailed,
+  dispatchConfigSaveFailed,
+  dispatchConfigInvalid,
+  dispatchConfigConflict,
+  dispatchHistoryFetchFailed,
   unexpected,
 }
 

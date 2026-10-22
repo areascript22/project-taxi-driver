@@ -2,6 +2,8 @@ import 'package:driver_app/feature/admin/domain/entity/admin_driver_entity.dart'
 import 'package:driver_app/feature/admin/presentation/screen/admin_screen.dart';
 import 'package:driver_app/feature/admin/presentation/screen/driver_detail_screen.dart';
 import 'package:driver_app/feature/chat/presentation/screen/chat_screen.dart';
+import 'package:driver_app/feature/dispatch_admin/presentation/screen/dispatch_config_screen.dart';
+import 'package:driver_app/feature/dispatch_admin/presentation/screen/dispatch_history_screen.dart';
 import 'package:driver_app/feature/driver_profile/domain/entity/vehicle_entity.dart';
 import 'package:driver_app/feature/driver_profile/presentation/screen/driver_onboarding_screen.dart';
 import 'package:driver_app/feature/incoming_request/domain/entity/incoming_request_entity.dart';
@@ -116,6 +118,16 @@ class AppRouter {
                 path: adminRoute.route,
                 name: adminRoute.name,
                 builder: (context, state) => const AdminScreen(),
+              ),
+              GoRoute(
+                path: dispatchConfigRoute.route,
+                name: dispatchConfigRoute.name,
+                builder: (context, state) => const DispatchConfigScreen(),
+              ),
+              GoRoute(
+                path: dispatchHistoryRoute.route,
+                name: dispatchHistoryRoute.name,
+                builder: (context, state) => const DispatchHistoryScreen(),
               ),
               GoRoute(
                 path: driverDetailRoute.route,

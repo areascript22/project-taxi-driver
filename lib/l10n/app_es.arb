@@ -683,6 +683,328 @@
   "@vehicleStatusInReview": {
     "description": "Estado del vehiculo o del registro cuando todavia no se reviso"
   },
+  "dispatchOpenTooltip": "Configuración del despacho",
+  "@dispatchOpenTooltip": {
+    "description": "Tooltip del botón de la pantalla de administración que abre la configuración del despacho"
+  },
+  "dispatchTitle": "Despacho",
+  "@dispatchTitle": {
+    "description": "Título de la pantalla de configuración del despacho (cómo se busca un conductor para una carrera)"
+  },
+  "dispatchHistoryOpenTooltip": "Historial de cambios",
+  "@dispatchHistoryOpenTooltip": {
+    "description": "Tooltip del botón que abre el historial de cambios de la configuración del despacho"
+  },
+  "dispatchSummaryTitle": "Resumen",
+  "@dispatchSummaryTitle": {
+    "description": "Encabezado de la tarjeta de resumen de la configuración del despacho"
+  },
+  "dispatchSummaryRings": "{count, plural, =1{1 anillo} other{{count} anillos}}",
+  "@dispatchSummaryRings": {
+    "description": "Cuántos anillos de búsqueda hay",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchSummarySearch": "Búsqueda total: {seconds} s",
+  "@dispatchSummarySearch": {
+    "description": "Lo que dura la búsqueda completa (suma de las esperas de todos los anillos)",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchSummaryExpiry": "La solicitud vence a los {seconds} s",
+  "@dispatchSummaryExpiry": {
+    "description": "Cuánto espera el sistema antes de vencer una solicitud sin conductor (con la configuración guardada)",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchSummaryLastEdit": "Última edición: {name}, {date}",
+  "@dispatchSummaryLastEdit": {
+    "description": "Quién y cuándo editó por última vez la configuración del despacho",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dispatchSummaryNeverEdited": "Valores iniciales, sin ediciones",
+  "@dispatchSummaryNeverEdited": {
+    "description": "Se muestra cuando nadie ha editado todavía la configuración del despacho"
+  },
+  "dispatchReadOnlyBanner": "Solo lectura: el superuser no ha habilitado la edición para administradores.",
+  "@dispatchReadOnlyBanner": {
+    "description": "Aviso que ve un administrador cuando el interruptor 'los administradores pueden editar' está apagado"
+  },
+  "dispatchAdminEditingTitle": "Los administradores pueden editar",
+  "@dispatchAdminEditingTitle": {
+    "description": "Título del interruptor que solo ve el superuser: permite que los administradores editen la configuración del despacho"
+  },
+  "dispatchAdminEditingSubtitle": "Apagado: los administradores solo pueden ver esta configuración.",
+  "@dispatchAdminEditingSubtitle": {
+    "description": "Explicación bajo el interruptor de edición para administradores"
+  },
+  "dispatchAdminEditingOnTitle": "¿Permitir que los administradores editen?",
+  "@dispatchAdminEditingOnTitle": {
+    "description": "Título del diálogo de confirmación al encender el interruptor"
+  },
+  "dispatchAdminEditingOnBody": "Los administradores podrán cambiar los anillos y la frescura de la ubicación. Puedes quitarles el permiso cuando quieras.",
+  "@dispatchAdminEditingOnBody": {
+    "description": "Cuerpo del diálogo de confirmación al encender el interruptor"
+  },
+  "dispatchAdminEditingOffTitle": "¿Quitar la edición a los administradores?",
+  "@dispatchAdminEditingOffTitle": {
+    "description": "Título del diálogo de confirmación al apagar el interruptor"
+  },
+  "dispatchAdminEditingOffBody": "Los administradores seguirán viendo la configuración, pero ya no podrán cambiarla.",
+  "@dispatchAdminEditingOffBody": {
+    "description": "Cuerpo del diálogo de confirmación al apagar el interruptor"
+  },
+  "dispatchAdminEditingEnabledToast": "Los administradores ahora pueden editar",
+  "@dispatchAdminEditingEnabledToast": {
+    "description": "Aviso tras encender el interruptor"
+  },
+  "dispatchAdminEditingDisabledToast": "Los administradores ya no pueden editar",
+  "@dispatchAdminEditingDisabledToast": {
+    "description": "Aviso tras apagar el interruptor"
+  },
+  "dispatchRingsTitle": "Anillos de búsqueda",
+  "@dispatchRingsTitle": {
+    "description": "Encabezado de la lista de anillos"
+  },
+  "dispatchRingsHint": "La carrera se ofrece primero a los conductores del anillo 1. Si nadie acepta en el tiempo indicado, se amplía al siguiente anillo.",
+  "@dispatchRingsHint": {
+    "description": "Explica cómo funcionan los anillos de búsqueda"
+  },
+  "dispatchRingTitle": "Anillo {number}",
+  "@dispatchRingTitle": {
+    "description": "Título de cada tarjeta de anillo",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchRingRadiusLabel": "Radio (km)",
+  "@dispatchRingRadiusLabel": {
+    "description": "Campo: hasta qué distancia del punto de recogida se busca en este anillo"
+  },
+  "dispatchRingWaitLabel": "Espera (s)",
+  "@dispatchRingWaitLabel": {
+    "description": "Campo: cuántos segundos se espera a que alguien de este anillo acepte antes de ampliar"
+  },
+  "dispatchRingMaxDriversLabel": "Máx. conductores",
+  "@dispatchRingMaxDriversLabel": {
+    "description": "Campo: a cuántos conductores como máximo se les ofrece la carrera en este anillo"
+  },
+  "dispatchRingRemoveTooltip": "Quitar anillo",
+  "@dispatchRingRemoveTooltip": {
+    "description": "Tooltip del botón que quita un anillo"
+  },
+  "dispatchAddRing": "Agregar anillo",
+  "@dispatchAddRing": {
+    "description": "Botón que agrega un anillo al final de la lista"
+  },
+  "dispatchLocationTitle": "Frescura de la ubicación",
+  "@dispatchLocationTitle": {
+    "description": "Encabezado de la sección de antigüedad máxima de la ubicación del conductor"
+  },
+  "dispatchLocationMaxAgeLabel": "Antigüedad máxima (s)",
+  "@dispatchLocationMaxAgeLabel": {
+    "description": "Campo: un conductor con una ubicación más vieja que esto no recibe ofertas"
+  },
+  "dispatchLocationHint": "Debe ser mayor que cada cuánto reporta su ubicación la app del conductor (unos 20 s), o los conductores quietos dejarían de recibir ofertas.",
+  "@dispatchLocationHint": {
+    "description": "Explica el campo de antigüedad máxima de la ubicación"
+  },
+  "dispatchSave": "Guardar cambios",
+  "@dispatchSave": {
+    "description": "Botón que guarda la configuración del despacho"
+  },
+  "dispatchDiscard": "Descartar",
+  "@dispatchDiscard": {
+    "description": "Botón que descarta los cambios sin guardar de la configuración del despacho"
+  },
+  "dispatchSaveConfirmTitle": "¿Aplicar los cambios?",
+  "@dispatchSaveConfirmTitle": {
+    "description": "Título del diálogo de confirmación al guardar la configuración del despacho"
+  },
+  "dispatchSaveConfirmBody": "Se usarán desde la próxima solicitud. Las búsquedas que ya están en curso no cambian.",
+  "@dispatchSaveConfirmBody": {
+    "description": "Cuerpo del diálogo de confirmación al guardar la configuración del despacho"
+  },
+  "dispatchSaveConfirmAction": "Aplicar",
+  "@dispatchSaveConfirmAction": {
+    "description": "Botón de confirmar en el diálogo de guardar la configuración del despacho"
+  },
+  "dispatchSavedToast": "Configuración guardada",
+  "@dispatchSavedToast": {
+    "description": "Aviso tras guardar la configuración del despacho"
+  },
+  "dispatchIssueRadiusRange": "Entre {min} y {max} km",
+  "@dispatchIssueRadiusRange": {
+    "description": "Error: el radio está fuera del rango permitido (en km)",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "dispatchIssueRadiusIncreasing": "Debe ser mayor que el anillo anterior",
+  "@dispatchIssueRadiusIncreasing": {
+    "description": "Error: el radio de un anillo no es mayor que el del anillo anterior"
+  },
+  "dispatchIssueWaitRange": "Entre {min} y {max} s",
+  "@dispatchIssueWaitRange": {
+    "description": "Error: la espera está fuera del rango permitido (en segundos)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchIssueMaxDriversRange": "Entre {min} y {max}",
+  "@dispatchIssueMaxDriversRange": {
+    "description": "Error: el máximo de conductores está fuera del rango permitido",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchIssueNoRings": "Tiene que haber al menos un anillo",
+  "@dispatchIssueNoRings": {
+    "description": "Error: la lista de anillos está vacía"
+  },
+  "dispatchIssueTooManyRings": "No puede haber más de {max} anillos",
+  "@dispatchIssueTooManyRings": {
+    "description": "Error: hay más anillos que el máximo permitido",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchIssueTotalWait": "La búsqueda completa no puede durar más de {max} s (suma de las esperas)",
+  "@dispatchIssueTotalWait": {
+    "description": "Error: la suma de las esperas pasa del máximo permitido",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchIssueLocationAge": "Entre {min} y {max} s",
+  "@dispatchIssueLocationAge": {
+    "description": "Error: la antigüedad máxima de la ubicación está fuera del rango permitido (en segundos)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchHistoryTitle": "Historial de cambios",
+  "@dispatchHistoryTitle": {
+    "description": "Título de la pantalla con el historial de cambios de la configuración del despacho"
+  },
+  "dispatchHistoryEmpty": "Todavía no hay cambios",
+  "@dispatchHistoryEmpty": {
+    "description": "Se muestra cuando el historial está vacío"
+  },
+  "dispatchHistoryLoadMore": "Ver más",
+  "@dispatchHistoryLoadMore": {
+    "description": "Botón que carga la siguiente página del historial"
+  },
+  "dispatchHistoryConfigChange": "Cambió los anillos o la frescura",
+  "@dispatchHistoryConfigChange": {
+    "description": "Tipo de cambio del historial: se editaron los anillos o la frescura de la ubicación"
+  },
+  "dispatchHistoryAdminEditingOn": "Permitió que los administradores editen",
+  "@dispatchHistoryAdminEditingOn": {
+    "description": "Tipo de cambio del historial: el superuser encendió el interruptor"
+  },
+  "dispatchHistoryAdminEditingOff": "Quitó la edición a los administradores",
+  "@dispatchHistoryAdminEditingOff": {
+    "description": "Tipo de cambio del historial: el superuser apagó el interruptor"
+  },
+  "dispatchHistoryUnknownAuthor": "Cuenta eliminada",
+  "@dispatchHistoryUnknownAuthor": {
+    "description": "Autor de un cambio cuando esa persona ya no existe"
+  },
+  "dispatchHistoryBefore": "Antes",
+  "@dispatchHistoryBefore": {
+    "description": "Encabezado de cómo estaba la configuración antes de un cambio"
+  },
+  "dispatchHistoryAfter": "Después",
+  "@dispatchHistoryAfter": {
+    "description": "Encabezado de cómo quedó la configuración después de un cambio"
+  },
+  "dispatchHistoryRingLine": "Anillo {number}: {radius} km · {wait} s · {max} cond.",
+  "@dispatchHistoryRingLine": {
+    "description": "Una línea de anillo en el historial: radio, espera y máximo de conductores",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "radius": {
+        "type": "String"
+      },
+      "wait": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchHistoryFreshnessLine": "Frescura de la ubicación: {seconds} s",
+  "@dispatchHistoryFreshnessLine": {
+    "description": "Línea de frescura de la ubicación en el historial",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dispatchHistoryAdminEditingLine": "Administradores pueden editar: {value}",
+  "@dispatchHistoryAdminEditingLine": {
+    "description": "Línea del interruptor en el historial; value es Sí o No",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "commonYes": "Sí",
+  "@commonYes": {
+    "description": "Respuesta afirmativa corta"
+  },
+  "commonNo": "No",
+  "@commonNo": {
+    "description": "Respuesta negativa corta"
+  },
   "adminTitle": "Administración",
   "@adminTitle": {
     "description": "Titulo de la pantalla de administracion"
@@ -1069,6 +1391,26 @@
   "failurePasswordResetFailed": "No se pudo enviar el correo de recuperación. Intenta de nuevo.",
   "@failurePasswordResetFailed": {
     "description": "Mensaje de error para FailureCode.passwordResetFailed"
+  },
+  "failureDispatchConfigFetchFailed": "No se pudo cargar la configuración del despacho.",
+  "@failureDispatchConfigFetchFailed": {
+    "description": "Mensaje de error para FailureCode.dispatchConfigFetchFailed"
+  },
+  "failureDispatchConfigSaveFailed": "No se pudo guardar. Intenta de nuevo.",
+  "@failureDispatchConfigSaveFailed": {
+    "description": "Mensaje de error para FailureCode.dispatchConfigSaveFailed"
+  },
+  "failureDispatchConfigInvalid": "El servidor rechazó los valores. Revísalos e intenta de nuevo.",
+  "@failureDispatchConfigInvalid": {
+    "description": "Mensaje de error para FailureCode.dispatchConfigInvalid"
+  },
+  "failureDispatchConfigConflict": "Otro administrador cambió la configuración. Se cargó la versión nueva: vuelve a aplicar tus cambios.",
+  "@failureDispatchConfigConflict": {
+    "description": "Mensaje de error para FailureCode.dispatchConfigConflict"
+  },
+  "failureDispatchHistoryFetchFailed": "No se pudo cargar el historial de cambios.",
+  "@failureDispatchHistoryFetchFailed": {
+    "description": "Mensaje de error para FailureCode.dispatchHistoryFetchFailed"
   },
   "failureSignOutFailed": "No se pudo cerrar sesión. Intenta de nuevo.",
   "@failureSignOutFailed": {

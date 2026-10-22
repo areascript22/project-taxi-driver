@@ -50,6 +50,13 @@ class _AdminViewState extends State<AdminView> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(AppLocalizations.of(context).adminTitle),
+        actions: [
+          IconButton(
+            tooltip: AppLocalizations.of(context).dispatchOpenTooltip,
+            icon: const Icon(Icons.tune),
+            onPressed: () => context.pushNamed(dispatchConfigRoute.name),
+          ),
+        ],
       ),
       body: BlocListener<AdminBloc, AdminState>(
         listenWhen:
