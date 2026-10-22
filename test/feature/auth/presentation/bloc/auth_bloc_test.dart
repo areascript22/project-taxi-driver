@@ -1,7 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
-import 'package:driver_app/core/error/errors.dart';
-import 'package:driver_app/feature/auth/domain/repository/auth_repository.dart';
+import 'package:driver_app/core/error/errors.dart';import 'package:driver_app/feature/auth/domain/repository/auth_repository.dart';
 import 'package:driver_app/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:driver_app/shared/domain/entity/user_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -137,6 +136,32 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
+      'emits AuthEmailNotVerified (not AuthError) when the email is unverified',
+      setUp: () {
+        when(
+          () => authRepository.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer(
+          (_) async => Left(Failure(code: FailureCode.emailNotVerified)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        AuthSignInWithEmail(email: 'driver@example.com', password: 'secret1'),
+      ),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthEmailNotVerified>().having(
+          (s) => s.email,
+          'email',
+          'driver@example.com',
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
       'ignores a second attempt while one is in flight',
       setUp: () {
         when(
@@ -164,6 +189,109 @@ void main() {
           ),
         ).called(1);
       },
+    );
+  });
+
+  group('AuthSignUpWithEmail', () {
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, AuthSignUpCompleted] when the account is created',
+      setUp: () {
+        when(
+          () => authRepository.signUpWithEmail(
+            email: 'new@example.com',
+            password: 'secret1',
+          ),
+        ).thenAnswer((_) async => const Right(unit));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        AuthSignUpWithEmail(email: 'new@example.com', password: 'secret1'),
+      ),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthSignUpCompleted>().having(
+          (s) => s.email,
+          'email',
+          'new@example.com',
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => authRepository.signUpWithEmail(
+            email: 'new@example.com',
+            password: 'secret1',
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, AuthError] with the code when sign-up fails',
+      setUp: () {
+        when(
+          () => authRepository.signUpWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer(
+          (_) async => Left(Failure(code: FailureCode.emailAlreadyInUse)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        AuthSignUpWithEmail(email: 'a@b.co', password: 'secret1'),
+      ),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthError>().having(
+          (s) => s.code,
+          'code',
+          FailureCode.emailAlreadyInUse,
+        ),
+      ],
+    );
+  });
+
+  group('AuthPasswordResetRequested', () {
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, AuthPasswordResetSent] when the email is sent',
+      setUp: () {
+        when(
+          () => authRepository.sendPasswordResetEmail(email: 'a@b.co'),
+        ).thenAnswer((_) async => const Right(unit));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(AuthPasswordResetRequested(email: 'a@b.co')),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthPasswordResetSent>().having((s) => s.email, 'email', 'a@b.co'),
+      ],
+      verify: (_) {
+        verify(
+          () => authRepository.sendPasswordResetEmail(email: 'a@b.co'),
+        ).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, AuthError] when sending fails',
+      setUp: () {
+        when(
+          () => authRepository.sendPasswordResetEmail(email: any(named: 'email')),
+        ).thenAnswer(
+          (_) async => Left(Failure(code: FailureCode.passwordResetFailed)),
+        );
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(AuthPasswordResetRequested(email: 'a@b.co')),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthError>().having(
+          (s) => s.code,
+          'code',
+          FailureCode.passwordResetFailed,
+        ),
+      ],
     );
   });
 }

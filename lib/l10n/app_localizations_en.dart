@@ -110,6 +110,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInOr => 'or';
 
   @override
+  String get signInWithEmailOption => 'Continue with email and password';
+
+  @override
+  String get emailSignInTitle => 'Sign in';
+
+  @override
+  String get emailSignInSubtitle => 'Sign in with your email and password';
+
+  @override
+  String get signInForgotPassword => 'Forgot your password?';
+
+  @override
+  String get signInNoAccount => 'Don\'t have an account?';
+
+  @override
+  String get signInCreateOne => 'Create one';
+
+  @override
+  String get signUpTitle => 'Create account';
+
+  @override
+  String get signUpSubtitle => 'Set your email and a password. We\'ll send you a link to confirm your email.';
+
+  @override
+  String get signUpConfirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get signUpPasswordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get signUpPasswordMismatch => 'Passwords don\'t match';
+
+  @override
+  String get signUpButton => 'Create account';
+
+  @override
+  String get signUpHaveAccount => 'Already have an account?';
+
+  @override
+  String get signUpGoToSignIn => 'Sign in';
+
+  @override
+  String get emailVerificationTitle => 'Confirm your email';
+
+  @override
+  String emailVerificationBody(String email) {
+    return 'We sent a confirmation link to $email. Check your inbox (and your spam folder) and confirm it to be able to sign in.';
+  }
+
+  @override
+  String get emailVerificationAccept => 'Got it';
+
+  @override
+  String get resetPasswordTitle => 'Reset password';
+
+  @override
+  String get resetPasswordSubtitle => 'Enter your email and we\'ll send you a link to create a new password.';
+
+  @override
+  String get resetPasswordButton => 'Send link';
+
+  @override
+  String resetPasswordSent(String email) {
+    return 'If an account exists for $email, we sent you a link to reset your password. Check your email.';
+  }
+
+  @override
   String get signInEmailLabel => 'Email';
 
   @override
@@ -701,6 +768,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failureInvalidCredentials => 'Incorrect email or password.';
+
+  @override
+  String get failureEmailNotVerified => 'Confirm your email to be able to sign in.';
+
+  @override
+  String get failureEmailAlreadyInUse => 'An account with that email already exists. Sign in or reset your password.';
+
+  @override
+  String get failureWeakPassword => 'That password is too weak. Use at least 6 characters.';
+
+  @override
+  String get failureInvalidEmail => 'That email is not valid.';
+
+  @override
+  String get failureVerificationEmailFailed => 'Your account was created, but we couldn\'t send the confirmation email. Try signing in to resend it.';
+
+  @override
+  String get failurePasswordResetFailed => 'We couldn\'t send the recovery email. Try again.';
 
   @override
   String get failureSignOutFailed => 'Sign-out failed. Try again.';

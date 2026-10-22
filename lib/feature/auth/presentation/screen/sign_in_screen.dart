@@ -22,132 +22,6 @@ class SignInScreen extends StatelessWidget {
   }
 }
 
-/// Login con correo y contraseña. Existe para que quien revisa la app en la
-/// tienda pueda entrar con una cuenta de prueba (no hay registro: las cuentas
-/// se crean en Firebase Auth).
-class _EmailSignInForm extends StatefulWidget {
-  const _EmailSignInForm({required this.isLoading});
-
-  final bool isLoading;
-
-  @override
-  State<_EmailSignInForm> createState() => _EmailSignInFormState();
-}
-
-class _EmailSignInFormState extends State<_EmailSignInForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (widget.isLoading) return;
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    FocusScope.of(context).unfocus();
-    context.read<AuthBloc>().add(
-      AuthSignInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _emailController,
-            enabled: !widget.isLoading,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.email],
-            decoration: InputDecoration(
-              labelText: l10n.signInEmailLabel,
-              prefixIcon: const Icon(Icons.email_outlined),
-            ),
-            validator: (value) {
-              final email = value?.trim() ?? '';
-              if (email.isEmpty) return l10n.signInEmailRequired;
-              if (!email.contains('@') || !email.contains('.')) {
-                return l10n.signInEmailInvalid;
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _passwordController,
-            enabled: !widget.isLoading,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            onFieldSubmitted: (_) => _submit(),
-            decoration: InputDecoration(
-              labelText: l10n.signInPasswordLabel,
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                tooltip:
-                    _obscurePassword
-                        ? l10n.signInShowPassword
-                        : l10n.signInHidePassword,
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-                onPressed:
-                    () => setState(() => _obscurePassword = !_obscurePassword),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return l10n.signInPasswordRequired;
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: widget.isLoading ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                l10n.signInEmailButton,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class SignInView extends StatelessWidget {
   const SignInView({super.key});
 
@@ -182,13 +56,10 @@ class SignInView extends StatelessWidget {
               builder: (context, state) {
                 final isLoading = state is AuthLoading;
 
-                // Con el teclado abierto el formulario no cabe: scroll en vez
-                // de overflow.
-                return Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                    child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
@@ -238,7 +109,7 @@ class SignInView extends StatelessWidget {
                           color: onSurface.withValues(alpha: 0.5),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 60),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -284,36 +155,39 @@ class SignInView extends StatelessWidget {
                                   ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: onSurface.withValues(alpha: 0.2),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed:
+                              isLoading
+                                  ? null
+                                  : () => context.pushNamed(
+                                    emailSignInRoute.name,
+                                  ),
+                          icon: const Icon(Icons.email_outlined),
+                          label: Text(
+                            AppLocalizations.of(context).signInWithEmailOption,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              AppLocalizations.of(context).signInOr,
-                              style: TextStyle(
-                                color: onSurface.withValues(alpha: 0.5),
-                              ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: onSurface,
+                            side: BorderSide(
+                              color: onSurface.withValues(alpha: 0.4),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          Expanded(
-                            child: Divider(
-                              color: onSurface.withValues(alpha: 0.2),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                      _EmailSignInForm(isLoading: isLoading),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
                       AppVersionWidget(),
                     ],
-                  ),
                   ),
                 );
               },

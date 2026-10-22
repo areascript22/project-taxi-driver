@@ -54,6 +54,12 @@ extension FailureTextX on BuildContext {
       FailureCode.sessionVerifyFailed => l10n.failureSessionVerifyFailed,
       FailureCode.signInFailed => l10n.failureSignInFailed,
       FailureCode.invalidCredentials => l10n.failureInvalidCredentials,
+      FailureCode.emailNotVerified => l10n.failureEmailNotVerified,
+      FailureCode.emailAlreadyInUse => l10n.failureEmailAlreadyInUse,
+      FailureCode.weakPassword => l10n.failureWeakPassword,
+      FailureCode.invalidEmail => l10n.failureInvalidEmail,
+      FailureCode.verificationEmailFailed => l10n.failureVerificationEmailFailed,
+      FailureCode.passwordResetFailed => l10n.failurePasswordResetFailed,
       FailureCode.signOutFailed => l10n.failureSignOutFailed,
       // solo para logs; si llega a la UI, mensaje genarico
       FailureCode.notSignedIn => l10n.failureUnexpected,

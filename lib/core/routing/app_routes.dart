@@ -6,6 +6,24 @@ const signInRoute = NavigationEntity(
   route: '/sign-in',
 );
 
+const emailSignInRoute = NavigationEntity(
+  key: 'email_sign_in_route_key',
+  name: 'email_sign_in',
+  route: '/sign-in/email',
+);
+
+const signUpRoute = NavigationEntity(
+  key: 'sign_up_route_key',
+  name: 'sign_up',
+  route: '/sign-in/email/sign-up',
+);
+
+const passwordResetRoute = NavigationEntity(
+  key: 'password_reset_route_key',
+  name: 'password_reset',
+  route: '/sign-in/email/reset-password',
+);
+
 const sessionRoute = NavigationEntity(
   key: 'session_route_key',
   name: 'session',

@@ -12,7 +12,10 @@ import 'package:driver_app/feature/trip/presentation/screen/trip_screen.dart';
 import 'package:driver_app/shared/domain/entity/user_entity.dart';
 import 'package:driver_app/shared/feature/settings/presentation/screen/settings_screen.dart';
 import 'package:go_router/go_router.dart';
+import '../../feature/auth/presentation/screen/email_sign_in_screen.dart';
+import '../../feature/auth/presentation/screen/password_reset_screen.dart';
 import '../../feature/auth/presentation/screen/session_screen.dart';
+import '../../feature/auth/presentation/screen/sign_up_screen.dart';
 import '../../feature/auth/presentation/screen/sign_in_screen.dart';
 import '../../feature/profile/presentation/screen/profile_screen.dart';
 import '../../feature/profile/presentation/screen/profile_screen_2.dart';
@@ -27,6 +30,25 @@ class AppRouter {
         path: signInRoute.route,
         name: signInRoute.name,
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: emailSignInRoute.route,
+        name: emailSignInRoute.name,
+        builder: (context, state) => const EmailSignInScreen(),
+      ),
+      GoRoute(
+        path: signUpRoute.route,
+        name: signUpRoute.name,
+        builder:
+            (context, state) =>
+                SignUpScreen(initialEmail: state.extra as String? ?? ''),
+      ),
+      GoRoute(
+        path: passwordResetRoute.route,
+        name: passwordResetRoute.name,
+        builder:
+            (context, state) =>
+                PasswordResetScreen(initialEmail: state.extra as String? ?? ''),
       ),
       GoRoute(
         path: sessionRoute.route,

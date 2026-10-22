@@ -139,6 +139,100 @@
   "@signInOr": {
     "description": "Separador entre el login con Google y el login con correo y contraseña"
   },
+  "signInWithEmailOption": "Continuar con correo y contraseña",
+  "@signInWithEmailOption": {
+    "description": "Botón de la pantalla de login que lleva al formulario de correo y contraseña"
+  },
+  "emailSignInTitle": "Iniciar sesión",
+  "@emailSignInTitle": {
+    "description": "Título de la pantalla de login con correo y contraseña"
+  },
+  "emailSignInSubtitle": "Ingresa con tu correo y contraseña",
+  "@emailSignInSubtitle": {
+    "description": "Subtítulo de la pantalla de login con correo y contraseña"
+  },
+  "signInForgotPassword": "¿Olvidaste tu contraseña?",
+  "@signInForgotPassword": {
+    "description": "Enlace que lleva a la recuperación de contraseña"
+  },
+  "signInNoAccount": "¿No tienes una cuenta?",
+  "@signInNoAccount": {
+    "description": "Texto previo al enlace que lleva a crear una cuenta con correo"
+  },
+  "signInCreateOne": "Crea una",
+  "@signInCreateOne": {
+    "description": "Enlace que lleva a la pantalla de crear cuenta (sigue a 'signInNoAccount')"
+  },
+  "signUpTitle": "Crear cuenta",
+  "@signUpTitle": {
+    "description": "Título de la pantalla de registro con correo y contraseña"
+  },
+  "signUpSubtitle": "Define tu correo y una contraseña. Te enviaremos un enlace para confirmar tu correo.",
+  "@signUpSubtitle": {
+    "description": "Subtítulo de la pantalla de registro con correo y contraseña"
+  },
+  "signUpConfirmPasswordLabel": "Confirmar contraseña",
+  "@signUpConfirmPasswordLabel": {
+    "description": "Etiqueta del campo que repite la contraseña en el registro"
+  },
+  "signUpPasswordTooShort": "La contraseña debe tener al menos 6 caracteres",
+  "@signUpPasswordTooShort": {
+    "description": "Error de validación: contraseña demasiado corta (el mínimo lo impone Firebase Auth)"
+  },
+  "signUpPasswordMismatch": "Las contraseñas no coinciden",
+  "@signUpPasswordMismatch": {
+    "description": "Error de validación: la confirmación no coincide con la contraseña"
+  },
+  "signUpButton": "Crear cuenta",
+  "@signUpButton": {
+    "description": "Botón que envía el registro con correo y contraseña"
+  },
+  "signUpHaveAccount": "¿Ya tienes una cuenta?",
+  "@signUpHaveAccount": {
+    "description": "Texto previo al enlace que vuelve al login desde el registro"
+  },
+  "signUpGoToSignIn": "Inicia sesión",
+  "@signUpGoToSignIn": {
+    "description": "Enlace que vuelve al login desde el registro (sigue a 'signUpHaveAccount')"
+  },
+  "emailVerificationTitle": "Confirma tu correo",
+  "@emailVerificationTitle": {
+    "description": "Título del diálogo que pide verificar el correo antes de entrar"
+  },
+  "emailVerificationBody": "Enviamos un enlace de confirmación a {email}. Revisa tu bandeja de entrada (y la carpeta de spam) y confírmalo para poder iniciar sesión.",
+  "@emailVerificationBody": {
+    "description": "Cuerpo del diálogo de verificación de correo, mostrado tras registrarse o al intentar entrar sin haber verificado",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "emailVerificationAccept": "Entendido",
+  "@emailVerificationAccept": {
+    "description": "Botón que cierra el diálogo de verificación de correo"
+  },
+  "resetPasswordTitle": "Recuperar contraseña",
+  "@resetPasswordTitle": {
+    "description": "Título de la pantalla de recuperación de contraseña"
+  },
+  "resetPasswordSubtitle": "Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.",
+  "@resetPasswordSubtitle": {
+    "description": "Subtítulo de la pantalla de recuperación de contraseña"
+  },
+  "resetPasswordButton": "Enviar enlace",
+  "@resetPasswordButton": {
+    "description": "Botón que envía el correo de recuperación de contraseña"
+  },
+  "resetPasswordSent": "Si existe una cuenta con {email}, te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.",
+  "@resetPasswordSent": {
+    "description": "Toast tras pedir la recuperación de contraseña. Es deliberadamente neutro: no confirma si la cuenta existe",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "signInEmailLabel": "Correo electrónico",
   "@signInEmailLabel": {
     "description": "Etiqueta del campo de correo en el login con correo y contraseña"
@@ -951,6 +1045,30 @@
   "failureInvalidCredentials": "Correo o contraseña incorrectos.",
   "@failureInvalidCredentials": {
     "description": "Mensaje de error para FailureCode.invalidCredentials"
+  },
+  "failureEmailNotVerified": "Confirma tu correo para poder iniciar sesión.",
+  "@failureEmailNotVerified": {
+    "description": "Mensaje de error para FailureCode.emailNotVerified (normalmente la UI muestra el diálogo de verificación en su lugar)"
+  },
+  "failureEmailAlreadyInUse": "Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.",
+  "@failureEmailAlreadyInUse": {
+    "description": "Mensaje de error para FailureCode.emailAlreadyInUse"
+  },
+  "failureWeakPassword": "La contraseña es muy débil. Usa al menos 6 caracteres.",
+  "@failureWeakPassword": {
+    "description": "Mensaje de error para FailureCode.weakPassword"
+  },
+  "failureInvalidEmail": "El correo no es válido.",
+  "@failureInvalidEmail": {
+    "description": "Mensaje de error para FailureCode.invalidEmail"
+  },
+  "failureVerificationEmailFailed": "Tu cuenta se creó, pero no pudimos enviar el correo de confirmación. Intenta iniciar sesión para reenviarlo.",
+  "@failureVerificationEmailFailed": {
+    "description": "Mensaje de error para FailureCode.verificationEmailFailed"
+  },
+  "failurePasswordResetFailed": "No se pudo enviar el correo de recuperación. Intenta de nuevo.",
+  "@failurePasswordResetFailed": {
+    "description": "Mensaje de error para FailureCode.passwordResetFailed"
   },
   "failureSignOutFailed": "No se pudo cerrar sesión. Intenta de nuevo.",
   "@failureSignOutFailed": {
