@@ -37,13 +37,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       return;
     }
 
-    VehicleEntity? vehicle;
-    if (driver.vehicleId.isNotEmpty) {
-      final vehicleResult = await driverProfileRepository.getVehicle(
-        vehicleId: driver.vehicleId,
-      );
-      vehicle = vehicleResult.fold((failure) => null, (vehicle) => vehicle);
-    }
+    // Se pide siempre: el servidor devuelve el vehiculo de la sesion y
+    // DriverModel.toEntity() deja `vehicleId` vacio (ese dato ya no viaja en el
+    // conductor). Condicionar la consulta a `driver.vehicleId` dejaba la tarjeta
+    // del vehiculo siempre en "No registrado".
+    final vehicleResult = await driverProfileRepository.getVehicle(
+      vehicleId: driver.vehicleId,
+    );
+    final VehicleEntity? vehicle = vehicleResult.fold(
+      (failure) => null,
+      (vehicle) => vehicle,
+    );
 
     emit(state.copyWith(isLoading: false, driver: driver, vehicle: vehicle));
   }

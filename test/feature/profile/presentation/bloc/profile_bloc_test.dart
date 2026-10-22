@@ -75,12 +75,40 @@ void main() {
       },
     );
 
+    // Regresion: DriverModel.toEntity() deja vehicleId vacio (el servidor ya no
+    // lo manda en el conductor), asi que el vehiculo se tiene que pedir igual.
     blocTest<ProfileBloc, ProfileState>(
-      'does not fetch a vehicle when the driver has an empty vehicleId',
+      'still loads the vehicle when the driver has an empty vehicleId',
       setUp: () {
         when(
           () => repository.getDriver(driverId: 'd1'),
         ).thenAnswer((_) async => Right(_driver(vehicleId: '')));
+        when(
+          () => repository.getVehicle(vehicleId: ''),
+        ).thenAnswer((_) async => Right(_vehicle()));
+      },
+      build: buildBloc,
+      act: (bloc) => bloc.add(ProfileLoadRequested(driverId: 'd1')),
+      expect: () => [
+        predicate<ProfileState>((s) => s.isLoading),
+        predicate<ProfileState>(
+          (s) => !s.isLoading && s.driver != null && s.vehicle != null,
+        ),
+      ],
+      verify: (_) {
+        verify(() => repository.getVehicle(vehicleId: '')).called(1);
+      },
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'vehicle stays null when the server has no vehicle for the driver',
+      setUp: () {
+        when(
+          () => repository.getDriver(driverId: 'd1'),
+        ).thenAnswer((_) async => Right(_driver()));
+        when(
+          () => repository.getVehicle(vehicleId: any(named: 'vehicleId')),
+        ).thenAnswer((_) async => const Right(null));
       },
       build: buildBloc,
       act: (bloc) => bloc.add(ProfileLoadRequested(driverId: 'd1')),
@@ -90,9 +118,6 @@ void main() {
           (s) => !s.isLoading && s.driver != null && s.vehicle == null,
         ),
       ],
-      verify: (_) {
-        verifyNever(() => repository.getVehicle(vehicleId: any(named: 'vehicleId')));
-      },
     );
 
     blocTest<ProfileBloc, ProfileState>(
