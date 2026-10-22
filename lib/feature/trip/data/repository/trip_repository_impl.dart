@@ -1,0 +1,160 @@
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
+import '../../../../core/error/errors.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../incoming_request/domain/entity/incoming_request_entity.dart';
+import '../../domain/entity/trip_status_entity.dart';
+import '../../domain/repository/trip_repository.dart';
+
+class TripRepositoryImpl implements TripRepository {
+  /// [dio] es inyectable para poder mockearlo en tests; sin él se usa
+  /// DioClient.instance.
+  TripRepositoryImpl({Dio? dio}) : _injectedDio = dio;
+
+  final Dio? _injectedDio;
+
+  // Lazy a propósito: crear el Dio de forma anticipada inicializa dotenv, y en
+  // el isolate del foreground service eso tumbaba el arranque (ver
+  // DioClient). Solo se materializa la primera vez que se usa.
+  late final Dio _dio = _injectedDio ?? DioClient.instance;
+
+  @override
+  Stream<TripStatusEntity> watchTrip({required String passengerId}) {
+    return FirebaseDatabase.instance
+        .ref('taxi_requests/$passengerId')
+        .onValue
+        .map((event) {
+          final raw = event.snapshot.value;
+          final map =
+              raw == null
+                  ? <dynamic, dynamic>{}
+                  : Map<dynamic, dynamic>.from(raw as Map);
+
+          return TripStatusEntity.fromMap(map);
+        });
+  }
+
+  // Ya no escanea /taxi_requests completo client-side (eso descargaba al
+  // dispositivo del conductor la data de TODAS las solicitudes activas,
+  // incluyendo pickup/nombre de pasajeros ajenos, solo para filtrar la
+  // suya en Dart -- ver RideService.findActiveRideForDriver). Pasa por el
+  // backend, que identifica al conductor por el token verificado y hace el
+  // filtrado server-side, devolviendo solo el viaje que le pertenece.
+  @override
+  Future<Either<Failure, IncomingRequestEntity?>> findActiveTripForDriver() async {
+    try {
+      final response = await _dio.get('/api/rides/driver/active');
+      if (response.statusCode == 204 || response.data == null) {
+        return const Right(null);
+      }
+
+      final data = Map<dynamic, dynamic>.from(response.data as Map);
+      return Right(IncomingRequestEntity.fromMap(data));
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en findActiveTripForDriver: $e');
+      return Left(
+        Failure(code: FailureCode.activeTripCheckFailed),
+      );
+    } catch (e) {
+      debugPrint('TripDebug | Error inesperado en findActiveTripForDriver: $e');
+      return Left(
+        Failure(code: FailureCode.activeTripCheckFailed),
+      );
+    }
+  }
+
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (RideService.cancelRide) para que verifique con el token de Firebase
+  // que quien cancela es el conductor realmente asignado, y para que el
+  // servidor pueda avisarle al pasajero por push (el cliente no tiene
+  // acceso al Admin SDK de FCM).
+  @override
+  Future<Either<Failure, Unit>> cancelRide({required String passengerId}) async {
+    try {
+      await _dio.post('/api/rides/$passengerId/cancel');
+      return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en cancelRide: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(code: FailureCode.rideCancelNotAllowed),
+        );
+      }
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
+        return Left(
+          Failure(code: FailureCode.rideCancelUnavailable),
+        );
+      }
+      return Left(
+        Failure(code: FailureCode.rideCancelFailed),
+      );
+    } catch (e) {
+      debugPrint('TripDebug | Error inesperado en cancelRide: $e');
+      return Left(
+        Failure(code: FailureCode.rideCancelFailed),
+      );
+    }
+  }
+
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (POST /api/rides/{id}/arrived) para que verifique con el token que quien
+  // avisa es el conductor realmente asignado y que la carrera está en el
+  // estado correcto. Es idempotente en el servidor, así que el reintento
+  // automático de DioClient ante un timeout es seguro.
+  @override
+  Future<Either<Failure, Unit>> markDriverArrived({
+    required String passengerId,
+  }) async {
+    try {
+      await _dio.post('/api/rides/$passengerId/arrived');
+      return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en markDriverArrived: $e');
+      return Left(
+        Failure(code: FailureCode.arrivalNotifyFailed),
+      );
+    } catch (e) {
+      debugPrint('TripDebug | Error inesperado en markDriverArrived: $e');
+      return Left(
+        Failure(code: FailureCode.arrivalNotifyFailed),
+      );
+    }
+  }
+
+  // Ya no escribe directo a Realtime Database: pasa por el backend
+  // (RideService.completeTrip) para que verifique que quien finaliza es el
+  // conductor realmente asignado, y para que el servidor pueda borrar la
+  // solicitud de Firebase unos segundos después (limpieza que no depende de
+  // que la app siga abierta).
+  @override
+  Future<Either<Failure, Unit>> completeTrip({
+    required String passengerId,
+  }) async {
+    try {
+      await _dio.post('/api/rides/$passengerId/complete');
+      return const Right(unit);
+    } on DioException catch (e) {
+      debugPrint('TripDebug | Error en completeTrip: $e');
+      if (e.response?.statusCode == 403) {
+        return Left(
+          Failure(code: FailureCode.tripFinishNotAllowed),
+        );
+      }
+      if (e.response?.statusCode == 404 || e.response?.statusCode == 409) {
+        return Left(
+          Failure(code: FailureCode.tripFinishUnavailable),
+        );
+      }
+      return Left(
+        Failure(code: FailureCode.tripFinishFailed),
+      );
+    } catch (e) {
+      debugPrint('TripDebug | Error inesperado en completeTrip: $e');
+      return Left(
+        Failure(code: FailureCode.tripFinishFailed),
+      );
+    }
+  }
+}

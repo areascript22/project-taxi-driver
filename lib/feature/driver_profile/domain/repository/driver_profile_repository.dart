@@ -1,0 +1,47 @@
+import 'dart:io';
+import 'package:dartz/dartz.dart';
+import '../../../../core/error/errors.dart';
+import '../entity/driver_entity.dart';
+import '../entity/vehicle_entity.dart';
+
+abstract class DriverProfileRepository {
+  // Devuelve null (dentro de Right) si el conductor autenticado todavía no
+  // tiene perfil de conductor en el servidor -- señal de que es un usuario nuevo
+  // y debe pasar por el flujo de registro.
+  Future<Either<Failure, DriverEntity?>> getDriver({required String driverId});
+
+  // Devuelve null (dentro de Right) si el vehículo no existe.
+  Future<Either<Failure, VehicleEntity?>> getVehicle({
+    required String vehicleId,
+  });
+
+  // Sube (si corresponde) la foto de perfil a Storage y manda al servidor el
+  // perfil del conductor y su vehículo en una sola petición.
+  Future<Either<Failure, Unit>> registerDriver({
+    required DriverEntity driver,
+    required VehicleEntity vehicle,
+    File? profileImage,
+  });
+
+  // Guarda/actualiza el token FCM del conductor en el servidor -- lo usa el
+  // backend para enviarle push notifications.
+  //
+  // El idioma va en la MISMA escritura porque el backend necesita los dos
+  // juntos: el token le dice a qué dispositivo mandar el push y el idioma en
+  // qué lengua armarlo. `language` es un código ya resuelto ('es'/'en'),
+  // nunca 'system': el server no puede resolver "seguir al dispositivo"
+  // porque no conoce el idioma del teléfono.
+  Future<Either<Failure, Unit>> updateFcmToken({
+    required String driverId,
+    required String token,
+    required String language,
+  });
+
+  // Actualiza solo el idioma, para cuando el conductor lo cambia en Ajustes
+  // teniendo el token ya registrado. Sin esto, el backend le seguiría
+  // mandando push en el idioma viejo hasta el próximo arranque de la app.
+  Future<Either<Failure, Unit>> updateLanguage({
+    required String driverId,
+    required String language,
+  });
+}

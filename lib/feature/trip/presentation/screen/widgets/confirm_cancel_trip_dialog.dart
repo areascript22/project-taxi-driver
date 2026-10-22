@@ -1,0 +1,188 @@
+import 'package:driver_app/shared/presentation/failure_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../core/routing/app_routes.dart';
+import '../../../../../l10n/app_localizations.dart';
+import '../../../../../shared/presentation/component/custom_loader.dart';
+import '../../bloc/trip_bloc.dart';
+
+// Diálogo de confirmación para que el conductor cancele un viaje ya
+// aceptado. Arquitectura basada en ConfirmCancelRideDialog (passenger_app).
+class ConfirmCancelTripDialog extends StatelessWidget {
+  final String passengerId;
+
+  const ConfirmCancelTripDialog({super.key, required this.passengerId});
+
+  static Future<void> show({
+    required BuildContext context,
+    required String passengerId,
+  }) {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (context) => BlocProvider.value(
+            value: GetIt.instance<TripBloc>(),
+            child: ConfirmCancelTripDialog(passengerId: passengerId),
+          ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocConsumer<TripBloc, TripState>(
+      listenWhen:
+          (previous, current) =>
+          !previous.isCancelled && current.isCancelled,
+      listener: (context, state) {
+        if (context.canPop()) {
+          context.pop();
+          context.go(bookingRoute.route);
+          return;
+        }
+        context.go(bookingRoute.route);
+      },
+      builder: (context, state) {
+        final isCancelling = state.isCancelling;
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return PopScope(
+          canPop: !isCancelling,
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: colorScheme.onSurface.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.warning_rounded,
+                      color: colorScheme.primary,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    l10n.cancelTripDialogTitle,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.cancelTripDialogBody,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (state.errorCode != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      context.failureText(state.errorCode!),
+                      style: TextStyle(fontSize: 13, color: colorScheme.error),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed:
+                              isCancelling
+                                  ? null
+                                  : () => Navigator.of(context).pop(),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            foregroundColor: colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            l10n.cancelTripContinue,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              !isCancelling
+                                  ? () {
+                                    context.read<TripBloc>().add(
+                                      CancelTripRequested(
+                                        passengerId: passengerId,
+                                      ),
+                                    );
+                                  }
+                                  : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isCancelling ? 14 : 14,
+                            ),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child:
+                              isCancelling
+                                  ? CircularProgressIndicator(
+                                    color: colorScheme.onPrimary,
+                                  )
+                                  : Text(
+                                    l10n.tripCancel,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

@@ -1,0 +1,86 @@
+/// Motivo por el que fallo una operacion, reportado por la capa de datos.
+///
+/// La capa de datos reporta QUE fallo, no QUE DECIRLE al usuario: el texto lo
+/// resuelve la UI con `failureText` (ver shared/presentation/failure_text.dart),
+/// que es la unica capa con acceso a AppLocalizations. Antes cada repositorio
+/// construia su propio mensaje en espanol, lo que hacia imposible traducirlos
+/// -- un repositorio no tiene BuildContext.
+///
+/// Varios motivos distintos a nivel de endpoint comparten codigo cuando el
+/// usuario ve lo mismo (ej. todos los "no tenes permisos"). El detalle tecnico
+/// de cada caso sigue quedando en el debugPrint del repositorio.
+enum FailureCode {
+  noPermission,
+  driverNotFound,
+  driversFetchFailed,
+  driverUpdateFailed,
+  driverDeleteFailed,
+  blockReasonMissing,
+  rejectReasonMissing,
+  driverNotApproved,
+  gpsDisabled,
+  locationPermissionDenied,
+  locationUnavailable,
+  locationUpdateFailed,
+  onlineNotAllowed,
+  onlineFailed,
+  driverProfileNotReady,
+  rideTaken,
+  rideUnavailable,
+  rideAcceptFailed,
+  rideCancelNotAllowed,
+  rideCancelUnavailable,
+  rideCancelFailed,
+  tripFinishNotAllowed,
+  tripFinishUnavailable,
+  tripFinishFailed,
+  arrivalNotifyFailed,
+  activeTripCheckFailed,
+  chatWriteNotAllowed,
+  chatRideFinished,
+  chatSendFailed,
+  accountHasActiveRide,
+  accountDeleteFailed,
+  driverProfileCheckFailed,
+  vehicleFetchFailed,
+  profileSaveFailed,
+  profilePhotoRequired,
+  imagePickFailed,
+  sessionVerifyFailed,
+  signInFailed,
+  invalidCredentials,
+  emailNotVerified,
+  emailAlreadyInUse,
+  weakPassword,
+  invalidEmail,
+  verificationEmailFailed,
+  passwordResetFailed,
+  signOutFailed,
+  notSignedIn,
+  batteryStatusFailed,
+  batteryRequestFailed,
+  appSettingsFailed,
+  pushInitFailed,
+  pushTokenFailed,
+  fcmTokenSaveFailed,
+  pushLanguageSaveFailed,
+  chatMessagesLoadFailed,
+  profileLoadFailed,
+  appUpdateCheckFailed,
+  storeOpenFailed,
+  unexpected,
+}
+
+abstract class ErrorBase {
+  final FailureCode code;
+
+  /// Detalle tecnico opcional (excepcion, codigo HTTP). Solo para logs: nunca
+  /// se muestra al usuario.
+  final String? detail;
+
+  ErrorBase({required this.code, this.detail});
+}
+
+class Failure extends ErrorBase {
+  Failure({required super.code, super.detail});
+}
