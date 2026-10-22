@@ -1,19 +1,20 @@
 <div align="center">
 
-<img src="assets/images/app_logo.png" width="120" alt="TaxiGo Conductor logo" />
+<img src="assets/images/app_logo.png" width="120" alt="TaxiGo Driver logo" />
 
-# TaxiGo Conductor
+# TaxiGo Driver
 
 **The driver-side app of TaxiGo — a real-time taxi dispatch platform built for the city of Riobamba, Ecuador.**
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.29-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.7-0175C2?logo=dart&logoColor=white)](https://dart.dev)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20RTDB%20%7C%20Firestore%20%7C%20FCM-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
-[![Tests](https://img.shields.io/badge/tests-120%20passing-brightgreen?logo=checkmarx&logoColor=white)]()
-[![CI/CD](https://github.com/areascript22/project-taxi-driver/actions/workflows/deploy_dev.yml/badge.svg)](https://github.com/areascript22/project-taxi-driver/actions)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20RTDB%20%7C%20Storage%20%7C%20FCM-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![Tests](https://img.shields.io/badge/tests-430%2B%20passing-brightgreen?logo=checkmarx&logoColor=white)]()
+[![QA deploy](https://github.com/areascript22/project-taxi-driver/actions/workflows/deploy_qa.yml/badge.svg)](https://github.com/areascript22/project-taxi-driver/actions/workflows/deploy_qa.yml)
+[![Production deploy](https://github.com/areascript22/project-taxi-driver/actions/workflows/deploy_prod.yml/badge.svg)](https://github.com/areascript22/project-taxi-driver/actions/workflows/deploy_prod.yml)
 [![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)]()
 
-[Overview](#-overview) • [Screenshots](#-screenshots) • [Architecture](#-architecture) • [Tech Stack](#-tech-stack) • [Testing](#-testing) • [CI/CD](#-cicd) • [Getting Started](#-getting-started)
+[Overview](#-overview) • [Screenshots](#-screenshots) • [Features](#-key-features) • [Architecture](#-architecture) • [Tech Stack](#-tech-stack) • [Testing](#-testing) • [CI/CD](#-cicd) • [Getting Started](#-getting-started)
 
 </div>
 
@@ -21,11 +22,15 @@
 
 ## 📖 Overview
 
-**TaxiGo Conductor** is the driver-facing half of **TaxiGo**, a two-sided, real-time taxi-hailing system: this app, a companion **[passenger app](https://github.com/areascript22/project-taxi-passenger)**, and a private **Spring Boot** backend, all wired together through **Firebase** for live data and push notifications.
+**TaxiGo Driver** is the driver-facing half of **TaxiGo**, a two-sided, real-time taxi-hailing system made of three pieces:
 
-It's not a CRUD toy project — it's a small production system that solves the problems any real dispatch platform has to solve: **race conditions between drivers competing for the same ride**, **background location tracking that survives OEM battery managers**, **offline/latency-tolerant UX**, and **driver verification via an internal admin back-office** — all covered by an automated test suite.
+| Piece | Repository | Role |
+|---|---|---|
+| **TaxiGo Driver** (this repo) | `project-taxi-driver` | Drivers go online, receive ride offers, run the trip |
+| **TaxiGo** (passenger app) | [`project-taxi-passenger`](https://github.com/areascript22/project-taxi-passenger) | Riders request and track a taxi |
+| **TaxiGo backend** | `taxi-backend` (private) | Spring Boot API + PostgreSQL/PostGIS. Source of truth for people, dispatch and the ride lifecycle |
 
-The app is live on Google Play (internal testing track), shipped through a fully automated CI/CD pipeline.
+It is not a CRUD toy: it solves the problems a real dispatch platform has to solve — **race conditions between drivers competing for the same ride**, **background location that survives OEM battery managers**, **a presence switch that must never disagree with the server**, **offline/latency-tolerant UX** and **driver verification through an in-app admin back-office**.
 
 ## 📱 Screenshots
 
@@ -44,31 +49,33 @@ The app is live on Google Play (internal testing track), shipped through a fully
 
 ## ✨ Key Features
 
-- 🔐 **Auth & session** — Google Sign-In on top of Firebase Auth, with session persistence and auto-restore on app relaunch.
-- 🧑‍💼 **Driver onboarding** — multi-step registration for personal data + vehicle info, with document/photo capture uploaded to Firebase Storage.
-- 📡 **Real-time ride requests** — a live Firebase Realtime Database stream of incoming requests, with a guard against double-tap "accept" races between drivers.
-- 🚕 **Full trip lifecycle** — accept → driver arrived → in progress → completed / cancelled. The critical transitions are enforced **server-side** (Spring Boot) to prevent two drivers from accepting the same ride.
-- 🗣️ **Voice + vibration alerts** — the app speaks the destination address out loud and vibrates on every new ride request, driven from a **dedicated foreground-service isolate** so it keeps working even when the app is closed.
-- 🔋 **Resilient background location** — a foreground location service that keeps reporting GPS while the driver is online, including a battery-optimization exemption flow that handles MIUI's asynchronous permission reconciliation.
-- 🔔 **Push notifications** — Firebase Cloud Messaging for ride assignment/cancellation events while the app is killed.
-- 🛠️ **Admin back-office** — an in-app admin screen to search, paginate, inspect and remove drivers/vehicles, built as a lightweight alternative to a separate web dashboard.
-- 🌓 **Theming & preferences** — light/dark/system theme, voice and vibration toggles.
-- 🗺️ **Native navigation handoff** — one tap to open the pickup address directly in Google Maps.
-- ✅ **120 automated tests** (unit + Bloc) covering every business rule, success path, failure path and edge case.
-- 🚀 **Automated release pipeline** — signed, flavored builds shipped straight to the Play Store.
+- 🔐 **Two ways to sign in** (Firebase Auth) — **Google**, or **email and password** with a full flow: sign-up, mandatory **email verification** (an unverified account is signed out and never gets in), and **password reset**. Both lead to the same session flow.
+- 🧑‍💼 **Driver onboarding** — personal data, mandatory profile photo and vehicle (plate, brand, model, year, colour). Ecuadorian mobile numbers are formatted as you type.
+- ✅ **Approval workflow** — new drivers start `pending`; the app routes to *in review*, *rejected* (with the reason) or *blocked* screens until an admin approves them.
+- 📡 **Ride offers, not a firehose** — the server offers each ride to the nearest available drivers in expanding rings; the app listens to its own offer tray in Firebase Realtime Database and shows a countdown per request.
+- 🚕 **Full trip lifecycle** — accept → arrived → in progress → completed / cancelled. Every transition is enforced **server-side** so two drivers can never take the same ride.
+- 🗣️ **Voice + vibration alerts** — the app speaks the pickup *sector* and vibrates on each new request, driven from a **foreground-service isolate**, so it works with the app closed.
+- 🛰️ **Resilient background location** — a foreground service reports GPS while online, with a battery-optimisation exemption flow (including MIUI's delayed permission reconciliation). If GPS is off or unavailable the driver cannot go online, and while online a persistent warning appears after ~15 s of failures.
+- 🔄 **Server-authoritative online switch** — on entering the screen and on resume the app reads the driver's real state from the server and reconciles the local service (stop it, resume it, or keep the local state if offline).
+- 💬 **Realtime chat** with the passenger during a trip.
+- 🔔 **Push notifications** (FCM) for assignments and cancellations while the app is killed, in the user's language.
+- 🛠️ **Admin back-office** — search, paginate, filter by status; approve, reject, block, change role or delete drivers, with a role hierarchy (`driver` < `admin` < `superuser`).
+- 🌐 **Spanish / English** (official `gen-l10n`), with a language selector and light/dark/system theme.
+- 🧭 **Native navigation handoff** — open the pickup in the user's maps app.
+- ⬆️ **Forced-update gate** — the server can require a minimum app version.
 
 ## 🏗️ Architecture
 
-The app follows a **feature-based Clean Architecture**, strictly layered and enforced by convention (see [`CLAUDE.md`](./CLAUDE.md) for the full internal style guide used while building this codebase):
+Feature-based **Clean Architecture**, enforced by convention (see [`CLAUDE.md`](./CLAUDE.md) for the internal style guide):
 
 ```
-UI  →  Bloc / Cubit  →  Repository / Service  →  Firebase · REST API · Device SDK
+UI  →  Bloc / Cubit  →  Repository / Service  →  REST API · Firebase · Device SDK
 ```
 
-- **No `datasource` layer** — repositories/services talk to Firebase, the REST API or the device SDK directly; there's no redundant indirection for its own sake.
-- **Functional error handling** — every repository/service method returns `Future<Either<Failure, Entity>>` (via `dartz`). Exceptions never propagate up; they're caught, logged and converted to a typed `Failure`.
-- **Model ↔ Entity separation** — `data/models` know how to (de)serialize; `domain/entities` are plain, framework-free business objects. The UI and Blocs never see a raw Model.
-- **Dependency Injection** — each feature owns a `get_it` service locator (`init<Feature>DI`), registered independently, so features stay decoupled and easy to test in isolation.
+- **No `datasource` layer** — repositories talk to the API, Firebase or the device SDK directly.
+- **Functional error handling** — every repository method returns `Future<Either<Failure, Entity>>` (`dartz`). Exceptions never propagate; they become a `Failure` carrying a `FailureCode`, and the UI alone decides the localized text.
+- **Model ↔ Entity separation** — models (de)serialize, entities are plain business objects.
+- **Dependency Injection** — each feature owns a `get_it` locator (`init<Feature>DI`).
 
 <div align="center">
 
@@ -78,7 +85,7 @@ flowchart TD
     BLOC["Bloc / Cubit"]
     DOMAIN["Domain — Repository interface + Entities"]
     DATA["Data — Repository impl + Models"]
-    SRC["Firebase / REST API / Device SDK"]
+    SRC["REST API / Firebase / Device SDK"]
 
     UI --> BLOC
     BLOC --> DOMAIN
@@ -93,70 +100,71 @@ flowchart TD
 
 ### The bigger picture
 
-This app is one half of a real-time, two-sided marketplace:
-
 <div align="center">
 
 ```mermaid
 flowchart LR
-    DA["TaxiGo Conductor — this repo"]
+    DA["TaxiGo Driver — this repo"]
     PA["TaxiGo Passenger App"]
-    API["Spring Boot REST API"]
-    RTDB[("Firebase Realtime Database")]
-    FCM["Firebase Cloud Messaging"]
-    FS[("Firestore")]
+    API["Spring Boot API"]
+    PG[("PostgreSQL + PostGIS<br/>people, vehicles, presence")]
+    RTDB[("Realtime Database<br/>live ride + offers")]
+    FS[("Firestore<br/>chat")]
+    FCM["Cloud Messaging"]
 
-    DA -- "accept / arrive / complete / cancel" --> API
+    DA -- "profile, availability, location, ride actions" --> API
     PA -- "request / cancel ride" --> API
-    API -- "writes live ride state" --> RTDB
-    DA -- "listens: new requests + ride updates" --> RTDB
-    PA -- "listens: driver location + ride status" --> RTDB
+    API --> PG
+    API -- "writes ride state + offers" --> RTDB
+    DA -- "listens: offers + ride" --> RTDB
+    PA -- "listens: driver location + ride" --> RTDB
+    API -- "chat messages" --> FS
     API -- "push" --> FCM
     FCM -.-> DA
     FCM -.-> PA
-    DA -- "profile + vehicle docs" --> FS
-    PA -- "profile" --> FS
 ```
 
 </div>
 
-The Spring Boot API owns the source of truth for ride state transitions (accept/cancel/complete), which are moved server-side specifically to avoid race conditions between concurrently-connected drivers — Firebase Realtime Database is used purely for low-latency fan-out of state changes to both clients.
+The API owns every state transition; Realtime Database is only the low-latency fan-out to both apps. Profiles, vehicles and driver presence live in PostgreSQL/PostGIS, which is what makes "nearest available driver" a spatial query.
 
 ### Project structure
 
 ```
 lib/
- ├─ core/            # Cross-cutting: network (Dio client), error types, theming, routing
- ├─ shared/          # Reusable across features: geolocation, voice, vibration, notifications,
- │                    # foreground service, session, settings, feedback
+ ├─ core/            # Dio client, error codes, theme, routing, l10n helpers
+ ├─ shared/          # Cross-feature: geolocation, voice, vibration, notifications,
+ │                   # foreground service, presence, session, settings, connectivity
  └─ feature/
-     ├─ auth/                # Google Sign-In + session bootstrap
-     ├─ driver_profile/      # Driver + vehicle onboarding
-     ├─ incoming_request/    # Live ride-request feed, online/offline toggle
-     ├─ trip/                # Trip lifecycle (arrive / complete / cancel)
-     ├─ profile/             # Driver profile management
-     └─ admin/               # Internal driver/vehicle back-office
-         ├─ presentation/    # pages, widgets, bloc
-         ├─ domain/          # entities, repository contracts
-         ├─ data/            # repository implementation + models
-         └─ di/              # feature-scoped service locator
+     ├─ auth/              # Google + email/password sign-in, sign-up, password reset
+     ├─ driver_profile/    # Onboarding (driver + vehicle)
+     ├─ incoming_request/  # Ride offers feed, online/offline switch
+     ├─ trip/              # Trip lifecycle (arrive / start / complete / cancel)
+     ├─ chat/              # Realtime chat with the passenger
+     ├─ profile/           # Driver profile and vehicle
+     ├─ admin/             # Driver back-office
+     └─ app_update/        # Minimum-version gate
+         ├─ presentation/  # screens, widgets, bloc
+         ├─ domain/        # entities, repository contracts
+         ├─ data/          # repository implementation + models
+         └─ di/            # feature-scoped service locator
 ```
 
 ## 🧰 Tech Stack
 
 | Category | Technology |
 |---|---|
-| Language & Framework | Dart 3.7, Flutter 3.29 |
-| State management | `flutter_bloc` / `bloc` (Bloc pattern only — no ad-hoc `setState`) |
-| Dependency Injection | `get_it`, one locator per feature |
-| Functional error handling | `dartz` (`Either<Failure, T>`) |
+| Language & framework | Dart 3.7, Flutter 3.29 |
+| State management | `flutter_bloc` / `bloc` |
+| Dependency injection | `get_it`, one locator per feature |
+| Error handling | `dartz` (`Either<Failure, T>`) |
 | Networking | `dio` + `dio_smart_retry` |
-| Realtime data | `firebase_database` — live ride & location state |
-| Auth / Data / Storage | `firebase_auth`, `google_sign_in`, `cloud_firestore`, `firebase_storage` |
-| Push notifications | `firebase_messaging`, `flutter_local_notifications` |
-| Location | `geolocator`, `flutter_background_service` (foreground tracking) |
+| Realtime | `firebase_database` |
+| Auth / storage / chat | `firebase_auth`, `google_sign_in`, `firebase_storage`, `cloud_firestore` |
+| Push | `firebase_messaging`, `flutter_local_notifications` |
+| Location & background | `geolocator`, `flutter_background_service`, `permission_handler` |
 | Voice & haptics | `flutter_tts`, `vibration` |
-| Navigation handoff | `map_launcher` |
+| i18n | `flutter_localizations`, `intl` (`gen-l10n`, es/en) |
 | Routing | `go_router` |
 | Config | `flutter_dotenv` (per-flavor `.env`) |
 | Testing | `flutter_test`, `bloc_test`, `mocktail` |
@@ -164,9 +172,7 @@ lib/
 
 ## ✅ Testing
 
-The project ships with **120 automated tests** — pure unit tests for helpers plus full `bloc_test` suites for every Bloc (`auth`, `admin`, `driver_onboarding`, `incoming_request`, `profile`, `trip`, `session`, `settings`, `foreground_service`, `location`), using **mocktail** to mock repositories and services.
-
-Each Bloc is tested for its **initial state**, the **success path** (`Right`), the **failure path** (`Left(Failure)`), **guard clauses** that should make an event a no-op, and — where the Bloc listens to a `Stream` (Firebase Realtime Database, Geolocator's position stream) — the **full sequence of emitted states**, including how the Bloc reacts to a stream error.
+**430+ automated tests**: pure unit tests for helpers, repository tests with mocked Dio / `FirebaseAuth`, a `bloc_test` suite for every Bloc, and widget tests for key components. Each Bloc covers its initial state, success and failure paths, guard clauses and — for stream-backed Blocs — the full emitted sequence including stream errors.
 
 ```bash
 flutter test
@@ -174,13 +180,12 @@ flutter test
 
 ## 🚀 CI/CD
 
-Every push to the `qa` branch triggers a GitHub Actions pipeline that:
+| Branch | Workflow | Result |
+|---|---|---|
+| `qa` | [`deploy_qa.yml`](.github/workflows/deploy_qa.yml) | Builds the signed **dev-flavor** App Bundle (`com.areascript.driver_app.dev`) and uploads it to the Play **internal** track as a draft |
+| `main` | [`deploy_prod.yml`](.github/workflows/deploy_prod.yml) | Builds the signed **prod-flavor** App Bundle (`com.areascript.driver_app`) with the production keystore and uploads it to the Play **internal** track as a draft, to be promoted by hand |
 
-1. Decodes the flavor-specific `.env` file and `google-services.json` from encrypted secrets.
-2. Restores the signing keystore and builds a **signed, flavored App Bundle** (`dev` / `prod` flavors, distinct `applicationId` per flavor).
-3. Uploads the `.aab` straight to the **Google Play internal testing track**.
-
-No manual build-and-upload step — a merge to `qa` is a release candidate on real devices within minutes.
+Each workflow reads its secrets from a GitHub **Environment** (`qa` / `production`): the `.env` file, `google-services.json`, the signing keystore and the Play service-account key. Release flow: `dev` → PR → `qa` (internal test build) → PR → `main` (production build).
 
 ## 🏁 Getting Started
 
@@ -190,15 +195,15 @@ cd project-taxi-driver
 flutter pub get
 ```
 
-**1. Environment variables** — the app reads its backend URL from a per-flavor `.env` file (default path `assets/env/.env_dev`, overridable via `--dart-define=ENV_FILE=...`):
+**1. Environment variables** — the app reads its backend URL from a per-flavor `.env` file (default `assets/env/.env_dev`, overridable with `--dart-define=ENV_FILE=...`):
 
 ```env
 BASE_URL=https://your-backend.example.com
 ```
 
-**2. Firebase** — this repo doesn't ship `google-services.json` (it's injected by CI from a secret). To run locally, add your own Firebase Android config under `android/app/src/dev/google-services.json` (and `/prod` for the prod flavor) using [FlutterFire](https://firebase.flutter.dev/docs/cli/).
+**2. Firebase** — `google-services.json` is not in the repo (CI injects it). Add your own under `android/app/src/dev/` (and `prod/`), e.g. with [FlutterFire](https://firebase.flutter.dev/docs/cli/). Enable the **Google** and **Email/Password** providers in Firebase Authentication.
 
-**3. Run:**
+**3. Run** — always pass a flavor; a bare build targets prod:
 
 ```bash
 flutter run --flavor dev --dart-define=ENV_FILE=assets/env/.env_dev --dart-define=FLAVOR=dev
@@ -206,8 +211,8 @@ flutter run --flavor dev --dart-define=ENV_FILE=assets/env/.env_dev --dart-defin
 
 ## 🔗 Related repositories
 
-- 🙋 **[TaxiGo Passenger App](https://github.com/areascript22/project-taxi-passenger)** — the rider-facing Flutter app, same architecture.
-- ☕ TaxiGo backend — a private Spring Boot REST API that owns ride-state transitions and drives Firebase fan-out.
+- 🙋 **[TaxiGo (passenger app)](https://github.com/areascript22/project-taxi-passenger)** — the rider-facing Flutter app, same architecture.
+- ☕ **TaxiGo backend** — private Spring Boot API with PostgreSQL/PostGIS that owns people, dispatch and ride-state transitions.
 
 ---
 
